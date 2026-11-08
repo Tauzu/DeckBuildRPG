@@ -41,6 +41,8 @@ export interface PlayerView {
   enemyDeckCount: number;
   route: CardInstance[][];
   villageHp: number;
+  /** 敵に残っているダメージ（uid → ダメージ） */
+  enemyDamage: Record<string, number>;
   trashCount: number;
   result: GameResult | null;
 }
@@ -79,6 +81,7 @@ export function viewFor(s: GameState, viewerId: string): PlayerView {
     enemyDeckCount: s.enemyDeck.length,
     route: s.route,
     villageHp: s.villageHp,
+    enemyDamage: s.enemyDamage,
     trashCount: s.trash.length,
     result: s.result,
   };

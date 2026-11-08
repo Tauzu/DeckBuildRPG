@@ -126,14 +126,14 @@ describe("レベルアップ・転職（仕様書 5.2(d)(e)）", () => {
   it("経験値を使い、手札の英雄を廃棄して1つ上のレベルを捨て札に加える", () => {
     let s = visit(["hero_knight_1"]);
     s = mutate(s, (d) => {
-      d.players[0]!.exp = 3;
-      d.players[0]!.totalExp = 3;
+      d.players[0]!.exp = 2;
+      d.players[0]!.totalExp = 2;
     });
     const uid = uidOf(hand(s), "hero_knight_1");
     s = act(s, "p1", { type: "levelUp", uid }).state;
     const p = s.players[0]!;
     expect(p.exp).toBe(0);
-    expect(p.totalExp).toBe(3);
+    expect(p.totalExp).toBe(2);
     expect(p.discard.at(-1)!.defId).toBe("hero_knight_2");
     expect(s.trash.map((c) => c.uid)).toContain(uid);
     // 在庫の Lv1 は上に残ったまま、Lv2 が1枚減る
@@ -144,14 +144,14 @@ describe("レベルアップ・転職（仕様書 5.2(d)(e)）", () => {
   it("経験値が足りない・最大レベル・在庫切れはできない", () => {
     let s = visit(["hero_knight_1", "hero_knight_3", "hero_mage_2"]);
     s = mutate(s, (d) => {
-      d.players[0]!.exp = 4;
+      d.players[0]!.exp = 3;
       d.village.stacks["hero:mage"] = d.village.stacks["hero:mage"]!.filter((c) => c.defId !== "hero_mage_3");
     });
     const h = hand(s);
     expect(errorOf(s, "p1", { type: "levelUp", uid: uidOf(h, "hero_knight_3") })).toBe("MAX_LEVEL");
     expect(errorOf(s, "p1", { type: "levelUp", uid: uidOf(h, "hero_mage_2") })).toBe("NOT_ENOUGH_EXP");
     s = mutate(s, (d) => {
-      d.players[0]!.exp = 5;
+      d.players[0]!.exp = 4;
     });
     expect(errorOf(s, "p1", { type: "levelUp", uid: uidOf(h, "hero_mage_2") })).toBe("STOCK_EMPTY");
     expect(errorOf(s, "p1", { type: "levelUp", uid: uidOf(h, "hero_knight_1") })).toBeNull();

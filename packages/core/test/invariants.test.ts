@@ -114,10 +114,10 @@ describe("見える情報（viewFor）", () => {
     const v = viewFor(s, "p1");
     const me = v.players.find((p) => p.id === "p1")!;
     const other = v.players.find((p) => p.id === "p2")!;
-    expect(me.hand).toHaveLength(5);
+    expect(me.hand).toHaveLength(s.config.handSize);
     expect(other.hand).toBeUndefined();
     expect(other.discard).toBeUndefined();
-    expect(other.handCount).toBe(5);
+    expect(other.handCount).toBe(s.config.handSize);
     const json = JSON.stringify(v);
     for (const c of s.players[1]!.hand) expect(json).not.toContain(`"${c.uid}"`);
     for (const c of s.players[0]!.deck) expect(json).not.toContain(`"${c.uid}"`);
@@ -129,8 +129,8 @@ describe("見える情報（viewFor）", () => {
     const { events } = createGame({ seed: 3, players: players(2) }, reg);
     const forP1 = viewEvents(events, "p1");
     const p2Draw = forP1.find((e) => e.type === "cardsDrawn" && e.playerId === "p2");
-    expect(p2Draw).toMatchObject({ count: 5, uids: [] });
+    expect(p2Draw).toMatchObject({ count: reg.setup.handSize, uids: [] });
     const p1Draw = forP1.find((e) => e.type === "cardsDrawn" && e.playerId === "p1");
-    expect(p1Draw && p1Draw.type === "cardsDrawn" && p1Draw.uids).toHaveLength(5);
+    expect(p1Draw && p1Draw.type === "cardsDrawn" && p1Draw.uids).toHaveLength(reg.setup.handSize);
   });
 });

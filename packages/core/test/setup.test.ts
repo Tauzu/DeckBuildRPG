@@ -29,10 +29,10 @@ describe("カードデータ", () => {
 
 describe("ゲームの準備（仕様書 4章）", () => {
   it.each([
-    [1, 18, 15, 25],
-    [2, 24, 15, 30],
-    [3, 30, 20, 35],
-    [4, 36, 20, 40],
+    [1, 18, 15, 30],
+    [2, 24, 15, 35],
+    [3, 30, 20, 40],
+    [4, 36, 20, 45],
   ])("%i人：敵の山札・耐久値・ボスの生命力", (n, enemyCount, hp, bossHp) => {
     const s = start(n);
     expect(s.enemyDeck).toHaveLength(enemyCount + 1);
@@ -41,11 +41,12 @@ describe("ゲームの準備（仕様書 4章）", () => {
     expect(s.players).toHaveLength(n);
   });
 
-  it("各プレイヤーは初期デッキ10枚から5枚引いている", () => {
+  it("各プレイヤーは初期デッキ10枚から手札の枚数だけ引いている", () => {
     const s = start(4);
+    expect(s.config.handSize).toBe(6);
     for (const p of s.players) {
-      expect(p.hand).toHaveLength(5);
-      expect(p.deck).toHaveLength(5);
+      expect(p.hand).toHaveLength(6);
+      expect(p.deck).toHaveLength(4);
       const ids = [...p.hand, ...p.deck].map((c) => c.defId).sort();
       expect(ids.filter((id) => id === "hero_youth_0")).toHaveLength(3);
       expect(ids.filter((id) => id === "food_bread")).toHaveLength(5);

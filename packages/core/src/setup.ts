@@ -31,6 +31,9 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
       villageHp: pc.villageHp,
       bossHp: pc.bossHp,
       changeClassExp: setup.changeClassExp,
+      persistentDamage: setup.persistentDamage ?? "none",
+      lootToDeck: setup.lootToDeck ?? true,
+      sellLoot: setup.sellLoot ?? false,
     },
     players: [],
     currentPlayer: 0,
@@ -44,6 +47,7 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     route: Array.from({ length: setup.routeLength }, () => []),
     villageHp: pc.villageHp,
     trash: [],
+    enemyDamage: {},
     result: null,
   };
   const ctx: Ctx = { s, reg, events: [] };

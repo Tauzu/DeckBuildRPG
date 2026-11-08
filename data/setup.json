@@ -1,7 +1,9 @@
 {
-  "handSize": 5,
+  "handSize": 6,
   "routeLength": 5,
   "changeClassExp": 2,
+  "persistentDamage": "boss",
+  "sellLoot": true,
   "curseStock": 20,
   "startingDeck": [
     { "id": "hero_youth_0", "count": 3 },
@@ -32,19 +34,19 @@
   },
   "playerCounts": {
     "1": {
-      "villageHp": 15, "bossHp": 25,
+      "villageHp": 15, "bossHp": 30,
       "enemies": { "enemy_goblin": 4, "enemy_wolf": 3, "enemy_skeleton": 2, "enemy_ghost": 2, "enemy_shaman": 2, "enemy_orc": 2, "enemy_gargoyle": 2, "enemy_necro": 1 }
     },
     "2": {
-      "villageHp": 15, "bossHp": 30,
+      "villageHp": 15, "bossHp": 35,
       "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 3, "enemy_ghost": 3, "enemy_shaman": 2, "enemy_orc": 3, "enemy_gargoyle": 3, "enemy_necro": 1 }
     },
     "3": {
-      "villageHp": 20, "bossHp": 35,
+      "villageHp": 20, "bossHp": 40,
       "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 4, "enemy_ghost": 3, "enemy_shaman": 3, "enemy_orc": 4, "enemy_gargoyle": 3, "enemy_necro": 2 }
     },
     "4": {
-      "villageHp": 20, "bossHp": 40,
+      "villageHp": 20, "bossHp": 45,
       "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 4, "enemy_ghost": 4, "enemy_shaman": 4, "enemy_orc": 5, "enemy_gargoyle": 4, "enemy_necro": 2 }
     }
   }

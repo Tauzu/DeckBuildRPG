@@ -28,6 +28,7 @@ export function RouteView() {
                     defId={c.defId}
                     small
                     hp={def.isBoss ? view.config.bossHp : undefined}
+                    damage={view.enemyDamage[c.uid]}
                     highlight={target === c.uid ? "target" : undefined}
                     onClick={choosing ? () => send({ type: "chooseBattle", targetUid: c.uid }) : undefined}
                     disabledReason={choosing ? reasonText(opt) : null}

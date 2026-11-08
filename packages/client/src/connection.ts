@@ -24,7 +24,7 @@ import {
 export interface TurnInfo {
   gold: number;
   slots: { total: number; used: number; left: number };
-  preview: (DamageBreakdown & { hp: number }) | null;
+  preview: (DamageBreakdown & { hp: number; prevDamage: number }) | null;
 }
 
 export interface GameUpdate {

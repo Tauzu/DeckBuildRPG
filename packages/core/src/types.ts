@@ -5,6 +5,7 @@ export type HeroId = string;
 /** 村の在庫の束のID。英雄は "hero:knight"、それ以外はカードIDそのもの */
 export type StackId = string;
 export type Resist = "none" | "half" | "immune";
+export type PersistentDamage = "none" | "boss" | "all";
 
 // ---------------------------------------------------------------------------
 // 効果（仕様書 3.6、設計書 2.6）
@@ -88,6 +89,12 @@ export interface SetupData {
   handSize: number;
   routeLength: number;
   changeClassExp: number;
+  /** 敵に与えたダメージを次の手番に残すか（none：残らない／boss：ボスだけ残る／all：すべて残る） */
+  persistentDamage?: PersistentDamage;
+  /** 倒した敵を捨て札に加えるか（false なら取り除く。調整用） */
+  lootToDeck?: boolean;
+  /** 集落を訪れた手番の終わりに、手札の敵カード（戦利品）を売却して取り除くか */
+  sellLoot?: boolean;
   curseStock: number;
   startingDeck: { id: CardId; count: number }[];
   heroStock: { heroIds: HeroId[]; countsByLevel: Record<string, number> };
@@ -106,6 +113,9 @@ export interface GameConfig {
   villageHp: number;
   bossHp: number;
   changeClassExp: number;
+  persistentDamage: PersistentDamage;
+  lootToDeck: boolean;
+  sellLoot: boolean;
 }
 
 export interface PlayerState {
@@ -202,6 +212,8 @@ export interface GameState {
   villageHp: number;
   /** 廃棄されたカード・集落に着いて取り除かれた敵 */
   trash: CardInstance[];
+  /** 敵に残っているダメージ（uid → ダメージ）。config.persistentDamage が none なら常に空 */
+  enemyDamage: Record<string, number>;
   result: GameResult | null;
 }
 
@@ -261,6 +273,7 @@ export type GameEvent =
   | { type: "deckShuffled"; playerId: string }
   | { type: "cardBought"; playerId: string; uid: string; defId: CardId; cost: number }
   | { type: "cardTrashed"; playerId: string; uid: string; defId: CardId }
+  | { type: "lootSold"; playerId: string; uids: string[]; defIds: CardId[] }
   | { type: "leveledUp"; playerId: string; fromDefId: CardId; toDefId: CardId; exp: number }
   | {
       type: "attackResolved";
@@ -268,6 +281,8 @@ export type GameEvent =
       targetUid: string;
       targetDefId: CardId;
       damage: number;
+      /** 攻撃前に残っていたダメージ */
+      prevDamage: number;
       hp: number;
       defeated: boolean;
     }

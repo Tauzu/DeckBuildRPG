@@ -223,20 +223,26 @@ function confirmAttack(ctx: Ctx): void {
   const def = ctx.reg.enemy(target.defId);
   const hp = enemyHp(s, def);
   const { total } = calcDamage(battleAttackers(s, ctx.reg), def);
-  const defeated = total >= hp;
+  const prevDamage = s.enemyDamage[target.uid] ?? 0;
+  const defeated = prevDamage + total >= hp;
   ctx.events.push({
     type: "attackResolved",
     playerId: p.id,
     targetUid: target.uid,
     targetDefId: target.defId,
     damage: total,
+    prevDamage,
     hp,
     defeated,
   });
+  const keep = s.config.persistentDamage === "all" || (s.config.persistentDamage === "boss" && def.isBoss);
+  if (defeated) delete s.enemyDamage[target.uid];
+  else if (keep && total > 0) s.enemyDamage[target.uid] = prevDamage + total;
 
   if (defeated) {
     takeCard(square, target.uid);
-    p.discard.push(target);
+    if (s.config.lootToDeck) p.discard.push(target);
+    else s.trash.push(target);
     p.exp += def.exp;
     p.totalExp += def.exp;
     p.kills += 1;
@@ -322,6 +328,19 @@ function changeClass(ctx: Ctx, uid: string, heroId: string): void {
 
 function endVisit(ctx: Ctx): void {
   requireStep(ctx, "village");
+  const s = ctx.s;
+  if (s.config.sellLoot) {
+    // 戦利品の売却：手札の敵カードは金として使われたものとして取り除く
+    const p = currentPlayer(s);
+    const loot = p.hand.filter((c) => ctx.reg.get(c.defId).type === "enemy");
+    if (loot.length > 0) {
+      for (const c of loot) {
+        takeCard(p.hand, c.uid);
+        s.trash.push(c);
+      }
+      ctx.events.push({ type: "lootSold", playerId: p.id, uids: loot.map((c) => c.uid), defIds: loot.map((c) => c.defId) });
+    }
+  }
   ctx.s.step = { kind: "turnEnd", skipMarch: false };
 }
 

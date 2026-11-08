@@ -26,7 +26,7 @@ function battle(handIds: string[], enemy: string, square = 2) {
 }
 
 describe("敵を倒す（仕様書 5.3）", () => {
-  it("生命力以上のダメージで撃破し、敵カードと経験値を得る。手番が終わり5枚引く", () => {
+  it("生命力以上のダメージで撃破し、敵カードと経験値を得る。手番が終わり手札を引き直す", () => {
     const { s: s0, target, h } = battle(["food_bread", "hero_knight_1"], "enemy_goblin");
     let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
     s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
@@ -35,10 +35,10 @@ describe("敵を倒す（仕様書 5.3）", () => {
     s = r.state;
     const p = s.players[0]!;
     expect(r.events.find((e) => e.type === "attackResolved")).toMatchObject({ damage: 3, defeated: true });
-    expect(p.discard.map((c) => c.uid)).toContain(target);
+    expect([...p.deck, ...p.hand, ...p.discard].map((c) => c.uid)).toContain(target);
     expect(p.exp).toBe(1);
     expect(p.kills).toBe(1);
-    expect(p.hand).toHaveLength(5);
+    expect(p.hand).toHaveLength(s.config.handSize);
     expect(s.step.kind).toBe("chooseAction");
     expect(s.route.flat().some((c) => c.uid === target)).toBe(false);
   });
@@ -96,24 +96,42 @@ describe("敵を倒す（仕様書 5.3）", () => {
     expect(errorOf(s, "p1", { type: "chooseBattle", targetUid: "x" })).toBe("NO_ENEMY");
   });
 
+  function bossBattle() {
+    const { s, h, target } = battle(["food_feast", "hero_knight_3", "hero_mage_3", "hero_knight_3"], "enemy_dragon", 3);
+    let st = act(s, "p1", { type: "playFood", uid: uidOf(h, "food_feast") }).state;
+    st = act(st, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_3") }).state;
+    st = act(st, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_3", 1) }).state;
+    st = act(st, "p1", { type: "playHero", uid: uidOf(h, "hero_mage_3") }).state;
+    return { s: st, target };
+  }
+
+  it("ボスに与えたダメージは残る（倒しきれなくても削れる）", () => {
+    const { s, target } = bossBattle();
+    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 30, prevDamage: 0 });
+    const r = act(s, "p1", { type: "confirmAttack" });
+    expect(r.state.result).toBeNull();
+    expect(r.state.enemyDamage[target]).toBe(24);
+    expect(r.events.find((e) => e.type === "attackResolved")).toMatchObject({ damage: 24, prevDamage: 0, defeated: false });
+  });
+
+  it("ボス以外の敵のダメージは残らない", () => {
+    const { s: s0, target, h } = battle(["food_bread", "hero_knight_1"], "enemy_orc");
+    let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
+    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
+    s = act(s, "p1", { type: "confirmAttack" }).state;
+    expect(s.enemyDamage[target]).toBeUndefined();
+  });
+
   it("ボスを撃破すると勝利。耐久値の割合でチーム評価が決まる", () => {
-    let { s, h } = battle(["food_feast", "hero_knight_3", "hero_mage_3", "hero_knight_3"], "enemy_dragon", 3);
+    let { s, target } = bossBattle();
     s = mutate(s, (d) => {
       d.villageHp = 12; // 15 の 80%
+      d.enemyDamage[target] = 6; // 前の手番までに削った分
     });
-    s = act(s, "p1", { type: "playFood", uid: uidOf(h, "food_feast") }).state;
-    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_3") }).state;
-    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_3", 1) }).state;
-    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_mage_3") }).state;
-    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 25 });
-    expect(act(s, "p1", { type: "confirmAttack" }).state.result).toBeNull();
-
-    s = mutate(s, (d) => {
-      d.players[0]!.hand.push({ uid: "w1", defId: "weapon_club" });
-    });
-    s = act(s, "p1", { type: "equip", weaponUid: "w1", heroUid: uidOf(h, "hero_mage_3") }).state;
+    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 30, prevDamage: 6 });
     const r = act(s, "p1", { type: "confirmAttack" });
     expect(r.state.result).toMatchObject({ outcome: "win", reason: "bossDefeated", rank: "S" });
+    expect(r.state.enemyDamage[target]).toBeUndefined();
     expect(r.state.step.kind).toBe("finished");
     expect(errorOf(r.state, "p1", { type: "chooseVillage" })).toBe("GAME_OVER");
   });

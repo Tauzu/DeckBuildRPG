@@ -63,8 +63,8 @@ describe("敵の進軍（仕様書 5.4）", () => {
     s = act(s, "p1", timeout!).state;
     expect(s.pending).toBeNull();
     expect(s.step.kind).toBe("chooseAction");
-    expect(s.players[0]!.hand).toHaveLength(4);
-    expect(s.players[1]!.hand).toHaveLength(4);
+    expect(s.players[0]!.hand).toHaveLength(s.config.handSize - 1);
+    expect(s.players[1]!.hand).toHaveLength(s.config.handSize - 1);
   });
 
   it("死霊術師の公開時：全員の捨て札に呪いを1枚加える", () => {

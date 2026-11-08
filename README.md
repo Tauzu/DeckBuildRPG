@@ -11,12 +11,13 @@
 | [docs/計画書.md](docs/計画書.md) | 開発の進め方、スケジュール、リスク |
 | [docs/仕様書.md](docs/仕様書.md) | 実装の基準となる細かいルール |
 | [docs/設計書.md](docs/設計書.md) | プログラムの作り |
+| [docs/バランス調整.md](docs/バランス調整.md) | 自動プレイによる調整の記録 |
 | [docs/進捗.md](docs/進捗.md) | 作業記録 |
 | [docs/デッキビルドRPG構想.txt](docs/デッキビルドRPG構想.txt) | 最初の構想メモ |
 
 ## 状態
 
-開発中（計画書のフェーズ1：ルール実装）。
+開発中（計画書のフェーズ3：バランス調整）。
 
 ## 開発
 
@@ -24,4 +25,6 @@
 npm install
 npm test          # テスト
 npm run typecheck # 型チェック
+npm run dev       # 画面（http://localhost:5173）
+npm run sim -- --players 1 --games 200   # 自動プレイ
 ```

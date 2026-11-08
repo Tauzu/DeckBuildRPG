@@ -86,11 +86,14 @@ export function battleAttackers(s: GameState, reg: CardRegistry): { physical: nu
 }
 
 /** 戦闘中のダメージの見込み。戦闘中でなければ null */
-export function battlePreview(s: GameState, reg: CardRegistry): (DamageBreakdown & { hp: number }) | null {
+export function battlePreview(
+  s: GameState,
+  reg: CardRegistry,
+): (DamageBreakdown & { hp: number; prevDamage: number }) | null {
   if (s.turn?.action !== "battle") return null;
   const targetUid = s.turn.targetUid;
   const target = s.route.flat().find((c) => c.uid === targetUid);
   if (!target) return null;
   const def = reg.enemy(target.defId);
-  return { ...calcDamage(battleAttackers(s, reg), def), hp: enemyHp(s, def) };
+  return { ...calcDamage(battleAttackers(s, reg), def), hp: enemyHp(s, def), prevDamage: s.enemyDamage[targetUid] ?? 0 };
 }

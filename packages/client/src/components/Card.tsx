@@ -11,6 +11,8 @@ interface Props {
   highlight?: "target" | "selected" | "equip" | undefined;
   /** 敵の生命力（ボスは人数で変わるため外から渡す） */
   hp?: number | undefined;
+  /** 敵に残っているダメージ */
+  damage?: number | undefined;
   small?: boolean;
   badge?: ReactNode;
   children?: ReactNode;
@@ -24,7 +26,7 @@ const TYPE_LABEL: Record<CardDef["type"], string> = {
   curse: "呪い",
 };
 
-export function Card({ defId, onClick, disabledReason, highlight, hp, small, badge, children }: Props) {
+export function Card({ defId, onClick, disabledReason, highlight, hp, damage, small, badge, children }: Props) {
   const def = reg.get(defId);
   const clickable = !!onClick && !disabledReason;
   const classes = [
@@ -53,7 +55,7 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, small, bad
           {def.cost !== null && <span className="card-cost" title="コスト">{def.cost}</span>}
         </div>
         <div className="card-name">{cardTitle(def)}</div>
-        <CardBody def={def} hp={hp} />
+        <CardBody def={def} hp={hp} damage={damage} />
         <div className="card-foot">
           <span className="card-gold" title="金価値">
             金 {def.gold}
@@ -66,7 +68,7 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, small, bad
   );
 }
 
-function CardBody({ def, hp }: { def: CardDef; hp?: number | undefined }) {
+function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; damage?: number | undefined }) {
   switch (def.type) {
     case "hero":
       return (
@@ -105,7 +107,9 @@ function CardBody({ def, hp }: { def: CardDef; hp?: number | undefined }) {
       return (
         <div className="card-body">
           <div className="stats">
-            <span className="stat-hp" title="生命力">命 {hp ?? def.hp}</span>
+            <span className="stat-hp" title="生命力">
+              命 {damage ? `${(hp ?? def.hp ?? 0) - damage}/${hp ?? def.hp}` : (hp ?? def.hp)}
+            </span>
             {def.invasion !== null && <span title="侵攻力（集落に着いたときに減らす耐久値）">侵 {def.invasion}</span>}
             <span title="経験値">経 {def.exp}</span>
           </div>
@@ -117,6 +121,8 @@ function CardBody({ def, hp }: { def: CardDef; hp?: number | undefined }) {
           )}
           {def.onReveal && <div className="card-text">出現：{describeEffect(def.onReveal)}</div>}
           {def.onMarch && <div className="card-text">進軍：{describeEffect(def.onMarch)}</div>}
+          {def.isBoss && <div className="card-note">与えたダメージは残る</div>}
+          {!def.isBoss && <div className="card-note">戦利品：集落で金として使うと手放す</div>}
         </div>
       );
     }

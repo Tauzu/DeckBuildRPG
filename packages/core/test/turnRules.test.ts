@@ -67,7 +67,7 @@ describe("敵を撃破した手番は進軍しない", () => {
     expect(r.state.villageHp).toBe(15);
     expect(r.state.enemyDeck).toHaveLength(deckBefore);
     expect(r.state.turnCount).toBe(2);
-    expect(hand(r.state)).toHaveLength(5);
+    expect(hand(r.state)).toHaveLength(r.state.config.handSize);
   });
 
   it("撃破できなかったら通常どおり進軍する", () => {
@@ -88,5 +88,29 @@ describe("敵を撃破した手番は進軍しない", () => {
     const r = act(s, "p1", { type: "confirmAttack" });
     expect(r.state.pending).toBeNull();
     expect(r.state.currentPlayer).toBe(1);
+  });
+});
+
+describe("戦利品の売却", () => {
+  it("集落を訪れた手番の終わりに、手札の敵カードは金として使われて取り除かれる", () => {
+    let s = setHand(start(), 0, ["enemy_orc", "enemy_goblin", "food_bread"]);
+    s = act(s, "p1", { type: "chooseVillage" }).state;
+    s = act(s, "p1", { type: "buy", stackId: "hero:knight" }).state;
+    const r = act(s, "p1", { type: "endVisit" });
+    expect(r.events.find((e) => e.type === "lootSold")).toMatchObject({ defIds: ["enemy_orc", "enemy_goblin"] });
+    const trashed = r.state.trash.map((c) => c.defId);
+    expect(trashed).toContain("enemy_orc");
+    expect(trashed).toContain("enemy_goblin");
+    const p = r.state.players[0]!;
+    // 敵カード以外は通常どおり捨て札へ（その後の引き直しで手札・山札に移ることもある）
+    expect([...p.deck, ...p.hand, ...p.discard].some((c) => c.defId === "food_bread")).toBe(true);
+    expect([...p.deck, ...p.hand, ...p.discard].some((c) => c.defId.startsWith("enemy_"))).toBe(false);
+  });
+
+  it("戦闘した手番では売却されない", () => {
+    const placed = placeEnemy(setHand(start(), 0, ["enemy_orc", "food_bread", "hero_knight_1"]), 2, "enemy_goblin");
+    let s = act(placed.state, "p1", { type: "chooseBattle", targetUid: placed.uid }).state;
+    s = act(s, "p1", { type: "confirmAttack" }).state;
+    expect(s.trash.some((c) => c.defId === "enemy_orc")).toBe(false);
   });
 });

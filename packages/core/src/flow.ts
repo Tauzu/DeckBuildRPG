@@ -90,6 +90,7 @@ function moveEnemies(ctx: Ctx): void {
     const damage = def.invasion ?? 0;
     s.villageHp -= damage;
     s.trash.push(enemy);
+    delete s.enemyDamage[enemy.uid];
     ctx.events.push({ type: "enemyArrived", uid: enemy.uid, defId: enemy.defId, damage, villageHp: s.villageHp });
     if (s.villageHp <= 0) {
       endGame(ctx, "lose", "villageDestroyed");

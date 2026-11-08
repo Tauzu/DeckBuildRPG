@@ -46,7 +46,7 @@ export function ActionBar() {
       </button>
     );
   } else if (step === "village") {
-    message = "集落：手札の食料→英雄で村効果を使う／在庫をクリックして購入／英雄のレベルアップ";
+    message = "集落：手札の食料→英雄で村効果を使う／在庫をクリックして購入／英雄のレベルアップ（手札の戦利品は訪問の終わりに売却）";
     detail = (
       <div className="info-row">
         <span className="info-gold">所持金 {info.gold}</span>
@@ -84,12 +84,15 @@ export function ActionBar() {
           </span>
         )}
         <span>英雄の枠 {info.slots.used} / {info.slots.total}</span>
+        {p && p.prevDamage > 0 && <span>これまでのダメージ {p.prevDamage}</span>}
         {p && (
-          <span className={p.total >= p.hp ? "info-ok" : "info-ng"}>
+          <span className={p.prevDamage + p.total >= p.hp ? "info-ok" : "info-ng"}>
             ダメージ見込み {p.total}
             {(p.physical !== p.physicalAfter || p.magic !== p.magicAfter) &&
               `（物理 ${p.physical}→${p.physicalAfter}、魔法 ${p.magic}→${p.magicAfter}）`}
-            {p.total >= p.hp ? " … 倒せる！（撃破すればこの手番は敵が進軍しない）" : ` … あと ${p.hp - p.total}`}
+            {p.prevDamage + p.total >= p.hp
+              ? " … 倒せる！（撃破すればこの手番は敵が進軍しない）"
+              : ` … あと ${p.hp - p.prevDamage - p.total}`}
           </span>
         )}
       </div>

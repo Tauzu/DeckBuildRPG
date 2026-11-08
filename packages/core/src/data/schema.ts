@@ -78,6 +78,9 @@ export const setupFileSchema = z.object({
   handSize: positive,
   routeLength: positive,
   changeClassExp: positive,
+  persistentDamage: z.enum(["none", "boss", "all"]).optional(),
+  lootToDeck: z.boolean().optional(),
+  sellLoot: z.boolean().optional(),
   curseStock: nonNeg,
   startingDeck: z.array(countEntry).min(1),
   heroStock: z.object({

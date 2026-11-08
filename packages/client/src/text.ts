@@ -103,6 +103,8 @@ export function eventText(
       return `${byUid(e.heroUid)}に${byUid(e.weaponUid)}を装備した`;
     case "cardBought":
       return `${name(e.defId)}を購入した（${e.cost}金）`;
+    case "lootSold":
+      return `戦利品を売却した：${e.defIds.map(name).join("、")}`;
     case "cardTrashed":
       return `${name(e.defId)}を廃棄した`;
     case "leveledUp": {
@@ -111,8 +113,10 @@ export function eventText(
         ? `村の若者が${name(e.toDefId)}に転職した（経験値-${e.exp}）`
         : `${name(e.fromDefId)}が${name(e.toDefId)}にレベルアップした（経験値-${e.exp}）`;
     }
-    case "attackResolved":
-      return `${name(e.targetDefId)}に${e.damage}ダメージ（生命力${e.hp}）… ${e.defeated ? "撃破！" : "倒せなかった"}`;
+    case "attackResolved": {
+      const sum = e.prevDamage > 0 ? `（累計 ${e.prevDamage + e.damage} / 生命力${e.hp}）` : `（生命力${e.hp}）`;
+      return `${name(e.targetDefId)}に${e.damage}ダメージ${sum}… ${e.defeated ? "撃破！" : "倒せなかった"}`;
+    }
     case "expGained":
       return `経験値+${e.amount}`;
     case "enemyRevealed": {
