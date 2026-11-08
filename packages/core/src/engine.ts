@@ -80,6 +80,7 @@ export function legalActions(state: GameState, playerId: string, reg: CardRegist
       for (const c of state.route.flat()) candidates.push({ type: "chooseBattle", targetUid: c.uid });
       break;
     case "village":
+      candidates.push({ type: "cancelAction" });
       for (const c of me.hand) {
         const t = reg.get(c.defId).type;
         if (t === "food") candidates.push({ type: "playFood", uid: c.uid });
@@ -97,6 +98,7 @@ export function legalActions(state: GameState, playerId: string, reg: CardRegist
       candidates.push({ type: "endVisit" });
       break;
     case "battle": {
+      candidates.push({ type: "cancelAction" });
       const heroesOnField = me.field.filter((c) => reg.get(c.defId).type === "hero");
       for (const c of me.hand) {
         const t = reg.get(c.defId).type;

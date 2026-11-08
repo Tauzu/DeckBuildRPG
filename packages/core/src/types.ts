@@ -126,13 +126,22 @@ export type Step =
   | { kind: "chooseAction" }
   | { kind: "village" }
   | { kind: "battle" }
-  | { kind: "turnEnd" }
+  /** skipMarch：敵を撃破した手番は進軍しない（仕様書 5.4） */
+  | { kind: "turnEnd"; skipMarch: boolean }
   | { kind: "march"; phase: "move" | "onMarch" | "reveal" }
   | { kind: "nextTurn" }
   | { kind: "finished" };
 
 export type TurnState =
-  | { action: "village"; foodSlots: number; usedSlots: number; bonusGold: number; spentGold: number }
+  | {
+      action: "village";
+      foodSlots: number;
+      usedSlots: number;
+      bonusGold: number;
+      spentGold: number;
+      /** 取り消せない操作（カードを出す・購入・レベルアップ・転職）をしたか */
+      acted: boolean;
+    }
   | {
       action: "battle";
       targetUid: string;
@@ -202,6 +211,7 @@ export interface GameState {
 export type Action =
   | { type: "chooseVillage" }
   | { type: "chooseBattle"; targetUid: string }
+  | { type: "cancelAction" }
   | { type: "playFood"; uid: string }
   | { type: "playHero"; uid: string }
   | { type: "equip"; weaponUid: string; heroUid: string }
@@ -232,6 +242,7 @@ export type ErrorCode =
   | "ALREADY_EQUIPPED"
   | "NO_ENEMY"
   | "CANNOT_UNDO"
+  | "CANNOT_CANCEL"
   | "INVALID_SELECTION";
 
 // ---------------------------------------------------------------------------
@@ -240,6 +251,8 @@ export type ErrorCode =
 export type GameEvent =
   | { type: "turnStarted"; playerId: string; turnCount: number }
   | { type: "actionChosen"; playerId: string; action: "village" | "battle"; targetUid?: string }
+  | { type: "actionCanceled"; playerId: string }
+  | { type: "marchSkipped"; playerId: string }
   | { type: "cardPlayed"; playerId: string; uid: string; defId: CardId }
   | { type: "cardReturned"; playerId: string; uid: string; defId: CardId }
   | { type: "weaponEquipped"; playerId: string; heroUid: string; weaponUid: string }

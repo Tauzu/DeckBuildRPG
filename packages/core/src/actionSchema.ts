@@ -8,6 +8,7 @@ const uids = z.array(id).max(64);
 export const actionSchema: z.ZodType<Action> = z.discriminatedUnion("type", [
   z.object({ type: z.literal("chooseVillage") }),
   z.object({ type: z.literal("chooseBattle"), targetUid: id }),
+  z.object({ type: z.literal("cancelAction") }),
   z.object({ type: z.literal("playFood"), uid: id }),
   z.object({ type: z.literal("playHero"), uid: id }),
   z.object({ type: z.literal("equip"), weaponUid: id, heroUid: id }),

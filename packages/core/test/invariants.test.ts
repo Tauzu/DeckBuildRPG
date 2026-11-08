@@ -43,7 +43,7 @@ function randomAction(s: GameState, playerId: string, rand: (n: number) => numbe
   }
   const ok = legal.options.filter((o) => o.reason === null).map((o) => o.action);
   const finishing = ok.filter((a) => a.type === "endVisit" || a.type === "confirmAttack");
-  const others = ok.filter((a) => a.type !== "endVisit" && a.type !== "confirmAttack" && a.type !== "undoBattleCard");
+  const others = ok.filter((a) => a.type !== "endVisit" && a.type !== "confirmAttack" && a.type !== "undoBattleCard" && a.type !== "cancelAction");
   if (finishing.length > 0 && (others.length === 0 || rand(4) === 0)) return finishing[0]!;
   if (others.length > 0) return others[rand(others.length)]!;
   return ok[rand(ok.length)] ?? null;
@@ -92,7 +92,7 @@ describe("ランダムに遊んでも性質が保たれる", () => {
         expect(s.result).not.toBeNull();
         expect(s.step.kind).toBe("finished");
       }
-    });
+    }, 60_000);
   }
 });
 

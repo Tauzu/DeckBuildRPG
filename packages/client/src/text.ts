@@ -19,6 +19,7 @@ export const ERROR_TEXT: Record<ErrorCode, string> = {
   ALREADY_EQUIPPED: "すでに武器を装備しています",
   NO_ENEMY: "敵がいません",
   CANNOT_UNDO: "先に英雄を戻してください",
+  CANNOT_CANCEL: "すでに集落で行動したため選び直せません",
   INVALID_SELECTION: "選び方が正しくありません",
 };
 
@@ -90,6 +91,10 @@ export function eventText(
       return `―― 手番 ${e.turnCount}（${playerName(e.playerId)}）――`;
     case "actionChosen":
       return e.action === "village" ? "集落を訪れた" : `${byUid(e.targetUid ?? "")}に戦いを挑んだ`;
+    case "actionCanceled":
+      return "行動を選び直した";
+    case "marchSkipped":
+      return "敵を撃破したため、この手番は敵が進軍しなかった";
     case "cardPlayed":
       return `${name(e.defId)}を出した`;
     case "cardReturned":

@@ -11,6 +11,19 @@ export function ActionBar() {
   const me = view.players.find((p) => p.id === view.viewerId)!;
   const step = view.step.kind;
   const myTurn = legal.waitingForMe && !legal.selection;
+  const cancel = findOption(legal.options, (a) => a.type === "cancelAction");
+  const cancelReason = reasonText(cancel);
+  const cancelButton = (
+    <button
+      type="button"
+      className="ghost"
+      disabled={!!cancelReason}
+      title={cancelReason ?? "行動の選択に戻ります"}
+      onClick={() => send({ type: "cancelAction" })}
+    >
+      選び直す
+    </button>
+  );
 
   let message = "";
   let buttons = null;
@@ -41,9 +54,12 @@ export function ActionBar() {
       </div>
     );
     buttons = (
-      <button type="button" className="primary" onClick={() => send({ type: "endVisit" })}>
-        訪問を終える
-      </button>
+      <>
+        {cancelButton}
+        <button type="button" className="primary" onClick={() => send({ type: "endVisit" })}>
+          訪問を終える
+        </button>
+      </>
     );
   } else if (step === "battle") {
     const targetUid = view.turn?.action === "battle" ? view.turn.targetUid : null;
@@ -73,13 +89,14 @@ export function ActionBar() {
             ダメージ見込み {p.total}
             {(p.physical !== p.physicalAfter || p.magic !== p.magicAfter) &&
               `（物理 ${p.physical}→${p.physicalAfter}、魔法 ${p.magic}→${p.magicAfter}）`}
-            {p.total >= p.hp ? " … 倒せる！" : ` … あと ${p.hp - p.total}`}
+            {p.total >= p.hp ? " … 倒せる！（撃破すればこの手番は敵が進軍しない）" : ` … あと ${p.hp - p.total}`}
           </span>
         )}
       </div>
     );
     buttons = (
       <>
+        {cancelButton}
         {selectedWeapon && (
           <button type="button" className="ghost" onClick={() => selectWeapon(null)}>
             武器の選択をやめる

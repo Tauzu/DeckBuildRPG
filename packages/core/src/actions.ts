@@ -30,6 +30,8 @@ export function dispatch(ctx: Ctx, playerId: string, action: Action): void {
       return chooseVillage(ctx);
     case "chooseBattle":
       return chooseBattle(ctx, action.targetUid);
+    case "cancelAction":
+      return cancelAction(ctx);
     case "playFood":
       return playFood(ctx, action.uid);
     case "playHero":
@@ -79,7 +81,7 @@ function requireGoldAfterLoss(ctx: Ctx, lost: number): void {
 function chooseVillage(ctx: Ctx): void {
   requireStep(ctx, "chooseAction");
   const s = ctx.s;
-  s.turn = { action: "village", foodSlots: 0, usedSlots: 0, bonusGold: 0, spentGold: 0 };
+  s.turn = { action: "village", foodSlots: 0, usedSlots: 0, bonusGold: 0, spentGold: 0, acted: false };
   s.step = { kind: "village" };
   ctx.events.push({ type: "actionChosen", playerId: currentPlayer(s).id, action: "village" });
 }
@@ -92,6 +94,27 @@ function chooseBattle(ctx: Ctx, targetUid: string): void {
   s.turn = { action: "battle", targetUid, foodSlots: 0, usedSlots: 0, equips: {} };
   s.step = { kind: "battle" };
   ctx.events.push({ type: "actionChosen", playerId: currentPlayer(s).id, action: "battle", targetUid });
+}
+
+/** 選んだ行動を取り消して、行動の選択に戻る */
+function cancelAction(ctx: Ctx): void {
+  requireStep(ctx, "village", "battle");
+  const s = ctx.s;
+  const p = currentPlayer(s);
+  const turn = s.turn;
+  if (turn?.action === "village" && turn.acted) fail("CANNOT_CANCEL", "すでに集落で行動したため取り消せません");
+  // 戦闘は確定前なら何も確定していないので、出したカードを手札に戻して取り消せる
+  for (const c of p.field.splice(0)) {
+    p.hand.push(c);
+    ctx.events.push({ type: "cardReturned", playerId: p.id, uid: c.uid, defId: c.defId });
+  }
+  s.turn = null;
+  s.step = { kind: "chooseAction" };
+  ctx.events.push({ type: "actionCanceled", playerId: p.id });
+}
+
+function markActed(ctx: Ctx): void {
+  if (ctx.s.turn?.action === "village") ctx.s.turn.acted = true;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,6 +130,7 @@ function playFood(ctx: Ctx, uid: string): void {
   takeCard(p.hand, uid);
   p.field.push(card);
   s.turn!.foodSlots += def.food;
+  markActed(ctx);
   ctx.events.push({ type: "cardPlayed", playerId: p.id, uid, defId: card.defId });
 }
 
@@ -122,6 +146,7 @@ function playHero(ctx: Ctx, uid: string): void {
   takeCard(p.hand, uid);
   p.field.push(card);
   turn.usedSlots += 1;
+  markActed(ctx);
   ctx.events.push({ type: "cardPlayed", playerId: p.id, uid, defId: card.defId });
   if (turn.action === "village" && def.villageEffect) enqueueEffect(ctx, def.villageEffect, uid, p.id);
 }
@@ -221,7 +246,7 @@ function confirmAttack(ctx: Ctx): void {
       return;
     }
   }
-  s.step = { kind: "turnEnd" };
+  s.step = { kind: "turnEnd", skipMarch: defeated };
 }
 
 // ---------------------------------------------------------------------------
@@ -243,6 +268,7 @@ function buy(ctx: Ctx, stackId: string): void {
   if (gold < def.cost) fail("NOT_ENOUGH_GOLD", "金が足りません");
   stack.shift();
   turn.spentGold += def.cost;
+  turn.acted = true;
   p.discard.push(top);
   ctx.events.push({ type: "cardBought", playerId: p.id, uid: top.uid, defId: top.defId, cost: def.cost });
 }
@@ -265,6 +291,7 @@ function levelUp(ctx: Ctx, uid: string): void {
   takeCard(p.hand, uid);
   s.trash.push(card);
   p.exp -= def.nextLevelExp;
+  markActed(ctx);
   p.discard.push(next!);
   ctx.events.push({ type: "leveledUp", playerId: p.id, fromDefId: card.defId, toDefId: next!.defId, exp: def.nextLevelExp });
 }
@@ -288,13 +315,14 @@ function changeClass(ctx: Ctx, uid: string, heroId: string): void {
   takeCard(p.hand, uid);
   s.trash.push(card);
   p.exp -= cost;
+  markActed(ctx);
   p.discard.push(next!);
   ctx.events.push({ type: "leveledUp", playerId: p.id, fromDefId: card.defId, toDefId: next!.defId, exp: cost });
 }
 
 function endVisit(ctx: Ctx): void {
   requireStep(ctx, "village");
-  ctx.s.step = { kind: "turnEnd" };
+  ctx.s.step = { kind: "turnEnd", skipMarch: false };
 }
 
 // ---------------------------------------------------------------------------

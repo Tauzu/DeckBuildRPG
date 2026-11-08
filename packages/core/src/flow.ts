@@ -27,7 +27,13 @@ export function advance(ctx: Ctx): void {
         return;
       case "turnEnd":
         endTurn(ctx);
-        s.step = { kind: "march", phase: "move" };
+        if (step.skipMarch) {
+          // 敵を撃破した手番は進軍しない（仕様書 5.4）
+          ctx.events.push({ type: "marchSkipped", playerId: currentPlayer(s).id });
+          s.step = { kind: "nextTurn" };
+        } else {
+          s.step = { kind: "march", phase: "move" };
+        }
         break;
       case "march":
         if (step.phase === "move") {

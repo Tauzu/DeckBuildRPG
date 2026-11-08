@@ -47,7 +47,12 @@ function logLines(u: GameUpdate, playerName: (id: string) => string): LogLine[] 
     if (!text) continue;
     let kind: LogLine["kind"] = "normal";
     if (e.type === "turnStarted") kind = "turn";
-    else if ((e.type === "attackResolved" && e.defeated) || (e.type === "gameEnded" && e.result.outcome === "win")) kind = "good";
+    else if (
+      (e.type === "attackResolved" && e.defeated) ||
+      e.type === "marchSkipped" ||
+      (e.type === "gameEnded" && e.result.outcome === "win")
+    )
+      kind = "good";
     else if (e.type === "enemyArrived" || e.type === "enemyRevealed" || e.type === "gameEnded" || e.type === "attackResolved")
       kind = "bad";
     lines.push({ id: ++logId, text, kind });
