@@ -1,0 +1,27 @@
+# 依存パッケージ
+node_modules/
+
+# ビルド結果
+dist/
+build/
+*.tsbuildinfo
+
+# テスト・自動プレイの出力
+coverage/
+sim-output/
+
+# ログ
+*.log
+npm-debug.log*
+
+# 環境変数
+.env
+.env.*
+
+# OS・エディタ
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
