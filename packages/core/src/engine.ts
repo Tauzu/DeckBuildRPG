@@ -110,6 +110,18 @@ export function legalActions(state: GameState, playerId: string, reg: CardRegist
       candidates.push({ type: "confirmAttack" });
       break;
     }
+    case "afterBattle":
+      for (const c of [...me.field, ...me.hand]) {
+        if (reg.get(c.defId).type !== "hero") continue;
+        const hd = reg.hero(c.defId);
+        if (hd.level === 0) {
+          for (const heroId of reg.setup.heroStock.heroIds) candidates.push({ type: "changeClass", uid: c.uid, heroId });
+        } else {
+          candidates.push({ type: "levelUp", uid: c.uid });
+        }
+      }
+      candidates.push({ type: "finishBattle" });
+      break;
     default:
       return none;
   }
@@ -154,6 +166,8 @@ export function timeoutAction(state: GameState, playerId: string): Action | null
       return { type: "endVisit" };
     case "battle":
       return { type: "confirmAttack" };
+    case "afterBattle":
+      return { type: "finishBattle" };
     default:
       return null;
   }

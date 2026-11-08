@@ -49,8 +49,8 @@ function foodOf(reg: CardRegistry, c: CardInstance): number {
 }
 
 /** 手札だけで出せる最大ダメージの見込み（貪欲法） */
-export function maxDamage(reg: CardRegistry, hand: CardInstance[], e: EnemyDef): number {
-  const slots = hand.reduce((n, c) => n + foodOf(reg, c), 0);
+export function maxDamage(reg: CardRegistry, hand: CardInstance[], e: EnemyDef, freeSlots = 0): number {
+  const slots = hand.reduce((n, c) => n + foodOf(reg, c), freeSlots);
   const heroes = hand
     .filter((c) => reg.get(c.defId).type === "hero")
     .sort((a, b) => valueAgainst(reg, b, e) - valueAgainst(reg, a, e))
@@ -132,6 +132,8 @@ export function smartBot(opts: SmartOptions, name = "smart"): Bot {
           return villageStep(s, p, reg);
         case "battle":
           return battleStep(s, p, reg);
+        case "afterBattle":
+          return afterBattleStep(s, p, reg);
         default:
           throw new Error(`ボットが操作できない段階です: ${s.step.kind}`);
       }
@@ -144,7 +146,7 @@ function chooseAction(s: GameState, p: PlayerState, reg: CardRegistry, opts: Sma
   s.route.forEach((square, i) => {
     for (const c of square) {
       const e = reg.enemy(c.defId);
-      if ((s.enemyDamage[c.uid] ?? 0) + maxDamage(reg, p.hand, e) < enemyHp(s, e)) continue;
+      if ((s.enemyDamage[c.uid] ?? 0) + maxDamage(reg, p.hand, e, s.config.freeHeroSlots) < enemyHp(s, e)) continue;
       const score = opts.target === "closest" ? i * 100 + e.exp : e.exp * 100 + i;
       if (!best || score > best.score) best = { uid: c.uid, score };
     }
@@ -167,7 +169,7 @@ function chooseAction(s: GameState, p: PlayerState, reg: CardRegistry, opts: Sma
         const e = reg.enemy(c.defId);
         if (mode === "boss" && !e.isBoss) continue;
         if (!e.isBoss && i < 3) continue;
-        const dmg = maxDamage(reg, p.hand, e);
+        const dmg = maxDamage(reg, p.hand, e, s.config.freeHeroSlots);
         if (dmg < Math.min(4, enemyHp(s, e))) continue;
         const score = (e.isBoss ? 1000 : 0) + i * 10 + dmg;
         if (!chip || score > chip.score) chip = { uid: c.uid, score };
@@ -208,7 +210,7 @@ function villageStep(s: GameState, p: PlayerState, reg: CardRegistry): Action {
     return d.type === "hero" && d.villageEffect !== null;
   });
   if (effectHeroes.length > 0) {
-    if (turn.usedSlots < turn.foodSlots) {
+    if (turn.usedSlots < turn.foodSlots + s.config.freeHeroSlots) {
       const order = ["draw", "multi", "gold", "trash", "exp"];
       const next = [...effectHeroes].sort(
         (a, b) => order.indexOf(reg.hero(a.defId).villageEffect!.kind) - order.indexOf(reg.hero(b.defId).villageEffect!.kind),
@@ -224,6 +226,23 @@ function villageStep(s: GameState, p: PlayerState, reg: CardRegistry): Action {
   if (buy) return { type: "buy", stackId: buy };
 
   return { type: "endVisit" };
+}
+
+/** 撃破直後：場と手札の英雄を、レベルの高い順にレベルアップ。次に若者の転職 */
+function afterBattleStep(s: GameState, p: PlayerState, reg: CardRegistry): Action {
+  const heroes = [...p.field, ...p.hand].filter((c) => reg.get(c.defId).type === "hero");
+  const levelable = heroes
+    .map((c) => ({ c, d: reg.hero(c.defId) }))
+    .filter(({ d }) => d.level > 0 && d.nextLevelExp !== null && p.exp >= d.nextLevelExp)
+    .filter(({ d }) => (s.village.stacks[heroStackId(d.heroId)] ?? []).some((x) => reg.hero(x.defId).level === d.level + 1))
+    .sort((a, b) => b.d.level - a.d.level);
+  if (levelable[0]) return { type: "levelUp", uid: levelable[0].c.uid };
+  const youth = heroes.find((c) => reg.hero(c.defId).level === 0);
+  if (youth && p.exp >= s.config.changeClassExp) {
+    const heroId = pickHeroId(s, p, reg);
+    if (heroId) return { type: "changeClass", uid: youth.uid, heroId };
+  }
+  return { type: "finishBattle" };
 }
 
 function pickHeroId(s: GameState, p: PlayerState, reg: CardRegistry): string | null {
@@ -270,7 +289,7 @@ function battleStep(s: GameState, p: PlayerState, reg: CardRegistry): Action {
   const food = p.hand.find((c) => reg.get(c.defId).type === "food");
   if (food) return { type: "playFood", uid: food.uid };
 
-  if (turn.usedSlots < turn.foodSlots) {
+  if (turn.usedSlots < turn.foodSlots + s.config.freeHeroSlots) {
     const hero = p.hand
       .filter((c) => reg.get(c.defId).type === "hero")
       .sort((a, b) => valueAgainst(reg, b, e) - valueAgainst(reg, a, e))[0];

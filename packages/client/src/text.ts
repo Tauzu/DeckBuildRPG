@@ -9,7 +9,7 @@ export const ERROR_TEXT: Record<ErrorCode, string> = {
   INVALID_STEP: "今はその操作はできません",
   CARD_NOT_FOUND: "そのカードは使えません",
   WRONG_CARD_TYPE: "そのカードでは行えません",
-  NO_SLOT: "食料が足りません（英雄は食糧値の枚数まで）",
+  NO_SLOT: "食料が足りません（英雄は1人＋食糧値の人数まで）",
   NOT_ENOUGH_GOLD: "金が足りません",
   NOT_ENOUGH_EXP: "経験値が足りません",
   STOCK_EMPTY: "在庫がありません",

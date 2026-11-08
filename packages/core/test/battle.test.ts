@@ -32,7 +32,8 @@ describe("敵を倒す（仕様書 5.3）", () => {
     s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
     expect(battlePreview(s, reg)).toMatchObject({ total: 3, hp: 3 });
     const r = act(s, "p1", { type: "confirmAttack" });
-    s = r.state;
+    expect(r.state.step.kind).toBe("afterBattle");
+    s = act(r.state, "p1", { type: "finishBattle" }).state;
     const p = s.players[0]!;
     expect(r.events.find((e) => e.type === "attackResolved")).toMatchObject({ damage: 3, defeated: true });
     expect([...p.deck, ...p.hand, ...p.discard].map((c) => c.uid)).toContain(target);
@@ -69,19 +70,58 @@ describe("敵を倒す（仕様書 5.3）", () => {
   });
 
   it("確定前なら出したカードを手札に戻せる。英雄を戻すと装備した武器も戻る", () => {
-    const { s: s0, h } = battle(["food_bread", "hero_knight_1", "weapon_sword"], "enemy_wolf");
+    const { s: s0, h } = battle(["food_bread", "hero_knight_1", "hero_mage_1", "weapon_sword"], "enemy_wolf");
     const knight = uidOf(h, "hero_knight_1");
+    const mage = uidOf(h, "hero_mage_1");
     const bread = uidOf(h, "food_bread");
     let s = act(s0, "p1", { type: "playFood", uid: bread }).state;
     s = act(s, "p1", { type: "playHero", uid: knight }).state;
+    s = act(s, "p1", { type: "playHero", uid: mage }).state;
     s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_sword"), heroUid: knight }).state;
+    // 英雄2人（食料1＋無料の1枠）が出ているので、食料は戻せない
     expect(errorOf(s, "p1", { type: "undoBattleCard", uid: bread })).toBe("CANNOT_UNDO");
     s = act(s, "p1", { type: "undoBattleCard", uid: knight }).state;
     expect(hand(s)).toHaveLength(2);
-    expect(s.players[0]!.field.map((c) => c.uid)).toEqual([bread]);
+    expect(s.players[0]!.field.map((c) => c.uid)).toEqual([bread, mage]);
     s = act(s, "p1", { type: "undoBattleCard", uid: bread }).state;
-    expect(hand(s)).toHaveLength(3);
+    s = act(s, "p1", { type: "undoBattleCard", uid: mage }).state;
+    expect(hand(s)).toHaveLength(4);
     expect(s.turn).toMatchObject({ foodSlots: 0, usedSlots: 0, equips: {} });
+  });
+
+  it("食料がなくても英雄を1人出せる。2人目からは食料が必要", () => {
+    const { s: s0, h } = battle(["hero_knight_1", "hero_mage_1"], "enemy_goblin");
+    const s = act(s0, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
+    expect(errorOf(s, "p1", { type: "playHero", uid: uidOf(h, "hero_mage_1") })).toBe("NO_SLOT");
+  });
+
+  it("撃破した直後に、戦った英雄（場）をレベルアップできる。終えると手番が終わる", () => {
+    const { s: s0, h } = battle(["hero_knight_1", "hero_mage_1"], "enemy_goblin");
+    let s = mutate(s0, (d) => {
+      d.players[0]!.exp = 1;
+    });
+    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
+    s = act(s, "p1", { type: "confirmAttack" }).state;
+    expect(s.step.kind).toBe("afterBattle");
+    expect(s.players[0]!.exp).toBe(2);
+    // 手札の英雄も対象
+    expect(errorOf(s, "p1", { type: "levelUp", uid: uidOf(h, "hero_mage_1") })).toBeNull();
+    expect(errorOf(s, "p1", { type: "chooseVillage" })).toBe("INVALID_STEP");
+    s = act(s, "p1", { type: "levelUp", uid: uidOf(h, "hero_knight_1") }).state;
+    const p = s.players[0]!;
+    expect(p.exp).toBe(0);
+    expect(p.field.some((c) => c.defId === "hero_knight_1")).toBe(false);
+    expect(p.discard.some((c) => c.defId === "hero_knight_2")).toBe(true);
+    const r = act(s, "p1", { type: "finishBattle" });
+    expect(r.events.some((e) => e.type === "marchSkipped")).toBe(true);
+    expect(r.state.step.kind).toBe("chooseAction");
+  });
+
+  it("撃破できなかったときは、レベルアップの段階にならない", () => {
+    const { s: s0, h } = battle(["hero_knight_1"], "enemy_orc");
+    let s = act(s0, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
+    s = act(s, "p1", { type: "confirmAttack" }).state;
+    expect(s.step.kind).toBe("chooseAction");
   });
 
   it("村効果は戦闘では発動しない", () => {
@@ -107,7 +147,7 @@ describe("敵を倒す（仕様書 5.3）", () => {
 
   it("ボスに与えたダメージは残る（倒しきれなくても削れる）", () => {
     const { s, target } = bossBattle();
-    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 30, prevDamage: 0 });
+    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 35, prevDamage: 0 });
     const r = act(s, "p1", { type: "confirmAttack" });
     expect(r.state.result).toBeNull();
     expect(r.state.enemyDamage[target]).toBe(24);
@@ -126,9 +166,9 @@ describe("敵を倒す（仕様書 5.3）", () => {
     let { s, target } = bossBattle();
     s = mutate(s, (d) => {
       d.villageHp = 12; // 15 の 80%
-      d.enemyDamage[target] = 6; // 前の手番までに削った分
+      d.enemyDamage[target] = 11; // 前の手番までに削った分
     });
-    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 30, prevDamage: 6 });
+    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 35, prevDamage: 11 });
     const r = act(s, "p1", { type: "confirmAttack" });
     expect(r.state.result).toMatchObject({ outcome: "win", reason: "bossDefeated", rank: "S" });
     expect(r.state.enemyDamage[target]).toBeUndefined();

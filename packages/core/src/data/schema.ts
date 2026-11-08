@@ -81,6 +81,8 @@ export const setupFileSchema = z.object({
   persistentDamage: z.enum(["none", "boss", "all"]).optional(),
   lootToDeck: z.boolean().optional(),
   sellLoot: z.boolean().optional(),
+  freeHeroSlots: nonNeg.optional(),
+  levelUpAfterBattle: z.boolean().optional(),
   curseStock: nonNeg,
   startingDeck: z.array(countEntry).min(1),
   heroStock: z.object({

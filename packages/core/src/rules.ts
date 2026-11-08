@@ -22,7 +22,8 @@ export function cardsGold(p: PlayerState, reg: CardRegistry): number {
 export function heroSlots(s: GameState): { total: number; used: number; left: number } {
   if (!s.turn) return { total: 0, used: 0, left: 0 };
   const { foodSlots, usedSlots } = s.turn;
-  return { total: foodSlots, used: usedSlots, left: foodSlots - usedSlots };
+  const total = foodSlots + s.config.freeHeroSlots;
+  return { total, used: usedSlots, left: total - usedSlots };
 }
 
 export function enemyHp(s: GameState, def: EnemyDef): number {

@@ -18,6 +18,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion("type", [
   z.object({ type: z.literal("levelUp"), uid: id }),
   z.object({ type: z.literal("changeClass"), uid: id, heroId: id }),
   z.object({ type: z.literal("endVisit") }),
+  z.object({ type: z.literal("finishBattle") }),
   z.object({ type: z.literal("resolveTrash"), uids }),
   z.object({ type: z.literal("discardForEffect"), uids }),
 ]);

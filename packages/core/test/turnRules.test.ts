@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { act, errorOf, hand, placeEnemy, setHand, start, uidOf } from "./helpers.js";
+import { act, confirmAndFinish, errorOf, hand, placeEnemy, setHand, start, uidOf } from "./helpers.js";
 
 describe("行動の取り消し", () => {
   it("集落：まだ何もしていなければ行動の選択に戻れる", () => {
@@ -60,7 +60,7 @@ describe("敵を撃破した手番は進軍しない", () => {
     const h = hand(s);
     s = act(s, "p1", { type: "playFood", uid: uidOf(h, "food_jerky") }).state;
     s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
-    const r = act(s, "p1", { type: "confirmAttack" });
+    const r = confirmAndFinish(s);
     expect(r.events.some((e) => e.type === "marchSkipped")).toBe(true);
     expect(r.events.some((e) => e.type === "enemyMoved" || e.type === "enemyRevealed")).toBe(false);
     expect(r.state.route[4]!.map((c) => c.defId)).toEqual(["enemy_orc"]);
@@ -85,7 +85,7 @@ describe("敵を撃破した手番は進軍しない", () => {
     const h = hand(s);
     s = act(s, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
     s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
-    const r = act(s, "p1", { type: "confirmAttack" });
+    const r = confirmAndFinish(s);
     expect(r.state.pending).toBeNull();
     expect(r.state.currentPlayer).toBe(1);
   });

@@ -23,6 +23,7 @@ export function advance(ctx: Ctx): void {
       case "chooseAction":
       case "village":
       case "battle":
+      case "afterBattle":
       case "finished":
         return;
       case "turnEnd":

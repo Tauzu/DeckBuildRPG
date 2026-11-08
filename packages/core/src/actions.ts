@@ -50,13 +50,15 @@ export function dispatch(ctx: Ctx, playerId: string, action: Action): void {
       return changeClass(ctx, action.uid, action.heroId);
     case "endVisit":
       return endVisit(ctx);
+    case "finishBattle":
+      return finishBattle(ctx);
   }
 }
 
 // ---------------------------------------------------------------------------
 // 共通
 
-function requireStep(ctx: Ctx, ...kinds: ("chooseAction" | "village" | "battle")[]): void {
+function requireStep(ctx: Ctx, ...kinds: ("chooseAction" | "village" | "battle" | "afterBattle")[]): void {
   if (!kinds.includes(ctx.s.step.kind as never)) fail("INVALID_STEP", "今はその操作はできません");
 }
 
@@ -142,7 +144,7 @@ function playHero(ctx: Ctx, uid: string): void {
   const def = ctx.reg.get(card.defId);
   if (def.type !== "hero") fail("WRONG_CARD_TYPE", "英雄カードではありません");
   const turn = s.turn!;
-  if (turn.usedSlots >= turn.foodSlots) fail("NO_SLOT", "食料が足りず、英雄を出せません");
+  if (turn.usedSlots >= turn.foodSlots + s.config.freeHeroSlots) fail("NO_SLOT", "食料が足りず、英雄を出せません");
   takeCard(p.hand, uid);
   p.field.push(card);
   turn.usedSlots += 1;
@@ -202,7 +204,7 @@ function undoBattleCard(ctx: Ctx, uid: string): void {
     if (heroUid) delete turn.equips[heroUid];
     returnCard(uid);
   } else if (def.type === "food") {
-    if (turn.foodSlots - def.food < turn.usedSlots) fail("CANNOT_UNDO", "先に英雄を戻してください");
+    if (turn.foodSlots - def.food + ctx.s.config.freeHeroSlots < turn.usedSlots) fail("CANNOT_UNDO", "先に英雄を戻してください");
     turn.foodSlots -= def.food;
     returnCard(uid);
   } else {
@@ -251,6 +253,10 @@ function confirmAttack(ctx: Ctx): void {
       endGame(ctx, "win", "bossDefeated");
       return;
     }
+    if (s.config.levelUpAfterBattle) {
+      s.step = { kind: "afterBattle" };
+      return;
+    }
   }
   s.step = { kind: "turnEnd", skipMarch: defeated };
 }
@@ -279,11 +285,20 @@ function buy(ctx: Ctx, stackId: string): void {
   ctx.events.push({ type: "cardBought", playerId: p.id, uid: top.uid, defId: top.defId, cost: def.cost });
 }
 
+/** レベルアップ・転職の対象。訪問中は手札、撃破直後は手札か場（戦った英雄） */
+function growthCard(ctx: Ctx, p: PlayerState, uid: string): { card: CardInstance; from: CardInstance[] } {
+  if (ctx.s.step.kind === "afterBattle") {
+    const inField = findCard(p.field, uid);
+    if (inField) return { card: inField, from: p.field };
+  }
+  return { card: handCard(p, uid), from: p.hand };
+}
+
 function levelUp(ctx: Ctx, uid: string): void {
-  requireStep(ctx, "village");
+  requireStep(ctx, "village", "afterBattle");
   const s = ctx.s;
   const p = currentPlayer(s);
-  const card = handCard(p, uid);
+  const { card, from } = growthCard(ctx, p, uid);
   const def = ctx.reg.get(card.defId);
   if (def.type !== "hero" || def.level === 0) fail("WRONG_CARD_TYPE", "レベルアップできる英雄ではありません");
   if (def.nextLevelExp === null) fail("MAX_LEVEL", "最大レベルです");
@@ -294,7 +309,7 @@ function levelUp(ctx: Ctx, uid: string): void {
   requireGoldAfterLoss(ctx, def.gold);
 
   const [next] = stack.splice(nextIndex, 1);
-  takeCard(p.hand, uid);
+  takeCard(from, uid);
   s.trash.push(card);
   p.exp -= def.nextLevelExp;
   markActed(ctx);
@@ -303,10 +318,10 @@ function levelUp(ctx: Ctx, uid: string): void {
 }
 
 function changeClass(ctx: Ctx, uid: string, heroId: string): void {
-  requireStep(ctx, "village");
+  requireStep(ctx, "village", "afterBattle");
   const s = ctx.s;
   const p = currentPlayer(s);
-  const card = handCard(p, uid);
+  const { card, from } = growthCard(ctx, p, uid);
   const def = ctx.reg.get(card.defId);
   if (def.type !== "hero" || def.level !== 0) fail("WRONG_CARD_TYPE", "転職できるのは村の若者だけです");
   const stack = s.village.stacks[heroStackId(heroId)];
@@ -318,7 +333,7 @@ function changeClass(ctx: Ctx, uid: string, heroId: string): void {
   requireGoldAfterLoss(ctx, def.gold);
 
   const [next] = stack.splice(nextIndex, 1);
-  takeCard(p.hand, uid);
+  takeCard(from, uid);
   s.trash.push(card);
   p.exp -= cost;
   markActed(ctx);
@@ -342,6 +357,12 @@ function endVisit(ctx: Ctx): void {
     }
   }
   ctx.s.step = { kind: "turnEnd", skipMarch: false };
+}
+
+/** 撃破直後のレベルアップを終えて、手番を終える（撃破したので進軍しない） */
+function finishBattle(ctx: Ctx): void {
+  requireStep(ctx, "afterBattle");
+  ctx.s.step = { kind: "turnEnd", skipMarch: true };
 }
 
 // ---------------------------------------------------------------------------

@@ -95,6 +95,10 @@ export interface SetupData {
   lootToDeck?: boolean;
   /** 集落を訪れた手番の終わりに、手札の敵カード（戦利品）を売却して取り除くか */
   sellLoot?: boolean;
+  /** 食料なしで出せる英雄の数（毎手番） */
+  freeHeroSlots?: number;
+  /** 敵を撃破した直後に、戦った英雄や手札の英雄をレベルアップ・転職できるか */
+  levelUpAfterBattle?: boolean;
   curseStock: number;
   startingDeck: { id: CardId; count: number }[];
   heroStock: { heroIds: HeroId[]; countsByLevel: Record<string, number> };
@@ -116,6 +120,8 @@ export interface GameConfig {
   persistentDamage: PersistentDamage;
   lootToDeck: boolean;
   sellLoot: boolean;
+  freeHeroSlots: number;
+  levelUpAfterBattle: boolean;
 }
 
 export interface PlayerState {
@@ -136,6 +142,8 @@ export type Step =
   | { kind: "chooseAction" }
   | { kind: "village" }
   | { kind: "battle" }
+  /** 敵を撃破した直後のレベルアップ（config.levelUpAfterBattle） */
+  | { kind: "afterBattle" }
   /** skipMarch：敵を撃破した手番は進軍しない（仕様書 5.4） */
   | { kind: "turnEnd"; skipMarch: boolean }
   | { kind: "march"; phase: "move" | "onMarch" | "reveal" }
@@ -233,6 +241,7 @@ export type Action =
   | { type: "levelUp"; uid: string }
   | { type: "changeClass"; uid: string; heroId: HeroId }
   | { type: "endVisit" }
+  | { type: "finishBattle" }
   | { type: "resolveTrash"; uids: string[] }
   | { type: "discardForEffect"; uids: string[] };
 

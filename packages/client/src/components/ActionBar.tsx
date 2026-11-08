@@ -115,6 +115,13 @@ export function ActionBar() {
         </button>
       </>
     );
+  } else if (step === "afterBattle") {
+    message = "撃破！ 経験値で英雄をレベルアップ・転職できます（場で戦った英雄と手札の英雄）。終えると手番が終わり、敵は進軍しません";
+    buttons = (
+      <button type="button" className="primary" onClick={() => send({ type: "finishBattle" })}>
+        手番を終える
+      </button>
+    );
   }
 
   return (

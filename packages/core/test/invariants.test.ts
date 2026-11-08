@@ -42,8 +42,8 @@ function randomAction(s: GameState, playerId: string, rand: (n: number) => numbe
     return { type: "resolveTrash", uids };
   }
   const ok = legal.options.filter((o) => o.reason === null).map((o) => o.action);
-  const finishing = ok.filter((a) => a.type === "endVisit" || a.type === "confirmAttack");
-  const others = ok.filter((a) => a.type !== "endVisit" && a.type !== "confirmAttack" && a.type !== "undoBattleCard" && a.type !== "cancelAction");
+  const finishing = ok.filter((a) => a.type === "endVisit" || a.type === "confirmAttack" || a.type === "finishBattle");
+  const others = ok.filter((a) => a.type !== "endVisit" && a.type !== "confirmAttack" && a.type !== "finishBattle" && a.type !== "undoBattleCard" && a.type !== "cancelAction");
   if (finishing.length > 0 && (others.length === 0 || rand(4) === 0)) return finishing[0]!;
   if (others.length > 0) return others[rand(others.length)]!;
   return ok[rand(ok.length)] ?? null;
@@ -57,7 +57,7 @@ function checkInvariants(s: GameState, total: number) {
     expect(p.exp).toBeGreaterThanOrEqual(0);
     expect(p.exp).toBeLessThanOrEqual(p.totalExp);
   }
-  if (s.turn) expect(s.turn.usedSlots).toBeLessThanOrEqual(s.turn.foodSlots);
+  if (s.turn) expect(s.turn.usedSlots).toBeLessThanOrEqual(s.turn.foodSlots + s.config.freeHeroSlots);
 }
 
 function playRandomGame(seed: number, n: number) {

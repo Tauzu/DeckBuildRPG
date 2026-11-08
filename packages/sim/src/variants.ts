@@ -119,6 +119,22 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   bossUp2: (d) => {
     for (const pc of Object.values(d.setup.playerCounts) as Json[]) pc.bossHp += 10;
   },
+  /** 食料なしでも英雄を1人出せる */
+  free1: (d) => {
+    d.setup.freeHeroSlots = 1;
+  },
+  /** 吟遊詩人 Lv1 の村効果を2枚ドローに */
+  bard2: (d) => {
+    for (const h of d.heroes) if (h.id === "hero_bard_1") h.villageEffect = { kind: "draw", count: 2 };
+  },
+  /** 敵を撃破した直後にもレベルアップ・転職できる */
+  lvBattle: (d) => {
+    d.setup.levelUpAfterBattle = true;
+  },
+  /** 手札5枚に戻す */
+  hand5: (d) => {
+    d.setup.handSize = 5;
+  },
   /** 集落の耐久値 +5 */
   village5: (d) => {
     for (const pc of Object.values(d.setup.playerCounts) as Json[]) pc.villageHp += 5;

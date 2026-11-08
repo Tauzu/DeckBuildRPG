@@ -34,6 +34,8 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
       persistentDamage: setup.persistentDamage ?? "none",
       lootToDeck: setup.lootToDeck ?? true,
       sellLoot: setup.sellLoot ?? false,
+      freeHeroSlots: setup.freeHeroSlots ?? 0,
+      levelUpAfterBattle: setup.levelUpAfterBattle ?? false,
     },
     players: [],
     currentPlayer: 0,

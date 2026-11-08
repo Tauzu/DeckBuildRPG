@@ -81,3 +81,11 @@ export function allCards(s: GameState): CardInstance[] {
     ...s.trash,
   ];
 }
+
+/** 攻撃を確定し、撃破直後のレベルアップの段階になったら何もせずに手番を終える */
+export function confirmAndFinish(state: GameState, playerId = "p1"): { state: GameState; events: GameEvent[] } {
+  const r = act(state, playerId, { type: "confirmAttack" });
+  if (r.state.step.kind !== "afterBattle") return r;
+  const f = act(r.state, playerId, { type: "finishBattle" });
+  return { state: f.state, events: [...r.events, ...f.events] };
+}

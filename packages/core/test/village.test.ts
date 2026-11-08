@@ -42,13 +42,14 @@ describe("購入（仕様書 5.2(c)）", () => {
 });
 
 describe("村効果（仕様書 5.2(b)）", () => {
-  it("英雄は食糧値の枚数までしか出せない", () => {
-    const s0 = visit(["food_bread", "hero_bard_1", "hero_thief_1"]);
+  it("英雄は食糧値の枚数＋1人までしか出せない（1人は食料なしで出せる）", () => {
+    const s0 = visit(["food_bread", "hero_bard_1", "hero_thief_1", "hero_priest_1"]);
     const h = hand(s0);
-    expect(errorOf(s0, "p1", { type: "playHero", uid: uidOf(h, "hero_bard_1") })).toBe("NO_SLOT");
-    let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
-    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_thief_1") }).state;
+    let s = act(s0, "p1", { type: "playHero", uid: uidOf(h, "hero_thief_1") }).state;
     expect(errorOf(s, "p1", { type: "playHero", uid: uidOf(h, "hero_bard_1") })).toBe("NO_SLOT");
+    s = act(s, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
+    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_bard_1") }).state;
+    expect(errorOf(s, "p1", { type: "playHero", uid: uidOf(h, "hero_priest_1") })).toBe("NO_SLOT");
   });
 
   it("吟遊詩人：カードを引く", () => {
@@ -57,8 +58,8 @@ describe("村効果（仕様書 5.2(b)）", () => {
     let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
     const deckBefore = s.players[0]!.deck.length;
     s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_bard_1") }).state;
-    expect(hand(s)).toHaveLength(1);
-    expect(s.players[0]!.deck).toHaveLength(deckBefore - 1);
+    expect(hand(s)).toHaveLength(2);
+    expect(s.players[0]!.deck).toHaveLength(deckBefore - 2);
   });
 
   it("吟遊詩人Lv3：2枚引いて金+1（組み合わせの効果）", () => {

@@ -39,8 +39,6 @@ function HandCard({ card }: { card: CardInstance }) {
   const send = useStore((s) => s.send);
   const selectedWeapon = useStore((s) => s.selectedWeapon);
   const selectWeapon = useStore((s) => s.selectWeapon);
-  const classChangeFor = useStore((s) => s.classChangeFor);
-  const setClassChange = useStore((s) => s.setClassChange);
   const { view, legal } = update;
   const def = reg.get(card.defId);
   const step = view.step.kind;
@@ -68,9 +66,77 @@ function HandCard({ card }: { card: CardInstance }) {
     }
   }
 
-  // 集落：レベルアップ・転職のボタン
+  // 集落・撃破直後：レベルアップ・転職のボタン
+  const extra = <GrowthButtons card={card} />;
+
+  return (
+    <Card
+      defId={card.defId}
+      onClick={onClick}
+      disabledReason={reason}
+      highlight={selectedWeapon === card.uid ? "selected" : undefined}
+    >
+      {extra}
+    </Card>
+  );
+}
+
+function FieldCard({ card }: { card: CardInstance }) {
+  const update = useStore((s) => s.update)!;
+  const send = useStore((s) => s.send);
+  const selectedWeapon = useStore((s) => s.selectedWeapon);
+  const { view, legal } = update;
+  const def = reg.get(card.defId);
+  const battle = view.step.kind === "battle" && legal.waitingForMe && view.turn?.action === "battle";
+  const equips = view.turn?.action === "battle" ? view.turn.equips : {};
+  const equippedTo = Object.entries(equips).find(([, w]) => w === card.uid)?.[0];
+  const weaponOf = equips[card.uid];
+
+  let onClick: (() => void) | undefined;
+  let reason: string | null = null;
+  let highlight: "equip" | undefined;
+  if (battle) {
+    if (selectedWeapon && def.type === "hero") {
+      const o = findOption(legal.options, (a) => a.type === "equip" && a.weaponUid === selectedWeapon && a.heroUid === card.uid);
+      onClick = () => send({ type: "equip", weaponUid: selectedWeapon, heroUid: card.uid });
+      reason = reasonText(o);
+      if (!reason) highlight = "equip";
+    } else {
+      const o = findOption(legal.options, (a) => a.type === "undoBattleCard" && a.uid === card.uid);
+      onClick = () => send({ type: "undoBattleCard", uid: card.uid });
+      reason = reasonText(o);
+    }
+  }
+
+  const me = view.players.find((p) => p.id === view.viewerId);
+  const weaponDefId = weaponOf ? me?.field.find((c) => c.uid === weaponOf)?.defId : undefined;
+  const badge = weaponDefId ? (
+    <span className="equip-badge">装備：{reg.get(weaponDefId).name}</span>
+  ) : equippedTo ? (
+    <span className="equip-badge">装備中</span>
+  ) : null;
+
+  return (
+    <Card defId={card.defId} onClick={onClick} disabledReason={reason} highlight={highlight} badge={badge}>
+      {view.step.kind === "afterBattle" ? <GrowthButtons card={card} /> : null}
+    </Card>
+  );
+}
+
+/** レベルアップ・転職のボタン（集落の手札、撃破直後の手札と場） */
+function GrowthButtons({ card }: { card: CardInstance }) {
+  const update = useStore((s) => s.update)!;
+  const send = useStore((s) => s.send);
+  const classChangeFor = useStore((s) => s.classChangeFor);
+  const setClassChange = useStore((s) => s.setClassChange);
+  const { view, legal } = update;
+  const def = reg.get(card.defId);
+  const step = view.step.kind;
+  const growing = legal.waitingForMe && !legal.selection && (step === "village" || step === "afterBattle");
+  const option = (pred: (a: Action) => boolean) => findOption(legal.options, pred);
+
   let extra = null;
-  if (active && step === "village" && def.type === "hero") {
+  if (growing && def.type === "hero") {
     if (def.level === 0) {
       const any = legal.options.find((o) => o.action.type === "changeClass" && o.action.uid === card.uid && !o.reason);
       const first = legal.options.find((o) => o.action.type === "changeClass" && o.action.uid === card.uid);
@@ -125,52 +191,5 @@ function HandCard({ card }: { card: CardInstance }) {
     }
   }
 
-  return (
-    <Card
-      defId={card.defId}
-      onClick={onClick}
-      disabledReason={reason}
-      highlight={selectedWeapon === card.uid ? "selected" : undefined}
-    >
-      {extra}
-    </Card>
-  );
-}
-
-function FieldCard({ card }: { card: CardInstance }) {
-  const update = useStore((s) => s.update)!;
-  const send = useStore((s) => s.send);
-  const selectedWeapon = useStore((s) => s.selectedWeapon);
-  const { view, legal } = update;
-  const def = reg.get(card.defId);
-  const battle = view.step.kind === "battle" && legal.waitingForMe && view.turn?.action === "battle";
-  const equips = view.turn?.action === "battle" ? view.turn.equips : {};
-  const equippedTo = Object.entries(equips).find(([, w]) => w === card.uid)?.[0];
-  const weaponOf = equips[card.uid];
-
-  let onClick: (() => void) | undefined;
-  let reason: string | null = null;
-  let highlight: "equip" | undefined;
-  if (battle) {
-    if (selectedWeapon && def.type === "hero") {
-      const o = findOption(legal.options, (a) => a.type === "equip" && a.weaponUid === selectedWeapon && a.heroUid === card.uid);
-      onClick = () => send({ type: "equip", weaponUid: selectedWeapon, heroUid: card.uid });
-      reason = reasonText(o);
-      if (!reason) highlight = "equip";
-    } else {
-      const o = findOption(legal.options, (a) => a.type === "undoBattleCard" && a.uid === card.uid);
-      onClick = () => send({ type: "undoBattleCard", uid: card.uid });
-      reason = reasonText(o);
-    }
-  }
-
-  const me = view.players.find((p) => p.id === view.viewerId);
-  const weaponDefId = weaponOf ? me?.field.find((c) => c.uid === weaponOf)?.defId : undefined;
-  const badge = weaponDefId ? (
-    <span className="equip-badge">装備：{reg.get(weaponDefId).name}</span>
-  ) : equippedTo ? (
-    <span className="equip-badge">装備中</span>
-  ) : null;
-
-  return <Card defId={card.defId} onClick={onClick} disabledReason={reason} highlight={highlight} badge={badge} />;
+  return extra;
 }
