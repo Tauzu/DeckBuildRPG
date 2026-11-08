@@ -1,0 +1,11 @@
+[
+  { "id": "enemy_goblin", "name": "ゴブリン", "type": "enemy", "cost": null, "gold": 1, "hp": 3, "resistPhysical": "none", "resistMagic": "none", "exp": 1, "invasion": 1, "isBoss": false, "onReveal": null, "onMarch": null },
+  { "id": "enemy_wolf", "name": "灰色狼", "type": "enemy", "cost": null, "gold": 0, "hp": 4, "resistPhysical": "none", "resistMagic": "none", "exp": 1, "invasion": 2, "isBoss": false, "onReveal": null, "onMarch": null },
+  { "id": "enemy_skeleton", "name": "スケルトン", "type": "enemy", "cost": null, "gold": 1, "hp": 5, "resistPhysical": "half", "resistMagic": "none", "exp": 2, "invasion": 2, "isBoss": false, "onReveal": null, "onMarch": null },
+  { "id": "enemy_ghost", "name": "亡霊", "type": "enemy", "cost": null, "gold": 0, "hp": 4, "resistPhysical": "immune", "resistMagic": "none", "exp": 2, "invasion": 2, "isBoss": false, "onReveal": null, "onMarch": null },
+  { "id": "enemy_shaman", "name": "ゴブリン呪術師", "type": "enemy", "cost": null, "gold": 1, "hp": 5, "resistPhysical": "none", "resistMagic": "none", "exp": 2, "invasion": 2, "isBoss": false, "onReveal": { "kind": "discardHand", "count": 1, "target": "all" }, "onMarch": null },
+  { "id": "enemy_orc", "name": "オーク戦士", "type": "enemy", "cost": null, "gold": 2, "hp": 8, "resistPhysical": "none", "resistMagic": "none", "exp": 3, "invasion": 3, "isBoss": false, "onReveal": null, "onMarch": null },
+  { "id": "enemy_gargoyle", "name": "ガーゴイル", "type": "enemy", "cost": null, "gold": 1, "hp": 7, "resistPhysical": "none", "resistMagic": "half", "exp": 3, "invasion": 3, "isBoss": false, "onReveal": null, "onMarch": null },
+  { "id": "enemy_necro", "name": "死霊術師", "type": "enemy", "cost": null, "gold": 2, "hp": 7, "resistPhysical": "none", "resistMagic": "half", "exp": 3, "invasion": 3, "isBoss": false, "onReveal": { "kind": "addCurse", "count": 1 }, "onMarch": null },
+  { "id": "enemy_dragon", "name": "魔竜", "type": "enemy", "cost": null, "gold": 5, "hp": null, "resistPhysical": "none", "resistMagic": "none", "exp": 10, "invasion": null, "isBoss": true, "onReveal": { "kind": "discardHand", "count": 1, "target": "all" }, "onMarch": { "kind": "discardHand", "count": 1, "target": "next" } }
+]

@@ -1,0 +1,15 @@
+[
+  { "id": "food_bread", "name": "黒パン", "type": "food", "cost": 1, "gold": 1, "food": 1 },
+  { "id": "food_jerky", "name": "干し肉", "type": "food", "cost": 3, "gold": 1, "food": 2 },
+  { "id": "food_wine", "name": "葡萄酒", "type": "food", "cost": 3, "gold": 2, "food": 1 },
+  { "id": "food_feast", "name": "祝宴の料理", "type": "food", "cost": 6, "gold": 1, "food": 3 },
+
+  { "id": "weapon_club", "name": "木の棍棒", "type": "weapon", "cost": 1, "gold": 0, "physical": 1, "magic": 0 },
+  { "id": "weapon_sword", "name": "鉄の剣", "type": "weapon", "cost": 3, "gold": 1, "physical": 2, "magic": 0 },
+  { "id": "weapon_staff", "name": "樫の杖", "type": "weapon", "cost": 3, "gold": 1, "physical": 0, "magic": 2 },
+  { "id": "weapon_axe", "name": "戦斧", "type": "weapon", "cost": 6, "gold": 1, "physical": 4, "magic": 0 },
+  { "id": "weapon_tome", "name": "魔導書", "type": "weapon", "cost": 6, "gold": 1, "physical": 0, "magic": 4 },
+  { "id": "weapon_mithril", "name": "聖銀の剣", "type": "weapon", "cost": 7, "gold": 2, "physical": 2, "magic": 2 },
+
+  { "id": "curse", "name": "呪い", "type": "curse", "cost": null, "gold": 0 }
+]
