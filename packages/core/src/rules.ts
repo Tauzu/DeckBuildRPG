@@ -1,6 +1,6 @@
 // 状態を変えずに値を計算する関数（設計書 2.8）
 import type { CardRegistry } from "./data/registry.js";
-import type { EnemyDef, GameState, HeroDef, PlayerState, Resist, WeaponDef } from "./types.js";
+import type { EnemyDef, GameConfig, GameState, HeroDef, PlayerState, Resist, WeaponDef } from "./types.js";
 
 /** 今の所持金（仕様書 5.2）。訪問中以外は 0 */
 export function currentGold(s: GameState, reg: CardRegistry): number {
@@ -26,8 +26,9 @@ export function heroSlots(s: GameState): { total: number; used: number; left: nu
   return { total, used: usedSlots, left: total - usedSlots };
 }
 
-export function enemyHp(s: GameState, def: EnemyDef): number {
-  return def.isBoss ? s.config.bossHp : (def.hp ?? 0);
+/** 敵の生命力（ボスはステージと人数で決まる。ボス以外は危険度で増える） */
+export function enemyHp(s: { config: Pick<GameConfig, "bossHp" | "enemyHpBonus"> }, def: EnemyDef): number {
+  return def.isBoss ? s.config.bossHp : Math.max(1, (def.hp ?? 0) + s.config.enemyHpBonus);
 }
 
 export interface DamageBreakdown {

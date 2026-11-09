@@ -37,10 +37,11 @@ export function playGame(
   seed: number,
   n: number,
   stageId: string = reg.defaultStageId,
+  danger = 0,
 ): { stats: GameStats; record: GameRecord } {
   const players = Array.from({ length: n }, (_, i) => ({ id: `p${i + 1}`, name: `bot${i + 1}` }));
-  let s = createGame({ seed, players, stageId }, reg).state;
-  const record = newRecord(seed, players, reg, stageId);
+  let s = createGame({ seed, players, stageId, danger }, reg).state;
+  const record = newRecord(seed, players, reg, stageId, danger);
   const st: GameStats = {
     seed,
     players: n,

@@ -97,8 +97,9 @@ export class RoomManager {
         if (!p.success) return reply({ ok: false, error: zodMessage(p.error) });
         if (!this.reg.stages.some((s) => s.id === p.data.stageId)) return reply({ ok: false, error: "そのステージはありません" });
         if (this.rooms.size >= this.maxRooms) return reply({ ok: false, error: "ただいま混み合っています。しばらくしてからお試しください" });
+        if (p.data.danger > this.reg.maxDanger) return reply({ ok: false, error: `危険度は ${this.reg.maxDanger} までです` });
         this.detach(socket);
-        const room = new Room(this.newCode(), this.reg, this.hooks, this.timings, p.data.stageId);
+        const room = new Room(this.newCode(), this.reg, this.hooks, this.timings, p.data.stageId, p.data.danger);
         this.rooms.set(room.code, room);
         this.log("ルームを作成", { room: room.code });
         const m = room.join(p.data.name, socket.id);
@@ -141,7 +142,7 @@ export class RoomManager {
         const p = setStageSchema.safeParse(msg);
         if (!p.success) return reply({ ok: false, error: zodMessage(p.error) });
         const { room, playerId } = this.current(socket);
-        room.setStage(playerId, p.data.stageId);
+        room.setStage(playerId, p.data.stageId, p.data.danger);
         reply({ ok: true });
       }),
     );

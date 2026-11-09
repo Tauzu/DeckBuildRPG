@@ -1,4 +1,5 @@
 // 戦闘中は村の在庫の代わりに、戦っている相手とダメージの見込みを大きく出す
+import { enemyHp } from "@deckbuild/core";
 import { reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
 
@@ -34,7 +35,7 @@ export function BattlePanel() {
     <section className="battle-panel panel">
       <h2>{who}</h2>
       <div className="battle-body">
-        <Card defId={target.defId} hp={def.isBoss ? view.config.bossHp : undefined} damage={view.enemyDamage[target.uid]} highlight="target" />
+        <Card defId={target.defId} hp={enemyHp(view, def)} damage={view.enemyDamage[target.uid]} highlight="target" />
         <div className="battle-numbers">
           <div className="battle-row">
             <span>生命力</span>

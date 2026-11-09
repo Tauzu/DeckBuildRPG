@@ -5,12 +5,13 @@ import { playSfx, setBgmMood } from "./audio.js";
 import { effectsFrom, FX_STAGGER, type FxItem, nextFxId, soundsFrom } from "./components/Effects.js";
 import { type GameConnection, type GameUpdate, LocalConnection, RemoteConnection, randomSeed } from "./connection.js";
 import { loadSession, Online, type RoomInfo } from "./online.js";
-import { loadProgress, markCleared, type Progress, saveProgress } from "./progress.js";
+import { type AchievementDef, addToTally, emptyTally, type GameTally, recordGameEnd } from "./achievements.js";
+import { exportCode, importCode, loadProgress, markCleared, mergeProgress, type Progress, saveProgress } from "./progress.js";
 import { buildLookup, ERROR_TEXT, eventText } from "./text.js";
 
 export const reg = defaultRegistry();
 
-export type Screen = "title" | "game" | "rules" | "stages" | "lobby";
+export type Screen = "title" | "game" | "rules" | "stages" | "lobby" | "records";
 
 export interface LogLine {
   id: number;
@@ -32,8 +33,12 @@ interface Store {
   selection: string[];
   /** ステージの進み具合 */
   progress: Progress;
-  /** 今のゲームで新しくクリアしたステージ（結果画面で「解放」を知らせる） */
-  newlyCleared: string | null;
+  /** 今のゲームで新しく解放したもの（結果画面で知らせる） */
+  newlyCleared: { stage: boolean; danger: boolean } | null;
+  /** 今のゲームでの自分の行動の記録（実績の判定に使う） */
+  tally: GameTally;
+  /** 今のゲームで達成した実績 */
+  unlockedNow: AchievementDef[];
   /** チュートリアルの案内を隠しているか */
   hideHints: boolean;
   /** チュートリアルで、ダイアログで見せ終えた案内の種類 */
@@ -61,7 +66,11 @@ interface Store {
   detail: { defId: string; hp?: number | undefined; damage?: number | undefined; tip?: string | null | undefined } | null;
 
   /** ひとりで遊ぶ。ステージを省略すると最後のステージ */
-  startSolo(stageId?: string, seed?: number): void;
+  startSolo(stageId?: string, seed?: number, danger?: number): void;
+  /** 引き継ぎコードを作る */
+  exportProgress(): Promise<string>;
+  /** 引き継ぎコードを読み込み、今の進み具合と合わせる。失敗したらその理由 */
+  importProgress(code: string): Promise<string | null>;
   setHideHints(hide: boolean): void;
   markHintSeen(key: string): void;
   go(screen: Screen): void;
@@ -74,9 +83,9 @@ interface Store {
   removeFx(id: number): void;
   showDetail(detail: Store["detail"]): void;
 
-  createRoom(name: string, stageId: string): Promise<string | null>;
+  createRoom(name: string, stageId: string, danger: number): Promise<string | null>;
   joinRoom(code: string, name: string): Promise<string | null>;
-  setRoomStage(stageId: string): Promise<string | null>;
+  setRoomStage(stageId: string, danger: number): Promise<string | null>;
   startRoom(): Promise<string | null>;
   backToLobby(): Promise<string | null>;
   leaveRoom(): void;
@@ -141,7 +150,9 @@ export const useStore = create<Store>()((set, get) => {
       const hits = u.events.filter((e) => e.type === "enemyArrived" && e.damage > 0).length;
       const marched = u.events.some((e) => e.type === "enemyMoved" && e.moves.length > 0);
       const bought = u.events.some((e) => e.type === "cardBought" && e.playerId === u.view.viewerId);
+      const ended = u.events.some((e) => e.type === "gameEnded");
       set((st) => ({
+        tally: addToTally(st.tally, u.events, u.view.viewerId, reg),
         update: u,
         fx: fx.length ? [...st.fx, ...fx].slice(-6) : st.fx,
         villageHits: st.villageHits + hits,
@@ -152,13 +163,33 @@ export const useStore = create<Store>()((set, get) => {
         classChangeFor: null,
         selection: [],
       }));
-      // 勝ったらクリアを記録する（マルチでは参加者全員の進み具合に入る）
-      if (u.view.result?.outcome === "win") {
-        const { progress, isNew } = markCleared(get().progress, u.view.config.stageId);
-        if (isNew) {
-          saveProgress(progress);
-          set({ progress, newlyCleared: u.view.config.stageId });
+      // 終わったら、クリア・通算の記録・実績を記録する（マルチでは参加者それぞれの進み具合に入る）
+      const result = u.view.result;
+      if (ended && result) {
+        const { config } = u.view;
+        let progress = get().progress;
+        let newly: Store["newlyCleared"] = null;
+        if (result.outcome === "win") {
+          const c = markCleared(progress, config.stageId, config.danger);
+          progress = c.progress;
+          if (c.newStage || c.newDanger) newly = { stage: c.newStage, danger: c.newDanger };
         }
+        const me = u.view.players.find((p) => p.id === u.view.viewerId)!;
+        const done = recordGameEnd({
+          reg,
+          stage: reg.stage(config.stageId),
+          danger: config.danger,
+          playerCount: config.playerCount,
+          result,
+          me,
+          turnCount: Math.ceil(u.view.turnCount / config.playerCount),
+          villageHp: result.villageHp,
+          villageHpMax: config.villageHp,
+          tally: get().tally,
+          progress,
+        });
+        saveProgress(done.progress);
+        set({ progress: done.progress, newlyCleared: newly, unlockedNow: done.unlocked });
       }
     });
     set({
@@ -171,6 +202,8 @@ export const useStore = create<Store>()((set, get) => {
       classChangeFor: null,
       selection: [],
       newlyCleared: null,
+      tally: emptyTally(),
+      unlockedNow: [],
       hideHints: false,
       seenHints: [],
       fx: [],
@@ -243,6 +276,8 @@ export const useStore = create<Store>()((set, get) => {
     selection: [],
     progress: loadProgress(),
     newlyCleared: null,
+    tally: emptyTally(),
+    unlockedNow: [],
     hideHints: false,
     seenHints: [],
     room: null,
@@ -255,10 +290,25 @@ export const useStore = create<Store>()((set, get) => {
     buys: 0,
     detail: null,
 
-    startSolo(stageId, seed) {
+    startSolo(stageId, seed, danger = 0) {
       if (get().room) get().leaveRoom();
       const stage = reg.stage(stageId ?? reg.defaultStageId);
-      attach(new LocalConnection(seed ?? stage.fixedSeed ?? randomSeed(), "あなた", reg, stage.id));
+      attach(new LocalConnection(seed ?? stage.fixedSeed ?? randomSeed(), "あなた", reg, stage.id, stage.tutorial ? 0 : danger));
+    },
+
+    exportProgress() {
+      return exportCode(get().progress);
+    },
+
+    async importProgress(code) {
+      try {
+        const progress = mergeProgress(get().progress, await importCode(code));
+        saveProgress(progress);
+        set({ progress });
+        return null;
+      } catch (e) {
+        return e instanceof Error ? e.message : "読み込めませんでした";
+      }
     },
 
     setHideHints(hide) {
@@ -309,10 +359,10 @@ export const useStore = create<Store>()((set, get) => {
       set((st) => ({ fx: st.fx.filter((f) => f.id !== id) }));
     },
 
-    createRoom(name, stageId) {
+    createRoom(name, stageId, danger) {
       saveName(name);
       set({ playerName: name });
-      return enter(net().create(name, stageId));
+      return enter(net().create(name, stageId, danger));
     },
 
     joinRoom(code, name) {
@@ -321,8 +371,8 @@ export const useStore = create<Store>()((set, get) => {
       return enter(net().join(code, name));
     },
 
-    async setRoomStage(stageId) {
-      const r = await net().setStage(stageId);
+    async setRoomStage(stageId, danger) {
+      const r = await net().setStage(stageId, danger);
       return r.ok ? null : r.error;
     },
 

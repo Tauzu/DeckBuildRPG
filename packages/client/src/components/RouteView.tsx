@@ -1,4 +1,5 @@
 import { findOption, reasonText, reg, useStore } from "../store.js";
+import { enemyHp } from "@deckbuild/core";
 import { PixelArt } from "../art/PixelArt.js";
 import { fortSprite, villageSprite } from "../art/sprites.js";
 import { Card } from "./Card.js";
@@ -32,7 +33,7 @@ export function RouteView() {
                     key={c.uid}
                     defId={c.defId}
                     small
-                    hp={def.isBoss ? view.config.bossHp : undefined}
+                    hp={enemyHp(view, def)}
                     damage={view.enemyDamage[c.uid]}
                     highlight={target === c.uid ? "target" : undefined}
                     onClick={choosing ? () => send({ type: "chooseBattle", targetUid: c.uid }) : undefined}

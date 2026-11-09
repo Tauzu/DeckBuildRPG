@@ -149,10 +149,40 @@ export interface StageDef {
 }
 
 // ---------------------------------------------------------------------------
+// 危険度（data/dangers.json。企画書 13章）
+
+/** 危険度の1段階で足される不利な条件。危険度 N では 1～N の段階の条件をすべて足し合わせる */
+export interface DangerModifiers {
+  /** ボスの生命力を増やす割合（%） */
+  bossHpPct?: number;
+  /** 集落の耐久値の増減 */
+  villageHp?: number;
+  /** ボス以外の敵の生命力の増減 */
+  enemyHp?: number;
+  /** 最初の山札に入る呪いの枚数 */
+  startCurses?: number;
+  /** 敵の山札（ボスより前）から取り除く枚数。ボスが早く現れる */
+  enemyDeckTrim?: number;
+  /** 手札の枚数の増減 */
+  handSize?: number;
+}
+
+export interface DangerDef {
+  level: number;
+  /** 画面に出す説明（この段階で足される条件） */
+  text: string;
+  add: DangerModifiers;
+}
+
+// ---------------------------------------------------------------------------
 // ゲーム状態（設計書 2.2）
 
 export interface GameConfig {
   stageId: string;
+  /** 危険度（0 は通常） */
+  danger: number;
+  /** ボス以外の敵の生命力の増減（危険度） */
+  enemyHpBonus: number;
   /** このステージに登場する英雄（転職先） */
   heroIds: HeroId[];
   playerCount: number;

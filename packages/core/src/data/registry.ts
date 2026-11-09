@@ -2,6 +2,8 @@
 import type {
   CardDef,
   CardId,
+  DangerDef,
+  DangerModifiers,
   EnemyDef,
   FoodDef,
   HeroDef,
@@ -10,7 +12,7 @@ import type {
   StageDef,
   WeaponDef,
 } from "../types.js";
-import { enemiesFileSchema, heroesFileSchema, itemsFileSchema, setupFileSchema, stagesFileSchema } from "./schema.js";
+import { dangersFileSchema, enemiesFileSchema, heroesFileSchema, itemsFileSchema, setupFileSchema, stagesFileSchema } from "./schema.js";
 
 export interface RawData {
   heroes: unknown;
@@ -18,6 +20,8 @@ export interface RawData {
   enemies: unknown;
   setup: unknown;
   stages: unknown;
+  /** 危険度（省略すると危険度なし） */
+  dangers?: unknown;
 }
 
 export class DataError extends Error {
@@ -38,6 +42,8 @@ export class CardRegistry {
     readonly setup: SetupData,
     /** ステージ（ファイルに書かれた順。チュートリアル → ステージ1 → …） */
     readonly stages: StageDef[],
+    /** 危険度（level の順） */
+    readonly dangers: DangerDef[] = [],
   ) {
     for (const d of defs) this.defs.set(d.id, d);
     for (const d of defs) {
@@ -49,7 +55,21 @@ export class CardRegistry {
     for (const list of this.heroes.values()) list.sort((a, b) => a.level - b.level);
     const curse = defs.find((d) => d.type === "curse");
     this.curseId = curse?.id ?? "curse";
-    this.hash = fnv1a(JSON.stringify({ defs, setup, stages }));
+    this.hash = fnv1a(JSON.stringify({ defs, setup, stages, dangers }));
+  }
+
+  /** 危険度の最大 */
+  get maxDanger(): number {
+    return this.dangers.length;
+  }
+
+  /** 危険度 level までの条件を足し合わせたもの */
+  dangerModifiers(level: number): Required<DangerModifiers> {
+    const sum: Required<DangerModifiers> = { bossHpPct: 0, villageHp: 0, enemyHp: 0, startCurses: 0, enemyDeckTrim: 0, handSize: 0 };
+    for (const d of this.dangers.slice(0, level)) {
+      for (const key of Object.keys(sum) as (keyof DangerModifiers)[]) sum[key] += d.add[key] ?? 0;
+    }
+    return sum;
   }
 
   /** ステージの定義。見つからなければ例外 */
@@ -123,12 +143,16 @@ export function createRegistry(raw: RawData): CardRegistry {
   const enemies = parse("enemies.json", enemiesFileSchema, raw.enemies);
   const setup = parse("setup.json", setupFileSchema, raw.setup) as SetupData | null;
   const stages = parse("stages.json", stagesFileSchema, raw.stages) as StageDef[] | null;
-  if (!heroes || !items || !enemies || !setup || !stages) throw new DataError(problems);
+  const dangers = parse("dangers.json", dangersFileSchema, raw.dangers ?? []) as DangerDef[] | null;
+  if (!heroes || !items || !enemies || !setup || !stages || !dangers) throw new DataError(problems);
+  dangers.forEach((d, i) => {
+    if (d.level !== i + 1) problems.push(`dangers.json: 危険度は 1 から順に並べてください（${i + 1}番目が ${d.level}）`);
+  });
 
   const defs: CardDef[] = [...heroes, ...items, ...enemies];
   problems.push(...checkConsistency(defs, setup, stages));
   if (problems.length > 0) throw new DataError(problems);
-  return new CardRegistry(defs, setup, stages);
+  return new CardRegistry(defs, setup, stages, dangers);
 }
 
 /** データ同士の整合性チェック（設計書 3.2） */

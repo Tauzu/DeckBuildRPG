@@ -104,6 +104,21 @@ export const setupFileSchema = z.object({
   }),
 });
 
+export const dangersFileSchema = z.array(
+  z.object({
+    level: positive,
+    text: z.string().min(1),
+    add: z.object({
+      bossHpPct: z.number().int().optional(),
+      villageHp: z.number().int().optional(),
+      enemyHp: z.number().int().optional(),
+      startCurses: nonNeg.optional(),
+      enemyDeckTrim: nonNeg.optional(),
+      handSize: z.number().int().optional(),
+    }),
+  }),
+);
+
 export const stagesFileSchema = z
   .array(
     z.object({

@@ -2260,3 +2260,196 @@ button {
     height: 116px;
   }
 }
+
+/* ---------- 危険度 ---------- */
+.stage-item {
+  display: grid;
+  gap: 4px;
+}
+
+.danger-picker {
+  border: 2px solid var(--edge-dim);
+  background: #05071a;
+  padding: 6px 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.danger-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.danger-label {
+  color: var(--ink-soft);
+}
+
+.danger-value {
+  min-width: 3em;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.danger-on {
+  color: var(--bad);
+}
+
+.danger-note {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.danger-list {
+  margin: 0;
+  padding-left: 1.4em;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.danger-list li::marker {
+  content: "・";
+}
+
+.danger-new {
+  color: var(--bad);
+}
+
+.game-danger {
+  color: var(--bad);
+  border: 2px solid var(--bad);
+  padding: 0 6px;
+  font-size: 13px;
+}
+
+/* ---------- 実績と記録 ---------- */
+.result-achievements {
+  list-style: none;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 2px solid var(--accent);
+  text-align: left;
+  display: grid;
+  gap: 4px;
+}
+
+.result-achievements .achievement-text {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  padding-left: 1.4em;
+}
+
+.achievement-mark {
+  color: var(--accent);
+}
+
+.records-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.records-summary > div {
+  border: 2px solid var(--edge-dim);
+  padding: 6px 10px;
+  display: grid;
+}
+
+.records-summary span {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.records-summary strong {
+  font-size: 1.2rem;
+  color: var(--accent);
+}
+
+.records-danger {
+  text-align: right;
+  color: var(--ink-soft);
+}
+
+.achievement-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.achievement-list li {
+  display: grid;
+  grid-template-columns: auto 9em 1fr auto;
+  gap: 2px 10px;
+  align-items: baseline;
+  padding: 4px 8px;
+  border: 2px solid var(--edge-dim);
+  color: var(--ink-soft);
+}
+
+.achievement-list li .achievement-mark {
+  color: var(--edge-dim);
+}
+
+.achievement-done {
+  border-color: var(--accent) !important;
+  color: var(--ink) !important;
+}
+
+.achievement-done .achievement-mark {
+  color: var(--accent) !important;
+}
+
+.achievement-text {
+  font-size: 13px;
+}
+
+.achievement-date {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 700px) {
+  .achievement-list li {
+    grid-template-columns: auto 1fr auto;
+  }
+  .achievement-list .achievement-text {
+    grid-column: 2 / -1;
+  }
+}
+
+.transfer {
+  border-top: 2px solid var(--edge-dim);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+.transfer-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px 0;
+}
+
+textarea {
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 2px solid var(--panel-edge);
+  border-radius: 0;
+  background: #000;
+  color: var(--ink);
+  resize: vertical;
+  word-break: break-all;
+}
+
+.transfer-field {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}

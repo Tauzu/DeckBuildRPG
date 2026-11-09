@@ -13,6 +13,7 @@ export interface RoomInfo {
   code: string;
   hostId: string;
   stageId: string;
+  danger: number;
   started: boolean;
   members: MemberInfo[];
 }
@@ -99,8 +100,8 @@ export class Online {
     return { ok: true };
   }
 
-  create(name: string, stageId: string): Promise<Reply> {
-    return this.enter("room:create", { name, stageId });
+  create(name: string, stageId: string, danger: number): Promise<Reply> {
+    return this.enter("room:create", { name, stageId, danger });
   }
 
   join(code: string, name: string): Promise<Reply> {
@@ -118,8 +119,8 @@ export class Online {
     }
   }
 
-  setStage(stageId: string): Promise<Reply> {
-    return this.ask("room:setStage", { stageId });
+  setStage(stageId: string, danger: number): Promise<Reply> {
+    return this.ask("room:setStage", { stageId, danger });
   }
 
   start(): Promise<Reply> {

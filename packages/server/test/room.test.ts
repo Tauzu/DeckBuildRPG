@@ -53,6 +53,20 @@ describe("ルーム（仕様書 9.2）", () => {
     expect(room.state?.config.stageId).toBe("stage1");
   });
 
+  it("ホストは危険度も選べる。範囲の外やチュートリアルでは選べない", () => {
+    const { room, sent } = setup();
+    room.join("あ", "s1");
+    room.join("い", "s2");
+    room.setStage("p1", "stage1", 3);
+    expect(sent.rooms.get("s2")?.danger).toBe(3);
+    expect(() => room.setStage("p1", "stage1", reg.maxDanger + 1)).toThrow("危険度は");
+    expect(() => room.setStage("p1", "tutorial", 1)).toThrow("チュートリアル");
+    expect(room.danger).toBe(3);
+    room.start("p1", 5);
+    expect(room.state?.config.danger).toBe(3);
+    expect(room.record?.danger).toBe(3);
+  });
+
   it("各プレイヤーには自分向けの状態が届き、他人の手札は見えない", () => {
     const { room, sent } = setup();
     room.join("あ", "s1");

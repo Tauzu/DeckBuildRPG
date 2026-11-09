@@ -13,11 +13,13 @@ const code = z
   .transform((s) => s.trim().toUpperCase())
   .pipe(z.string().regex(/^[A-Z0-9]{6}$/, "ルームコードは英数字6文字です"));
 const stageId = z.string().min(1).max(64);
+/** 危険度（省略すると 0） */
+const danger = z.number().int().min(0).max(100).default(0);
 
-export const createSchema = z.object({ name, stageId });
+export const createSchema = z.object({ name, stageId, danger });
 export const joinSchema = z.object({ code, name });
 export const resumeSchema = z.object({ code, token: z.string().min(1).max(128) });
-export const setStageSchema = z.object({ stageId });
+export const setStageSchema = z.object({ stageId, danger });
 export const actionMessageSchema = z.object({ action: actionSchema });
 
 /** 参加者1人の公開情報 */
@@ -34,6 +36,7 @@ export interface RoomInfo {
   code: string;
   hostId: string;
   stageId: string;
+  danger: number;
   started: boolean;
   members: MemberInfo[];
 }

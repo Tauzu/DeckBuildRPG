@@ -1,6 +1,6 @@
 // 使い方:
 //   npm run sim -- --stage stage1,stage4 --players 1,2,4 --games 300 --bot smart --variants base,cheapLv,cheapLv+moreExp
-// --stage を省略すると最後のステージ
+// --stage を省略すると最後のステージ。--danger 0,5,10 で危険度ごとに比べる
 // 候補は "+" でつなぐと組み合わせになる
 import { mkdirSync, writeFileSync } from "node:fs";
 import { type Bot, passiveBot, smartBot } from "./bots.js";
@@ -25,6 +25,7 @@ const games = Number(arg("games", "200"));
 const botNames = arg("bot", "smart").split(",");
 const variants = arg("variants", "base").split(",");
 const seed0 = Number(arg("seed", "1"));
+const dangers = arg("danger", "0").split(",").map(Number);
 const outDir = arg("out", "sim-output");
 
 const rows: Summary[] = [];
@@ -40,10 +41,13 @@ for (const v of variants) {
       const stage = reg.stage(stageId);
       for (const n of playerCounts) {
         if (!stage.playerCounts[String(n)]) continue;
-        const list: GameStats[] = [];
-        for (let i = 0; i < games; i++) list.push(playGame(reg, bot, seed0 + i, n, stageId).stats);
-        all.push(...list);
-        rows.push(summarize(`${stageId} / ${v} / ${botName} / ${n}人`, list));
+        for (const danger of dangers) {
+          if (danger > 0 && stage.tutorial) continue;
+          const list: GameStats[] = [];
+          for (let i = 0; i < games; i++) list.push(playGame(reg, bot, seed0 + i, n, stageId, danger).stats);
+          all.push(...list);
+          rows.push(summarize(`${stageId} / ${v} / ${botName} / ${n}人${danger ? ` / 危険度${danger}` : ""}`, list));
+        }
       }
     }
   }

@@ -1,7 +1,8 @@
 // ルーム待機（仕様書 9.2、10.1）。ルームを作る・参加する・開始する
 import { useState } from "react";
-import { isUnlocked } from "../progress.js";
+import { isUnlocked, maxDangerFor } from "../progress.js";
 import { reg, useStore } from "../store.js";
+import { DangerPicker, dangerTexts } from "./DangerPicker.js";
 
 export function LobbyScreen() {
   const room = useStore((s) => s.room);
@@ -45,7 +46,7 @@ function EnterRoom() {
             type="button"
             className="primary"
             disabled={!nameOk || busy}
-            onClick={() => run(() => createRoom(name.trim(), firstStage.id))}
+            onClick={() => run(() => createRoom(name.trim(), firstStage.id, 0))}
           >
             ルームを作る
           </button>
@@ -151,7 +152,7 @@ function RoomView() {
                     className={`stage-button${st.id === room.stageId ? " stage-selected" : ""}`}
                     disabled={!open || room.started}
                     aria-pressed={st.id === room.stageId}
-                    onClick={async () => setError(await setRoomStage(st.id))}
+                    onClick={async () => setError(await setRoomStage(st.id, 0))}
                   >
                     <span className="stage-label">{label}</span>
                     <span className="stage-name">{open ? st.name : "？？？"}</span>
@@ -165,14 +166,32 @@ function RoomView() {
               );
             })}
           </ol>
-          <p className="dialog-note">あなたが解放したステージから選べます。クリアすると、参加者全員の進み具合に記録されます。</p>
+          {!stage.tutorial && maxDangerFor(stage, progress, reg.maxDanger) > 0 && (
+            <DangerPicker
+              value={room.danger}
+              max={maxDangerFor(stage, progress, reg.maxDanger)}
+              best={progress.bestDanger[stage.id]}
+              disabled={room.started}
+              onChange={async (d) => setError(await setRoomStage(stage.id, d))}
+            />
+          )}
+          <p className="dialog-note">あなたが解放したステージと危険度から選べます。クリアすると、参加者全員の進み具合に記録されます。</p>
         </>
       ) : (
-        <p>
-          {stage.tutorial ? "チュートリアル" : stage.name}（ボス：{reg.enemy(stage.bossId).name}）
-          <br />
-          <span className="dialog-note">ステージはホストが選びます。</span>
-        </p>
+        <div>
+          <p>
+            {stage.tutorial ? "チュートリアル" : stage.name}
+            {room.danger > 0 && `（危険度${room.danger}）`}（ボス：{reg.enemy(stage.bossId).name}）
+          </p>
+          {room.danger > 0 && (
+            <ul className="danger-list">
+              {dangerTexts(room.danger).map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          )}
+          <p className="dialog-note">ステージと危険度はホストが選びます。</p>
+        </div>
       )}
       {error && (
         <p className="lobby-error" role="alert">

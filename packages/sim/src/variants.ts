@@ -12,11 +12,12 @@ interface Data {
   enemies: Json[];
   setup: Json;
   stages: Json[];
+  dangers: Json[];
 }
 
 export function loadData(): Data {
   const read = (f: string) => JSON.parse(readFileSync(dataDir + f, "utf8")) as Json;
-  return { heroes: read("heroes.json"), items: read("items.json"), enemies: read("enemies.json"), setup: read("setup.json"), stages: read("stages.json") };
+  return { heroes: read("heroes.json"), items: read("items.json"), enemies: read("enemies.json"), setup: read("setup.json"), stages: read("stages.json"), dangers: read("dangers.json") };
 }
 
 /** 候補の名前 → データの書き換え */

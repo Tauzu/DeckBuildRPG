@@ -61,6 +61,7 @@ export class RoomError extends Error {}
 export class Room {
   hostId: string;
   stageId: string;
+  danger = 0;
   readonly members: Member[] = [];
   state: GameState | null = null;
   record: GameRecord | null = null;
@@ -75,9 +76,18 @@ export class Room {
     private readonly hooks: RoomHooks,
     private readonly timings: RoomTimings = DEFAULT_TIMINGS,
     stageId: string = reg.defaultStageId,
+    danger = 0,
   ) {
     this.hostId = "";
     this.stageId = stageId;
+    this.danger = this.checkDanger(stageId, danger);
+  }
+
+  /** 危険度がそのステージで選べるか確かめる */
+  private checkDanger(stageId: string, danger: number): number {
+    if (danger > this.reg.maxDanger) throw new RoomError(`危険度は ${this.reg.maxDanger} までです`);
+    if (danger > 0 && this.reg.stage(stageId).tutorial) throw new RoomError("チュートリアルには危険度がありません");
+    return danger;
   }
 
   get started(): boolean {
@@ -89,6 +99,7 @@ export class Room {
       code: this.code,
       hostId: this.hostId,
       stageId: this.stageId,
+      danger: this.danger,
       started: this.started,
       members: this.members.map((m) => ({ id: m.playerId, name: m.name, connected: m.socketId !== null, auto: m.auto })),
     };
@@ -206,10 +217,11 @@ export class Room {
   // -------------------------------------------------------------------------
   // 待機中の操作（ホストのみ）
 
-  setStage(playerId: string, stageId: string): void {
+  setStage(playerId: string, stageId: string, danger = 0): void {
     this.requireHost(playerId);
     if (this.started) throw new RoomError("ゲーム中はステージを変えられません");
     if (!this.reg.stages.some((s) => s.id === stageId)) throw new RoomError("そのステージはありません");
+    this.danger = this.checkDanger(stageId, danger);
     this.stageId = stageId;
     this.broadcastRoom();
   }
@@ -224,10 +236,10 @@ export class Room {
       throw new RoomError(`「${stage.name}」は${ok}人で遊ぶステージです（今は${n}人）`);
     }
     const players = this.members.map((m) => ({ id: m.playerId, name: m.name }));
-    const created = createGame({ seed, players, stageId: this.stageId }, this.reg);
+    const created = createGame({ seed, players, stageId: this.stageId, danger: this.danger }, this.reg);
     this.state = created.state;
-    this.record = newRecord(seed, players, this.reg, this.stageId);
-    this.hooks.log("ゲーム開始", { room: this.code, stage: this.stageId, players: n, seed });
+    this.record = newRecord(seed, players, this.reg, this.stageId, this.danger);
+    this.hooks.log("ゲーム開始", { room: this.code, stage: this.stageId, danger: this.danger, players: n, seed });
     this.broadcastRoom();
     this.afterChange(created.events);
   }

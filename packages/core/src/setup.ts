@@ -10,7 +10,12 @@ export interface CreateGameParams {
   players: { id: string; name: string }[];
   /** 省略すると最後のステージ（すべてのカードが登場する） */
   stageId?: string;
+  /** 危険度（省略すると 0＝通常） */
+  danger?: number;
 }
+
+/** 危険度で敵を減らしても、ボスの束より前に残す敵の数 */
+const MIN_ENEMIES_BEFORE_BOSS = 3;
 
 export function createGame(params: CreateGameParams, reg: CardRegistry): EngineResult {
   const { players } = params;
@@ -21,6 +26,12 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
   const stage = reg.stage(params.stageId ?? reg.defaultStageId);
   const pc = stage.playerCounts[String(players.length)];
   if (!pc) throw new Error(`ステージ「${stage.name}」は${players.length}人では遊べません`);
+  const danger = params.danger ?? 0;
+  if (!Number.isInteger(danger) || danger < 0 || danger > reg.maxDanger) throw new Error(`危険度は 0～${reg.maxDanger} です`);
+  if (danger > 0 && stage.tutorial) throw new Error("チュートリアルには危険度がありません");
+  const mod = reg.dangerModifiers(danger);
+  const villageHp = Math.max(1, pc.villageHp + mod.villageHp);
+  const handSize = Math.max(1, setup.handSize + mod.handSize);
 
   const s: GameState = {
     version: 1,
@@ -29,12 +40,14 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     nextUid: 1,
     config: {
       stageId: stage.id,
+      danger,
+      enemyHpBonus: mod.enemyHp,
       heroIds: [...stage.heroIds],
       playerCount: players.length,
-      handSize: setup.handSize,
+      handSize,
       routeLength: setup.routeLength,
-      villageHp: pc.villageHp,
-      bossHp: pc.bossHp,
+      villageHp,
+      bossHp: Math.round((pc.bossHp * (100 + mod.bossHpPct)) / 100),
       changeClassExp: setup.changeClassExp,
       persistentDamage: setup.persistentDamage ?? "none",
       lootToDeck: setup.lootToDeck ?? true,
@@ -54,7 +67,7 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     village: { stacks: {}, curses: [] },
     enemyDeck: [],
     route: Array.from({ length: setup.routeLength }, () => []),
-    villageHp: pc.villageHp,
+    villageHp,
     trash: [],
     enemyDamage: {},
     roundDefeats: 0,
@@ -92,7 +105,10 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
   const bossGroup = late.splice(0, setup.enemyDeck.bossGroupSize - 1);
   bossGroup.push(newCard(s, stage.bossId));
   shuffleInPlace(s, bossGroup);
-  s.enemyDeck = [...early, ...late, ...bossGroup];
+  // 危険度：ボスの束の直前の敵を減らし、ボスを早く出す（序盤の敵は少し残す）
+  const before = [...early, ...late];
+  before.splice(before.length - Math.min(mod.enemyDeckTrim, Math.max(0, before.length - MIN_ENEMIES_BEFORE_BOSS)));
+  s.enemyDeck = [...before, ...bossGroup];
 
   // プレイヤー
   for (const info of players) {
@@ -108,9 +124,10 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
       kills: 0,
     };
     for (const e of setup.startingDeck) for (let i = 0; i < e.count; i++) p.deck.push(newCard(s, e.id));
+    for (let i = 0; i < mod.startCurses; i++) p.deck.push(newCard(s, reg.curseId));
     shuffleInPlace(s, p.deck);
     s.players.push(p);
-    drawCards(ctx, p, setup.handSize);
+    drawCards(ctx, p, handSize);
   }
 
   ctx.events.push({ type: "turnStarted", playerId: players[0]!.id, turnCount: 1 });

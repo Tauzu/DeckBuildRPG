@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { DangerPicker } from "./components/DangerPicker.js";
 import { ActionBar } from "./components/ActionBar.js";
 import { LogPanel } from "./components/LogPanel.js";
 import { PendingDialog } from "./components/PendingDialog.js";
@@ -14,7 +15,7 @@ import { OthersPanel } from "./components/OthersPanel.js";
 import { SoundControls } from "./components/SoundControls.js";
 import { TutorialHint } from "./components/TutorialHint.js";
 import { VillageStock } from "./components/VillageStock.js";
-import { isUnlocked, stageSelectUnlocked } from "./progress.js";
+import { isUnlocked, maxDangerFor, stageSelectUnlocked } from "./progress.js";
 import { isRemote, reg, useStore } from "./store.js";
 
 export function TitleScreen() {
@@ -54,6 +55,9 @@ export function TitleScreen() {
           <button type="button" className={inRoom && !hasGame ? "primary" : ""} onClick={() => go("lobby")}>
             {inRoom ? "ルームに戻る" : "みんなで遊ぶ（ルームを作る・参加する）"}
           </button>
+          <button type="button" onClick={() => go("records")}>
+            実績と記録
+          </button>
           <button type="button" onClick={() => go("rules")}>
             遊び方
           </button>
@@ -68,17 +72,24 @@ export function StageSelectScreen() {
   const startSolo = useStore((s) => s.startSolo);
   const go = useStore((s) => s.go);
   const progress = useStore((s) => s.progress);
+  /** ステージごとに選んだ危険度（選んでいなければ、選べる最高の危険度） */
+  const [dangers, setDangers] = useState<Record<string, number>>({});
   return (
     <main className="rules-screen">
       <div className="rules panel stage-select">
         <h1>ステージを選ぶ</h1>
-        <p className="stage-lead">ステージをクリアすると、次のステージが解放されます。先へ進むほど、登場するカードと敵が増えます。</p>
+        <p className="stage-lead">
+          ステージをクリアすると、次のステージが解放されます。先へ進むほど、登場するカードと敵が増えます。クリアしたステージは、危険度を上げて挑めます（最高{reg.maxDanger}）。危険度を選んでから、ステージを押すと始まります。
+        </p>
         <ol className="stage-list">
           {reg.stages.map((st, i) => {
             const open = isUnlocked(reg.stages, progress, st.id);
+            const best = progress.bestDanger[st.id];
             const cleared = progress.cleared.includes(st.id);
             const label = st.tutorial ? "チュートリアル" : `ステージ${i}`;
             const boss = reg.enemy(st.bossId).name;
+            const max = maxDangerFor(st, progress, reg.maxDanger);
+            const danger = Math.min(dangers[st.id] ?? max, max);
             return (
               <li key={st.id} className={`stage-item${open ? "" : " stage-locked"}`}>
                 <button
@@ -86,13 +97,18 @@ export function StageSelectScreen() {
                   className="stage-button"
                   disabled={!open}
                   title={open ? undefined : "前のステージをクリアすると遊べます"}
-                  onClick={() => startSolo(st.id)}
+                  onClick={() => startSolo(st.id, undefined, danger)}
                 >
                   <span className="stage-label">{label}</span>
                   <span className="stage-name">{open ? st.name : "？？？"}</span>
-                  {cleared && <span className="stage-cleared">クリア</span>}
+                  {cleared && (
+                    <span className="stage-cleared">{!st.tutorial && best !== undefined && best > 0 ? `危険度${best} クリア` : "クリア"}</span>
+                  )}
                   <span className="stage-desc">{open ? `${st.description}（ボス：${boss}）` : "前のステージをクリアすると解放されます"}</span>
                 </button>
+                {open && !st.tutorial && max > 0 && (
+                  <DangerPicker value={danger} max={max} best={best} onChange={(d) => setDangers({ ...dangers, [st.id]: d })} />
+                )}
               </li>
             );
           })}
@@ -148,7 +164,14 @@ export function RulesScreen() {
         <h2>ボス</h2>
         <p>ボスに与えたダメージは次の手番以降も残ります。1回で倒せなくても、少しずつ削りましょう（他の敵のダメージは残りません）。</p>
         <h2>ステージ</h2>
-        <p>最初はチュートリアルで遊び方を覚えます。クリアするとステージ選択が解放され、ステージをクリアするたびに次のステージが遊べます。先へ進むほど、登場するカードと敵が増えます。進み具合はこのブラウザに保存されます。</p>
+        <p>最初はチュートリアルで遊び方を覚えます。クリアするとステージ選択が解放され、ステージをクリアするたびに次のステージが遊べます。先へ進むほど、登場するカードと敵が増えます。</p>
+        <h2>危険度と実績</h2>
+        <p>
+          クリアしたステージは、危険度を上げて挑めます。危険度が1つ上がるごとに不利な条件が1つ増え、クリアすると次の危険度が解放されます（最高{reg.maxDanger}）。条件を満たすと実績が記録されます。タイトルの「実績と記録」で一覧を見られます。
+        </p>
+        <p>
+          記録はこのブラウザに保存されます。別の機器やブラウザで続けるときは、「実績と記録」の画面で引き継ぎコードを作り、移した先で読み込んでください。
+        </p>
         <h2>耐性</h2>
         <p>物理や魔法の合計に対して「半減（端数切り捨て）」「無効」がかかります。狩人や武器で両方を用意しましょう。</p>
         <h2>成長</h2>
@@ -190,6 +213,7 @@ export function GameScreen() {
           タイトル
         </button>
         <span className="game-title">{reg.stage(update.view.config.stageId).name}</span>
+        {update.view.config.danger > 0 && <span className="game-danger">危険度 {update.view.config.danger}</span>}
         <span className="game-turn">手番 {update.view.turnCount}</span>
         <SoundControls compact />
         {remote ? (

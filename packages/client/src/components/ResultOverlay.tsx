@@ -8,6 +8,7 @@ export function ResultOverlay() {
   const startSolo = useStore((s) => s.startSolo);
   const go = useStore((s) => s.go);
   const newlyCleared = useStore((s) => s.newlyCleared);
+  const unlockedNow = useStore((s) => s.unlockedNow);
   const room = useStore((s) => s.room);
   const myId = useStore((s) => s.myId);
   const backToLobby = useStore((s) => s.backToLobby);
@@ -20,6 +21,9 @@ export function ResultOverlay() {
   const stage = reg.stage(update.view.config.stageId);
   const next = win ? nextStage(reg.stages, stage.id) : null;
   const multi = update.view.players.length >= 2;
+  const danger = update.view.config.danger;
+  /** 新しく解放した次の危険度（なければ null） */
+  const nextDanger = newlyCleared?.danger && !stage.tutorial && danger < reg.maxDanger ? danger + 1 : null;
 
   const download = () => {
     const record = conn?.record();
@@ -38,9 +42,10 @@ export function ResultOverlay() {
       <div className={`dialog panel result ${win ? "result-win" : "result-lose"}`} role="dialog" aria-modal="true">
         <h2 className="result-title">{win ? "勝利" : "敗北"}</h2>
         <p>
-          {stage.name}：{resultReason(result.reason, reg.enemy(stage.bossId).name)}
+          {stage.name}
+          {danger > 0 && `（危険度${danger}）`}：{resultReason(result.reason, reg.enemy(stage.bossId).name)}
         </p>
-        {newlyCleared === stage.id && (
+        {newlyCleared?.stage && (
           <p className="result-unlock">
             {stage.tutorial
               ? "ステージ選択が解放されました！"
@@ -48,6 +53,20 @@ export function ResultOverlay() {
                 ? `次のステージ「${next.name}」が解放されました！`
                 : "すべてのステージをクリアしました！"}
           </p>
+        )}
+        {nextDanger !== null && <p className="result-unlock">このステージの危険度{nextDanger}が解放されました！</p>}
+        {newlyCleared?.danger && !stage.tutorial && danger === reg.maxDanger && (
+          <p className="result-unlock">このステージを最高の危険度で制覇しました！</p>
+        )}
+        {unlockedNow.length > 0 && (
+          <ul className="result-achievements" aria-label="達成した実績">
+            {unlockedNow.map((a) => (
+              <li key={a.id}>
+                <span className="achievement-mark">★</span> 実績「{a.name}」を達成！
+                <span className="achievement-text">{a.text}</span>
+              </li>
+            ))}
+          </ul>
         )}
         <div className="result-rank">
           チーム評価 <strong>{result.rank}</strong>
@@ -106,11 +125,16 @@ export function ResultOverlay() {
             <button type="button" className="ghost" onClick={() => go("title")}>
               タイトルへ
             </button>
-            <button type="button" className={next ? "ghost" : "primary"} onClick={() => startSolo(stage.id)}>
+            <button type="button" className={next || nextDanger !== null ? "ghost" : "primary"} onClick={() => startSolo(stage.id, undefined, danger)}>
               もう一度
             </button>
+            {nextDanger !== null && (
+              <button type="button" className={next && newlyCleared?.stage ? "" : "primary"} onClick={() => startSolo(stage.id, undefined, nextDanger)}>
+                危険度{nextDanger}に挑む
+              </button>
+            )}
             {next && (
-              <button type="button" className="primary" onClick={() => startSolo(next.id)}>
+              <button type="button" className={newlyCleared?.stage || nextDanger === null ? "primary" : ""} onClick={() => startSolo(next.id)}>
                 次のステージへ
               </button>
             )}
