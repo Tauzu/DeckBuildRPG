@@ -1602,3 +1602,47 @@ h3 {
     filter: none;
   }
 }
+
+/* 空いている英雄の枠（場にカードの形で出す） */
+.slot-card {
+  background: transparent;
+  border: 2px dashed #7a8ea6;
+  box-shadow: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  color: #4d6380;
+}
+
+.slot-card-title {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.slot-card-text {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.slot-card-none {
+  border-color: #b06a5c;
+  color: var(--bad);
+}
+
+.hero-slots strong {
+  font-size: 1rem;
+}
+
+/* 場の食料は重ねて置く */
+.field-foods {
+  display: flex;
+}
+
+.field-foods > .card-wrap + .card-wrap {
+  margin-left: -82px;
+}
+
+.field-foods > .card-wrap:hover {
+  z-index: 2;
+}

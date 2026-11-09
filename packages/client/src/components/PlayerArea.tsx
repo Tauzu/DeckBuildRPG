@@ -8,6 +8,9 @@ export function PlayerArea() {
   const update = useStore((s) => s.update)!;
   const { view } = update;
   const me = view.players.find((p) => p.id === view.viewerId)!;
+  // 食料は枠を増やすだけなので、左に重ねて置き、英雄と武器を見やすくする
+  const foods = me.field.filter((c) => reg.get(c.defId).type === "food");
+  const others = me.field.filter((c) => reg.get(c.defId).type !== "food");
 
   return (
     <section className="player-area player-dock panel" aria-label="場と手札">
@@ -16,10 +19,18 @@ export function PlayerArea() {
           場 <HeroSlots />
         </h2>
         <div className="zone-cards">
-          {me.field.length === 0 && <div className="zone-empty">（まだ何も出していません）</div>}
-          {me.field.map((c) => (
+          {foods.length > 0 && (
+            <div className="field-foods" title="出した食料（重ねて表示）">
+              {foods.map((c) => (
+                <FieldCard key={c.uid} card={c} />
+              ))}
+            </div>
+          )}
+          {others.map((c) => (
             <FieldCard key={c.uid} card={c} />
           ))}
+          <EmptySlots />
+          {me.field.length === 0 && !slotsShown(update) && <div className="zone-empty">（まだ何も出していません）</div>}
         </div>
       </div>
       <div className="zone">
@@ -222,30 +233,54 @@ function GrowthButtons({ card }: { card: CardInstance }) {
   return extra;
 }
 
-/** 英雄を出せる枠（使った枠と残りの枠）を並べて見せる */
+/** 英雄の枠を見せる場面か（自分の手番で、集落か戦闘中） */
+function slotsShown(u: { view: { currentPlayerId: string; viewerId: string; step: { kind: string }; turn: unknown } }): boolean {
+  const { view } = u;
+  return view.currentPlayerId === view.viewerId && (view.step.kind === "village" || view.step.kind === "battle") && !!view.turn;
+}
+
+/** 見出しの横：英雄の枠の数 */
 function HeroSlots() {
   const update = useStore((s) => s.update)!;
-  const { view, info } = update;
-  const mine = view.currentPlayerId === view.viewerId;
-  const step = view.step.kind;
-  if (!mine || (step !== "village" && step !== "battle") || !view.turn) return null;
-  const { total, used } = info.slots;
-  const free = view.config.freeHeroSlots;
-  const pips = Array.from({ length: Math.max(total, used) }, (_, i) => i < used);
+  if (!slotsShown(update)) return null;
+  const { total, used } = update.info.slots;
   return (
-    <span
-      className="hero-slots"
-      title={`英雄は${free}人まで食料なしで出せる。食料を出すと、食糧値の分だけ枠が増える`}
-      aria-label={`英雄の枠 ${used} / ${total}`}
-    >
-      <span className="hero-slots-label">英雄の枠</span>
-      {pips.map((filled, i) => (
-        <span key={i} className={`hero-slot${filled ? " hero-slot-used" : ""}${i < free ? " hero-slot-free" : ""}`} />
-      ))}
-      <span className="hero-slots-count">
-        残り {Math.max(0, total - used)}
-      </span>
-      {total - used <= 0 && <span className="hero-slots-tip">食料を出すと枠が増える</span>}
+    <span className="hero-slots" aria-label={`英雄の枠 ${used} / ${total}`}>
+      英雄の枠 <strong>{used}</strong> / {total}
     </span>
+  );
+}
+
+/** 場に、空いている英雄の枠をカードと同じ形で並べる。枠がなければ「食料で増える」枠を1つ出す */
+function EmptySlots() {
+  const update = useStore((s) => s.update)!;
+  if (!slotsShown(update)) return null;
+  const { total, used } = update.info.slots;
+  const free = update.view.config.freeHeroSlots;
+  const left = Math.max(0, total - used);
+  if (left === 0) {
+    return (
+      <div className="card-wrap">
+        <div className="card card-small slot-card slot-card-none" title="食料を出すと、食糧値の分だけ英雄の枠が増えます">
+          <span className="slot-card-title">英雄の枠なし</span>
+          <span className="slot-card-text">食料を出すと枠が増える</span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <>
+      {Array.from({ length: left }, (_, i) => (
+        <div key={i} className="card-wrap">
+          <div
+            className="card card-small slot-card"
+            title={`英雄は${free}人まで食料なしで出せます。食料を出すと、食糧値の分だけ枠が増えます`}
+          >
+            <span className="slot-card-title">英雄の枠</span>
+            <span className="slot-card-text">手札の英雄をクリックすると、ここに出る</span>
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
