@@ -29,7 +29,18 @@ function toPaths(sprite: Sprite): { color: string; d: string }[] {
   return paths;
 }
 
-export const PixelArt = memo(function PixelArt({ sprite, size, className }: { sprite: Sprite; size?: number; className?: string }) {
+export const PixelArt = memo(function PixelArt({
+  sprite,
+  size,
+  className,
+  silhouette,
+}: {
+  sprite: Sprite;
+  size?: number;
+  className?: string;
+  /** 影絵にするときの色（図鑑のまだ見ていないカード） */
+  silhouette?: string;
+}) {
   return (
     <svg
       className={className}
@@ -41,7 +52,7 @@ export const PixelArt = memo(function PixelArt({ sprite, size, className }: { sp
       focusable="false"
     >
       {toPaths(sprite).map((p) => (
-        <path key={p.color} d={p.d} fill={p.color} />
+        <path key={p.color} d={p.d} fill={silhouette ?? p.color} />
       ))}
     </svg>
   );

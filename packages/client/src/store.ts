@@ -5,13 +5,14 @@ import { playSfx, setBgmMood } from "./audio.js";
 import { effectsFrom, FX_STAGGER, type FxItem, nextFxId, soundsFrom } from "./components/Effects.js";
 import { type GameConnection, type GameUpdate, LocalConnection, RemoteConnection, randomSeed } from "./connection.js";
 import { loadSession, Online, type RoomInfo } from "./online.js";
+import { addSeen, seedSeen, visibleDefIds } from "./codex.js";
 import { type AchievementDef, addToTally, emptyTally, type GameTally, recordGameEnd } from "./achievements.js";
 import { exportCode, importCode, loadProgress, markCleared, mergeProgress, type Progress, saveProgress } from "./progress.js";
 import { buildLookup, ERROR_TEXT, eventText } from "./text.js";
 
 export const reg = defaultRegistry();
 
-export type Screen = "title" | "game" | "rules" | "stages" | "lobby" | "records";
+export type Screen = "title" | "game" | "rules" | "stages" | "lobby" | "records" | "codex";
 
 export interface LogLine {
   id: number;
@@ -116,6 +117,14 @@ function logLines(u: GameUpdate, playerName: (id: string) => string): LogLine[] 
   return lines;
 }
 
+/** 保存された進み具合を読む。古い形なら図鑑の記録を補って保存し直す */
+function initialProgress(): Progress {
+  const loaded = loadProgress();
+  const p = seedSeen(reg, loaded);
+  if (p !== loaded) saveProgress(p);
+  return p;
+}
+
 const NAME_KEY = "deckbuild.name.v1";
 function loadName(): string {
   try {
@@ -163,6 +172,12 @@ export const useStore = create<Store>()((set, get) => {
         classChangeFor: null,
         selection: [],
       }));
+      // カード図鑑：見えたカードを記録する
+      const withSeen = addSeen(get().progress, visibleDefIds(u.view));
+      if (withSeen !== get().progress) {
+        saveProgress(withSeen);
+        set({ progress: withSeen });
+      }
       // 終わったら、クリア・通算の記録・実績を記録する（マルチでは参加者それぞれの進み具合に入る）
       const result = u.view.result;
       if (ended && result) {
@@ -208,6 +223,11 @@ export const useStore = create<Store>()((set, get) => {
       seenHints: [],
       fx: [],
     });
+    const withSeen = addSeen(get().progress, visibleDefIds(first.view));
+    if (withSeen !== get().progress) {
+      saveProgress(withSeen);
+      set({ progress: withSeen });
+    }
   };
 
   /** サーバーにつなぐ（最初に必要になったときだけ） */
@@ -274,7 +294,7 @@ export const useStore = create<Store>()((set, get) => {
     selectedWeapon: null,
     classChangeFor: null,
     selection: [],
-    progress: loadProgress(),
+    progress: initialProgress(),
     newlyCleared: null,
     tally: emptyTally(),
     unlockedNow: [],

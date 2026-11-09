@@ -1,6 +1,7 @@
 // 実績と記録（企画書 13.2、13.3）：実績の一覧、通算の記録、ステージごとの最高危険度、引き継ぎコード
 import { useState } from "react";
 import { ACHIEVEMENTS, type AchievementGroup, heroWinsCount } from "../achievements.js";
+import { codexIds } from "../codex.js";
 import { reg, useStore } from "../store.js";
 
 const GROUPS: AchievementGroup[] = ["進行", "戦い方", "協力", "通算"];
@@ -38,6 +39,12 @@ export function RecordsScreen() {
           <div>
             <span>倒した魔物</span>
             <strong>{stats.kills}体</strong>
+          </div>
+          <div>
+            <span>カード図鑑</span>
+            <strong>
+              {codexIds(reg).filter((id) => progress.seen.includes(id)).length} / {codexIds(reg).length}
+            </strong>
           </div>
           <div>
             <span>英雄図鑑</span>

@@ -13,6 +13,8 @@ export interface Progress {
   achievements: Record<string, number>;
   /** 通算の記録 */
   stats: Stats;
+  /** カード図鑑：ゲームで見たカード */
+  seen: string[];
 }
 
 export interface Stats {
@@ -24,7 +26,7 @@ export interface Stats {
 }
 
 export function emptyProgress(): Progress {
-  return { cleared: [], bestDanger: {}, achievements: {}, stats: { games: 0, wins: 0, kills: 0, heroWins: [] } };
+  return { cleared: [], bestDanger: {}, achievements: {}, stats: { games: 0, wins: 0, kills: 0, heroWins: [] }, seen: [] };
 }
 
 const strings = (x: unknown): string[] => (Array.isArray(x) ? x.filter((v): v is string => typeof v === "string") : []);
@@ -47,6 +49,7 @@ export function normalizeProgress(raw: unknown): Progress {
   p.achievements = numbers(d.achievements);
   const st = (d.stats && typeof d.stats === "object" ? d.stats : {}) as Record<string, unknown>;
   p.stats = { games: count(st.games), wins: count(st.wins), kills: count(st.kills), heroWins: [...new Set(strings(st.heroWins))] };
+  p.seen = [...new Set(strings(d.seen))];
   return p;
 }
 
@@ -126,6 +129,7 @@ export function mergeProgress(a: Progress, b: Progress): Progress {
       kills: Math.max(a.stats.kills, b.stats.kills),
       heroWins: [...new Set([...a.stats.heroWins, ...b.stats.heroWins])],
     },
+    seen: [...new Set([...a.seen, ...b.seen])],
   };
 }
 

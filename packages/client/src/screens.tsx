@@ -58,6 +58,9 @@ export function TitleScreen() {
           <button type="button" onClick={() => go("records")}>
             実績と記録
           </button>
+          <button type="button" onClick={() => go("codex")}>
+            カード図鑑
+          </button>
           <button type="button" onClick={() => go("rules")}>
             遊び方
           </button>

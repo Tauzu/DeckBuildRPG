@@ -2484,3 +2484,42 @@ textarea {
   color: var(--ink);
   text-shadow: 1px 1px 0 #000;
 }
+
+/* ---------- カード図鑑 ---------- */
+.codex {
+  max-width: 1000px;
+}
+
+.codex-count {
+  color: var(--accent);
+  margin: 0 6px;
+  font-size: 1.1rem;
+}
+
+.codex-group {
+  margin-bottom: 10px;
+}
+
+.codex-rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.codex-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card-unknown {
+  background: #10142e;
+  --card-edge: var(--edge-dim);
+  color: var(--ink-soft);
+  border-style: dashed;
+  justify-content: flex-start;
+}
+
+.card-unknown .card-art {
+  background: rgb(255 255 255 / 0.12);
+}

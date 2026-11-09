@@ -61,18 +61,21 @@ describe("進み具合", () => {
       bestDanger: { stage1: 3 },
       achievements: { first_win: 200 },
       stats: { games: 10, wins: 5, kills: 40, heroWins: ["knight"] },
+      seen: ["food_bread"],
     };
     const b: Progress = {
       cleared: ["stage2"],
       bestDanger: { stage1: 1, stage2: 2 },
       achievements: { first_win: 100, danger1: 300 },
       stats: { games: 4, wins: 7, kills: 10, heroWins: ["mage"] },
+      seen: ["food_bread", "enemy_wolf"],
     };
     const m = mergeProgress(a, b);
     expect(m.cleared.sort()).toEqual(["stage1", "stage2"]);
     expect(m.bestDanger).toEqual({ stage1: 3, stage2: 2 });
     expect(m.achievements).toEqual({ first_win: 100, danger1: 300 });
     expect(m.stats).toEqual({ games: 10, wins: 7, kills: 40, heroWins: ["knight", "mage"] });
+    expect(m.seen).toEqual(["food_bread", "enemy_wolf"]);
   });
 });
 
@@ -82,6 +85,7 @@ describe("引き継ぎコード", () => {
     bestDanger: { tutorial: 0, stage1: 4, stage2: 0 },
     achievements: { first_win: 1700000000000, danger1: 1700000001000 },
     stats: { games: 12, wins: 8, kills: 130, heroWins: ["knight", "mage", "hunter"] },
+    seen: ["hero_youth_0", "food_bread", "weapon_club", "enemy_goblin", "enemy_wolf"],
   };
 
   it("書き出して読み込むと元に戻る", async () => {

@@ -1,5 +1,6 @@
 // 実績（企画書 13.2）。ゲームの終わりに判定し、進み具合に記録する
 import type { CardRegistry, GameEvent, GameResult, PlayerPublicView, StageDef } from "@deckbuild/core";
+import { codexIds } from "./codex.js";
 import type { Progress } from "./progress.js";
 
 /** 1ゲームの中で、自分の行動から集める記録 */
@@ -150,6 +151,13 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     name: "英雄図鑑",
     text: "すべての種類の英雄で、それぞれ1回以上勝つ（その英雄を使って勝つ）",
     check: (c) => allHeroIds(c.reg).every((id) => c.progress.stats.heroWins.includes(id)),
+  },
+  {
+    id: "codex",
+    group: "通算",
+    name: "博識",
+    text: "カード図鑑をすべて埋める",
+    check: (c) => codexIds(c.reg).every((id) => c.progress.seen.includes(id)),
   },
 ];
 
