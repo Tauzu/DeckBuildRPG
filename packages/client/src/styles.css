@@ -2542,3 +2542,8 @@ textarea {
     font-size: 15px;
   }
 }
+
+/* 句の途中で折り返さない */
+.nowrap {
+  display: inline-block;
+}

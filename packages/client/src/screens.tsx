@@ -32,7 +32,12 @@ export function TitleScreen() {
         <p className="title-kicker">デッキビルド × RPG</p>
         <h1 className="title-logo">FOODIE QUEST</h1>
         <p className="title-sub">エルムの村のはらぺこ英雄たち</p>
-        <p className="title-lead">魔竜の軍勢が集落に届く前に、英雄たちを育てて魔竜を討て。</p>
+        <p className="title-lead">
+          腹がへっては戦はできぬ。
+          <br />
+          <span className="nowrap">食料で英雄を呼び集め、</span>
+          <span className="nowrap">魔竜の軍勢から村を守れ！</span>
+        </p>
         <div className="title-buttons">
           {hasGame && (
             <button type="button" className="primary" onClick={() => go("game")}>
