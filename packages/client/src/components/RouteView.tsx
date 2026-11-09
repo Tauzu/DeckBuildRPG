@@ -7,6 +7,7 @@ export function RouteView() {
   const { view, legal } = update;
   const choosing = view.step.kind === "chooseAction" && legal.waitingForMe;
   const target = view.turn?.action === "battle" ? view.turn.targetUid : null;
+  const villageHits = useStore((s) => s.villageHits);
 
   return (
     <section className="route panel">
@@ -39,7 +40,7 @@ export function RouteView() {
           </div>
         ))}
       </div>
-      <div className="route-end route-village">
+      <div key={villageHits} className={`route-end route-village${villageHits > 0 ? " village-hit" : ""}`}>
         <div className="route-end-title">エルム村</div>
         <div className={`village-hp ${view.villageHp <= view.config.villageHp / 3 ? "danger" : ""}`}>
           耐久値 {Math.max(0, view.villageHp)} / {view.config.villageHp}

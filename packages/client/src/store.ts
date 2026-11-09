@@ -1,6 +1,7 @@
 // 画面の状態（設計書 4.2）
 import { type Action, type ActionOption, defaultRegistry } from "@deckbuild/core";
 import { create } from "zustand";
+import { effectsFrom, type FxItem, nextFxId } from "./components/Effects.js";
 import { type GameConnection, type GameUpdate, LocalConnection, RemoteConnection, randomSeed } from "./connection.js";
 import { loadSession, Online, type RoomInfo } from "./online.js";
 import { loadProgress, markCleared, type Progress, saveProgress } from "./progress.js";
@@ -47,6 +48,11 @@ interface Store {
   /** 前回入力した名前 */
   playerName: string;
 
+  /** 表示中の演出 */
+  fx: FxItem[];
+  /** 集落が攻撃された回数（揺らす演出のきっかけ） */
+  villageHits: number;
+
   /** ひとりで遊ぶ。ステージを省略すると最後のステージ */
   startSolo(stageId?: string, seed?: number): void;
   setHideHints(hide: boolean): void;
@@ -58,6 +64,7 @@ interface Store {
   toggleSelect(uid: string, max: number): void;
   clearToast(): void;
   showToast(message: string): void;
+  removeFx(id: number): void;
 
   createRoom(name: string, stageId: string): Promise<string | null>;
   joinRoom(code: string, name: string): Promise<string | null>;
@@ -119,8 +126,12 @@ export const useStore = create<Store>()((set, get) => {
         set({ update: u, toast: u.error });
         return;
       }
+      const fx = effectsFrom(u.events, u.view.viewerId, nameOf).map((f) => ({ ...f, id: nextFxId() }));
+      const hits = u.events.filter((e) => e.type === "enemyArrived" && e.damage > 0).length;
       set((st) => ({
         update: u,
+        fx: fx.length ? [...st.fx, ...fx].slice(-6) : st.fx,
+        villageHits: st.villageHits + hits,
         log: [...st.log, ...logLines(u, nameOf)].slice(-300),
         selectedWeapon: null,
         classChangeFor: null,
@@ -147,6 +158,7 @@ export const useStore = create<Store>()((set, get) => {
       newlyCleared: null,
       hideHints: false,
       seenHints: [],
+      fx: [],
     });
   };
 
@@ -222,6 +234,8 @@ export const useStore = create<Store>()((set, get) => {
     myId: null,
     online: false,
     playerName: loadName(),
+    fx: [],
+    villageHits: 0,
 
     startSolo(stageId, seed) {
       if (get().room) get().leaveRoom();
@@ -267,6 +281,10 @@ export const useStore = create<Store>()((set, get) => {
 
     showToast(message) {
       set({ toast: message });
+    },
+
+    removeFx(id) {
+      set((st) => ({ fx: st.fx.filter((f) => f.id !== id) }));
     },
 
     createRoom(name, stageId) {

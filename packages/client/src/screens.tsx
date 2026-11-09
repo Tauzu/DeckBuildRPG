@@ -5,6 +5,7 @@ import { PendingDialog } from "./components/PendingDialog.js";
 import { PlayerArea } from "./components/PlayerArea.js";
 import { ResultOverlay } from "./components/ResultOverlay.js";
 import { RouteView } from "./components/RouteView.js";
+import { Effects } from "./components/Effects.js";
 import { OthersPanel } from "./components/OthersPanel.js";
 import { TutorialHint } from "./components/TutorialHint.js";
 import { VillageStock } from "./components/VillageStock.js";
@@ -204,6 +205,7 @@ export function GameScreen() {
       <ActionBar />
       <PlayerArea />
       <PendingDialog />
+      <Effects />
       <ResultOverlay />
       {toast && (
         <div className="toast" role="status">

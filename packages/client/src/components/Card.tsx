@@ -1,5 +1,7 @@
 import type { CardDef } from "@deckbuild/core";
 import type { ReactNode } from "react";
+import { PixelArt } from "../art/PixelArt.js";
+import { spriteFor } from "../art/sprites.js";
 import { reg } from "../store.js";
 import { cardTitle, describeEffect, describeWeaponAbility, resistText } from "../text.js";
 
@@ -55,6 +57,7 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, sm
           {def.cost !== null && <span className="card-cost" title="コスト">{def.cost}</span>}
         </div>
         <div className="card-name">{cardTitle(def)}</div>
+        <CardArt def={def} />
         <CardBody def={def} hp={hp} damage={damage} />
         <div className="card-foot">
           <span className="card-gold" title="金価値">
@@ -139,4 +142,15 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
         </div>
       );
   }
+}
+
+/** カードの絵（ドット絵） */
+function CardArt({ def }: { def: CardDef }) {
+  const sprite = spriteFor(def.id, def.type === "hero" ? def.heroId : undefined);
+  if (!sprite) return null;
+  return (
+    <div className="card-art">
+      <PixelArt sprite={sprite} />
+    </div>
+  );
 }
