@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyAction, isEngineError, timeoutAction } from "../src/index.js";
-import { act, cards, errorOf, mutate, placeEnemy, reg, start } from "./helpers.js";
+import { act, cards, confirmAndFinish, errorOf, mutate, placeEnemy, reg, setHand, start } from "./helpers.js";
 
 /** 集落を訪れて何もせずに手番を終える */
 function pass(s: ReturnType<typeof start>, playerId = "p1") {
@@ -47,7 +47,8 @@ describe("敵の進軍（仕様書 5.4）", () => {
     s = mutate(s, (d) => {
       d.enemyDeck.unshift(...cards("enemy_shaman"));
     });
-    s = pass(s).state;
+    s = pass(s, "p1").state;
+    s = pass(s, "p2").state;
     expect(s.pending?.kind).toBe("discard");
     expect(s.step.kind).toBe("nextTurn");
     expect(errorOf(s, "p2", { type: "chooseVillage" })).toBe("PENDING_INPUT");
@@ -56,7 +57,7 @@ describe("敵の進軍（仕様書 5.4）", () => {
     expect(errorOf(s, "p2", { type: "discardForEffect", uids: [] })).toBe("INVALID_SELECTION");
     s = act(s, "p2", { type: "discardForEffect", uids: [p2Card] }).state;
     expect(s.pending).not.toBeNull();
-    expect(s.players[1]!.discard.map((c) => c.uid)).toEqual([p2Card]);
+    expect(s.players[1]!.discard.map((c) => c.uid)).toContain(p2Card);
 
     const timeout = timeoutAction(s, "p1");
     expect(timeout?.type).toBe("discardForEffect");
@@ -72,7 +73,9 @@ describe("敵の進軍（仕様書 5.4）", () => {
     s = mutate(s, (d) => {
       d.enemyDeck.unshift(...cards("enemy_necro"));
     });
-    s = pass(s).state;
+    s = pass(s, "p1").state;
+    s = pass(s, "p2").state;
+    s = pass(s, "p3").state;
     for (const p of s.players) expect(p.discard.some((c) => c.defId === "curse")).toBe(true);
     expect(s.village.curses).toHaveLength(17);
   });
@@ -82,19 +85,56 @@ describe("敵の進軍（仕様書 5.4）", () => {
     s = mutate(s, (d) => {
       d.enemyDeck.unshift(...cards("enemy_dragon"));
     });
-    // 公開時（全員）
-    s = pass(s).state;
+    // 1ラウンド目の終わりに公開（全員）
+    s = pass(s, "p1").state;
+    s = pass(s, "p2").state;
     expect(s.pending).toMatchObject({ kind: "discard" });
     if (s.pending?.kind !== "discard") throw new Error();
     expect(s.pending.requests.map((r) => r.playerId)).toEqual(["p1", "p2"]);
     s = act(s, "p1", timeoutAction(s, "p1")!).state;
     s = act(s, "p2", timeoutAction(s, "p2")!).state;
-    expect(s.currentPlayer).toBe(1);
+    expect(s.currentPlayer).toBe(0);
 
-    // p2 の手番が終わる → 進軍時：次の手番の p1 だけ
+    // 2ラウンド目の終わり → 進軍時：次の手番の p1 だけ
+    s = pass(s, "p1").state;
+    expect(s.pending).toBeNull();
     s = pass(s, "p2").state;
     if (s.pending?.kind !== "discard") throw new Error("入力待ちになっていません");
     expect(s.pending.requests.map((r) => r.playerId)).toEqual(["p1"]);
+  });
+
+  it("2人以上では、敵は全員の手番が終わるごと（1ラウンドに1回）に進む", () => {
+    const { state, uid } = placeEnemy(start(2), 1, "enemy_orc");
+    const deck = state.enemyDeck.length;
+    let r = pass(state, "p1");
+    expect(r.events.some((e) => e.type === "enemyMoved" || e.type === "enemyRevealed")).toBe(false);
+    expect(r.state.route[1]!.map((c) => c.uid)).toEqual([uid]);
+    r = pass(r.state, "p2");
+    expect(r.state.route[2]!.map((c) => c.uid)).toEqual([uid]);
+    expect(r.state.enemyDeck).toHaveLength(deck - 1);
+    expect(r.state.currentPlayer).toBe(0);
+  });
+
+  it("ラウンドの全員が敵を撃破したときだけ進軍しない（1人なら撃破した手番は進軍しない）", () => {
+    /** p の手番で、2マス目のゴブリンを騎士で撃破する */
+    const defeat = (s: ReturnType<typeof start>, playerId: string) => {
+      const idx = s.players.findIndex((p) => p.id === playerId);
+      const placed = placeEnemy(setHand(s, idx, ["hero_knight_1"]), 1, "enemy_goblin");
+      let t = act(placed.state, playerId, { type: "chooseBattle", targetUid: placed.uid }).state;
+      t = act(t, playerId, { type: "playHero", uid: t.players[idx]!.hand[0]!.uid }).state;
+      return confirmAndFinish(t, playerId);
+    };
+    const base = placeEnemy(start(2), 3, "enemy_orc").state;
+    // p1 だけ撃破 → 進軍する
+    let r = defeat(base, "p1");
+    r = pass(r.state, "p2");
+    expect(r.events.some((e) => e.type === "enemyMoved")).toBe(true);
+    // 2人とも撃破 → 進軍しない
+    r = defeat(base, "p1");
+    r = defeat(r.state, "p2");
+    expect(r.events.some((e) => e.type === "marchSkipped")).toBe(true);
+    expect(r.events.some((e) => e.type === "enemyMoved" || e.type === "enemyRevealed")).toBe(false);
+    expect(r.state.roundDefeats).toBe(0);
   });
 
   it("手番は手番順に回る", () => {

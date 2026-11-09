@@ -25,6 +25,14 @@ export function ActionBar() {
     </button>
   );
 
+  // 撃破したときに進軍がどうなるか（ラウンドの全員が撃破すると進軍しない）
+  const players = view.players.length;
+  const defeatsAfter = view.roundDefeats + 1; // この手番の撃破を含める（数えるのは手番の終わり）
+  const marchNote =
+    players === 1
+      ? "撃破すればこの手番は敵が進軍しない"
+      : `このラウンドの撃破 ${Math.min(defeatsAfter, players)} / ${players}人。全員が撃破すれば敵は進軍しない`;
+
   let message = "";
   let buttons = null;
   let detail = null;
@@ -91,7 +99,7 @@ export function ActionBar() {
             {(p.physical !== p.physicalAfter || p.magic !== p.magicAfter) &&
               `（物理 ${p.physical}→${p.physicalAfter}、魔法 ${p.magic}→${p.magicAfter}）`}
             {p.prevDamage + p.total >= p.hp
-              ? " … 倒せる！（撃破すればこの手番は敵が進軍しない）"
+              ? ` … 倒せる！（${marchNote}）`
               : ` … あと ${p.hp - p.prevDamage - p.total}`}
           </span>
         )}
@@ -116,7 +124,7 @@ export function ActionBar() {
       </>
     );
   } else if (step === "afterBattle") {
-    message = "撃破！ 経験値で英雄をレベルアップ・転職できます（場で戦った英雄と手札の英雄）。終えると手番が終わり、敵は進軍しません";
+    message = `撃破！ 経験値で英雄をレベルアップ・転職できます（場で戦った英雄と手札の英雄）。終えると手番が終わります（${marchNote}）`;
     buttons = (
       <button type="button" className="primary" onClick={() => send({ type: "finishBattle" })}>
         手番を終える

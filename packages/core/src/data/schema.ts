@@ -83,6 +83,8 @@ export const setupFileSchema = z.object({
   sellLoot: z.boolean().optional(),
   freeHeroSlots: nonNeg.optional(),
   levelUpAfterBattle: z.boolean().optional(),
+  marchTiming: z.enum(["turn", "round"]).optional(),
+  marchSkip: z.enum(["any", "all", "none"]).optional(),
   curseStock: nonNeg,
   startingDeck: z.array(countEntry).min(1),
   heroStock: z.object({

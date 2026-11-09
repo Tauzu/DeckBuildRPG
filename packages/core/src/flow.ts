@@ -26,16 +26,27 @@ export function advance(ctx: Ctx): void {
       case "afterBattle":
       case "finished":
         return;
-      case "turnEnd":
+      case "turnEnd": {
         endTurn(ctx);
-        if (step.skipMarch) {
-          // 敵を撃破した手番は進軍しない（仕様書 5.4）
+        if (step.defeated) s.roundDefeats += 1;
+        // 進軍の時機：手番ごと、またはラウンドの最後の手番の後（仕様書 5.4）
+        const perTurn = s.config.marchTiming === "turn";
+        if (!perTurn && s.currentPlayer < s.players.length - 1) {
+          s.step = { kind: "nextTurn" };
+          break;
+        }
+        const turns = perTurn ? 1 : s.players.length;
+        const skip = s.config.marchSkip === "any" ? s.roundDefeats > 0 : s.config.marchSkip === "all" ? s.roundDefeats >= turns : false;
+        s.roundDefeats = 0;
+        if (skip) {
+          // 敵を撃破したので進軍しない
           ctx.events.push({ type: "marchSkipped", playerId: currentPlayer(s).id });
           s.step = { kind: "nextTurn" };
         } else {
           s.step = { kind: "march", phase: "move" };
         }
         break;
+      }
       case "march":
         if (step.phase === "move") {
           moveEnemies(ctx);

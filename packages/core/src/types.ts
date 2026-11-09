@@ -99,6 +99,10 @@ export interface SetupData {
   freeHeroSlots?: number;
   /** 敵を撃破した直後に、戦った英雄や手札の英雄をレベルアップ・転職できるか */
   levelUpAfterBattle?: boolean;
+  /** 敵が進軍する時機（turn：1人の手番ごと／round：全員の手番が終わるごと） */
+  marchTiming?: MarchTiming;
+  /** 進軍をやめる条件（any：その回に誰かが撃破した／all：その回の全員が撃破した／none：やめない） */
+  marchSkip?: MarchSkip;
   curseStock: number;
   startingDeck: { id: CardId; count: number }[];
   heroStock: { heroIds: HeroId[]; countsByLevel: Record<string, number> };
@@ -122,7 +126,12 @@ export interface GameConfig {
   sellLoot: boolean;
   freeHeroSlots: number;
   levelUpAfterBattle: boolean;
+  marchTiming: MarchTiming;
+  marchSkip: MarchSkip;
 }
+
+export type MarchTiming = "turn" | "round";
+export type MarchSkip = "any" | "all" | "none";
 
 export interface PlayerState {
   id: string;
@@ -144,8 +153,8 @@ export type Step =
   | { kind: "battle" }
   /** 敵を撃破した直後のレベルアップ（config.levelUpAfterBattle） */
   | { kind: "afterBattle" }
-  /** skipMarch：敵を撃破した手番は進軍しない（仕様書 5.4） */
-  | { kind: "turnEnd"; skipMarch: boolean }
+  /** defeated：この手番に敵を撃破したか（進軍をやめるかの判定に使う。仕様書 5.4） */
+  | { kind: "turnEnd"; defeated: boolean }
   | { kind: "march"; phase: "move" | "onMarch" | "reveal" }
   | { kind: "nextTurn" }
   | { kind: "finished" };
@@ -222,6 +231,8 @@ export interface GameState {
   trash: CardInstance[];
   /** 敵に残っているダメージ（uid → ダメージ）。config.persistentDamage が none なら常に空 */
   enemyDamage: Record<string, number>;
+  /** 今の進軍の回（ラウンド）で、敵を撃破した手番の数 */
+  roundDefeats: number;
   result: GameResult | null;
 }
 

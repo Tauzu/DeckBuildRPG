@@ -94,7 +94,7 @@ export function eventText(
     case "actionCanceled":
       return "行動を選び直した";
     case "marchSkipped":
-      return "敵を撃破したため、この手番は敵が進軍しなかった";
+      return "敵を撃破したため、敵は進軍しなかった";
     case "cardPlayed":
       return `${name(e.defId)}を出した`;
     case "cardReturned":

@@ -30,9 +30,9 @@ describe("カードデータ", () => {
 describe("ゲームの準備（仕様書 4章）", () => {
   it.each([
     [1, 18, 15, 35],
-    [2, 24, 15, 40],
-    [3, 30, 20, 45],
-    [4, 36, 20, 50],
+    [2, 24, 15, 62],
+    [3, 30, 20, 105],
+    [4, 36, 20, 150],
   ])("%i人：敵の山札・耐久値・ボスの生命力", (n, enemyCount, hp, bossHp) => {
     const s = start(n);
     expect(s.enemyDeck).toHaveLength(enemyCount + 1);

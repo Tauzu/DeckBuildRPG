@@ -258,7 +258,7 @@ function confirmAttack(ctx: Ctx): void {
       return;
     }
   }
-  s.step = { kind: "turnEnd", skipMarch: defeated };
+  s.step = { kind: "turnEnd", defeated };
 }
 
 // ---------------------------------------------------------------------------
@@ -356,13 +356,13 @@ function endVisit(ctx: Ctx): void {
       ctx.events.push({ type: "lootSold", playerId: p.id, uids: loot.map((c) => c.uid), defIds: loot.map((c) => c.defId) });
     }
   }
-  ctx.s.step = { kind: "turnEnd", skipMarch: false };
+  ctx.s.step = { kind: "turnEnd", defeated: false };
 }
 
 /** 撃破直後のレベルアップを終えて、手番を終える（撃破したので進軍しない） */
 function finishBattle(ctx: Ctx): void {
   requireStep(ctx, "afterBattle");
-  ctx.s.step = { kind: "turnEnd", skipMarch: true };
+  ctx.s.step = { kind: "turnEnd", defeated: true };
 }
 
 // ---------------------------------------------------------------------------

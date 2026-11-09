@@ -43,6 +43,8 @@ export interface PlayerView {
   villageHp: number;
   /** 敵に残っているダメージ（uid → ダメージ） */
   enemyDamage: Record<string, number>;
+  /** 今のラウンドで敵を撃破した手番の数 */
+  roundDefeats: number;
   trashCount: number;
   result: GameResult | null;
 }
@@ -82,6 +84,7 @@ export function viewFor(s: GameState, viewerId: string): PlayerView {
     route: s.route,
     villageHp: s.villageHp,
     enemyDamage: s.enemyDamage,
+    roundDefeats: s.roundDefeats,
     trashCount: s.trash.length,
     result: s.result,
   };

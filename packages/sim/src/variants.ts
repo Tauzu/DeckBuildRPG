@@ -135,6 +135,18 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   hand5: (d) => {
     d.setup.handSize = 5;
   },
+  /** 敵の進軍を1ラウンドに1回（撃破で進軍をやめる条件は marchSkip） */
+  round: (d) => {
+    d.setup.marchTiming = "round";
+  },
+  /** ラウンドの全員が撃破したときだけ進軍しない */
+  skipAll: (d) => {
+    d.setup.marchSkip = "all";
+  },
+  /** 撃破しても進軍する */
+  skipNone: (d) => {
+    d.setup.marchSkip = "none";
+  },
   /** 集落の耐久値 +5 */
   village5: (d) => {
     for (const pc of Object.values(d.setup.playerCounts) as Json[]) pc.villageHp += 5;
@@ -144,9 +156,20 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
 export function buildRegistry(names: string[]): CardRegistry {
   const d = loadData();
   for (const n of names) {
-    const f = VARIANTS[n];
+    const f = VARIANTS[n] ?? perCount(n);
     if (!f) throw new Error(`未知の候補: ${n}（${Object.keys(VARIANTS).join(", ")}）`);
     f(d);
   }
   return createRegistry(d as RawData);
+}
+
+/** 人数ごとの数値を直接指定する候補。例：bossHp_35_60_80_100、villageHp_15_10_10_10（1／2／3／4人） */
+function perCount(name: string): ((d: Data) => void) | undefined {
+  const m = /^(bossHp|villageHp)_(\d+)_(\d+)_(\d+)_(\d+)$/.exec(name);
+  if (!m) return undefined;
+  const key = m[1]!;
+  const values = m.slice(2).map(Number);
+  return (d) => {
+    for (const [n, pc] of Object.entries(d.setup.playerCounts) as [string, Json][]) pc[key] = values[Number(n) - 1];
+  };
 }

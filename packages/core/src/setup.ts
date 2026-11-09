@@ -36,6 +36,8 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
       sellLoot: setup.sellLoot ?? false,
       freeHeroSlots: setup.freeHeroSlots ?? 0,
       levelUpAfterBattle: setup.levelUpAfterBattle ?? false,
+      marchTiming: setup.marchTiming ?? "turn",
+      marchSkip: setup.marchSkip ?? "any",
     },
     players: [],
     currentPlayer: 0,
@@ -50,6 +52,7 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     villageHp: pc.villageHp,
     trash: [],
     enemyDamage: {},
+    roundDefeats: 0,
     result: null,
   };
   const ctx: Ctx = { s, reg, events: [] };
