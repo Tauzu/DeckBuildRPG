@@ -1738,3 +1738,8 @@ h3 {
   display: flex;
   justify-content: center;
 }
+
+.title-box .sound-controls {
+  margin-top: 14px;
+  justify-content: center;
+}

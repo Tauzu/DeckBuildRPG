@@ -55,9 +55,7 @@ export function TitleScreen() {
             遊び方
           </button>
         </div>
-        <div className="title-sound">
-          <SoundControls />
-        </div>
+        <SoundControls />
       </div>
     </main>
   );

@@ -1,8 +1,13 @@
 // 効果音・BGMのオンオフと音量
 import { useState } from "react";
-import { getAudioSettings, playSfx, setAudioSettings } from "../audio.js";
+import { AUDIO_ENABLED, getAudioSettings, playSfx, setAudioSettings } from "../audio.js";
 
 export function SoundControls({ compact = false }: { compact?: boolean }) {
+  if (!AUDIO_ENABLED) return null;
+  return <SoundControlsInner compact={compact} />;
+}
+
+function SoundControlsInner({ compact }: { compact: boolean }) {
   const [s, setS] = useState(getAudioSettings);
   const update = (next: typeof s) => {
     setS(next);

@@ -21,6 +21,9 @@ export type Sfx =
 
 const SETTINGS_KEY = "deckbuild.audio.v1";
 
+/** 音を使うか。いったん音なしにしている（テストプレイの要望）。true にすると効果音・BGMと設定の表示が戻る */
+export const AUDIO_ENABLED = false;
+
 export interface AudioSettings {
   sfx: boolean;
   bgm: boolean;
@@ -60,6 +63,7 @@ let bgmBus: GainNode | null = null;
 let settings = loadAudioSettings();
 
 function ensure(): AudioContext | null {
+  if (!AUDIO_ENABLED) return null;
   if (typeof window === "undefined" || !("AudioContext" in window)) return null;
   if (!ctx) {
     ctx = new AudioContext();
@@ -170,7 +174,7 @@ const C5 = 3,
 
 /** 効果音を鳴らす。delayMs だけ遅らせられる（演出の順番に合わせる） */
 export function playSfx(name: Sfx, delayMs = 0): void {
-  if (!settings.sfx) return;
+  if (!AUDIO_ENABLED || !settings.sfx) return;
   const c = ensure();
   if (!c) return;
   const t = c.currentTime + delayMs / 1000;
@@ -263,6 +267,7 @@ export function setBgmMood(mood: "calm" | "tense"): void {
 }
 
 function startBgm(): void {
+  if (!AUDIO_ENABLED) return;
   const c = ensure();
   if (!c || bgmTimer) return;
   bgmNext = c.currentTime + 0.1;
