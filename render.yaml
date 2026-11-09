@@ -1,0 +1,21 @@
+# Render の設定（Blueprint）。GitHub の main に push するたびに、自動で組み立てて公開し直す
+# 手順は README の「公開（Render）」を参照
+services:
+  - type: web
+    name: foodie-quest
+    runtime: node
+    plan: free
+    # 日本から近い場所
+    region: singapore
+    branch: main
+    autoDeploy: true
+    # 画面を組み立てる（開発用のパッケージも入れる）
+    buildCommand: npm ci && npm run build
+    # サーバー1台で、画面の配信と協力プレイの通信を行う
+    startCommand: node --import tsx packages/server/src/index.ts
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: MAX_ROOMS
+        value: "200"

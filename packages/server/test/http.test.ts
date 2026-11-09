@@ -49,6 +49,20 @@ describe("配信", () => {
     }
   });
 
+  it("文字のファイルは、受け取れるブラウザには圧縮して送る", async () => {
+    const big = "console.log('foodie quest');\n".repeat(200);
+    writeFileSync(join(dir, "assets", "big-1.js"), big);
+    const r = await fetch(url("/assets/big-1.js"), { headers: { "accept-encoding": "gzip" } });
+    expect(r.headers.get("content-encoding")).toBe("gzip");
+    expect(Number(r.headers.get("content-length"))).toBeLessThan(big.length / 5);
+    // fetch は自動で元に戻す
+    expect(await r.text()).toBe(big);
+    // 受け取れないときはそのまま
+    const raw = await fetch(url("/assets/big-1.js"), { headers: { "accept-encoding": "identity" } });
+    expect(raw.headers.get("content-encoding")).toBeNull();
+    expect(await raw.text()).toBe(big);
+  });
+
   it("assets/ にないファイルは 404", async () => {
     expect((await fetch(url("/assets/none.js"))).status).toBe(404);
   });

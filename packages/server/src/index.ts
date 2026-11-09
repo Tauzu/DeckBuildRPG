@@ -1,8 +1,9 @@
 // サーバーの起動（設計書 5.1、8章）。Socket.IO と、ビルド済みの client の配信を1台で行う
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { createServer, type Server as HttpServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { gzipSync } from "node:zlib";
 import { type CardRegistry, defaultRegistry } from "@deckbuild/core";
 import { Server } from "socket.io";
 import type { ClientToServer, ServerToClient } from "./protocol.js";
@@ -29,6 +30,21 @@ const SECURITY_HEADERS = {
   "referrer-policy": "no-referrer",
   "x-frame-options": "DENY",
 };
+
+/** 圧縮して送る種類（フォントや画像は圧縮済みなのでそのまま） */
+const COMPRESSIBLE = new Set([".html", ".js", ".css", ".svg", ".json", ".txt"]);
+
+/** 圧縮した中身の控え（ファイル → 圧縮したもの）。配信するファイルはビルドのあと変わらないので、一度作れば使い回せる */
+const gzipCache = new Map<string, { mtimeMs: number; body: Buffer }>();
+
+function gzipped(file: string): Buffer {
+  const mtimeMs = statSync(file).mtimeMs;
+  const hit = gzipCache.get(file);
+  if (hit && hit.mtimeMs === mtimeMs) return hit.body;
+  const body = gzipSync(readFileSync(file), { level: 9 });
+  gzipCache.set(file, { mtimeMs, body });
+  return body;
+}
 
 /** ビルドで作られるファイル（名前に中身のハッシュが入る）の置き場所 */
 const ASSETS = /^assets[/\\]/;
@@ -83,17 +99,23 @@ export async function startServer(opts: StartOptions = {}): Promise<RunningServe
       }
       file = join(staticDir, "index.html");
     }
+    // 文字のファイルは、ブラウザが受け取れれば圧縮して送る（通信量を減らす）
+    const gzip = COMPRESSIBLE.has(extname(file)) && /\bgzip\b/.test(String(req.headers["accept-encoding"] ?? ""));
+    const body = gzip ? gzipped(file) : null;
     res.writeHead(200, {
       ...SECURITY_HEADERS,
       "content-type": MIME[extname(file)] ?? "application/octet-stream",
       // assets/ は中身が変われば名前も変わるので長く保存してよい。index.html などは毎回確認させる
       "cache-control": found && ASSETS.test(rel) ? "public, max-age=31536000, immutable" : "no-cache",
+      vary: "accept-encoding",
+      ...(body ? { "content-encoding": "gzip", "content-length": String(body.length) } : {}),
     });
     if (req.method === "HEAD") {
       res.end();
       return;
     }
-    createReadStream(file).pipe(res);
+    if (body) res.end(body);
+    else createReadStream(file).pipe(res);
   });
   // 画面と同じアドレスから接続する（開発中は Vite が中継する）ので、他のサイトからの接続は受け付けない
   const io = new Server<ClientToServer, ServerToClient>(http, {
