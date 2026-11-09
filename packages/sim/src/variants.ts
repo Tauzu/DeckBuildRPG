@@ -157,7 +157,7 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
 export function buildRegistry(names: string[]): CardRegistry {
   const d = loadData();
   for (const n of names) {
-    const f = VARIANTS[n] ?? perCount(n) ?? stageBoss(n);
+    const f = VARIANTS[n] ?? perCount(n) ?? stageBoss(n) ?? stageBossMulti(n);
     if (!f) throw new Error(`未知の候補: ${n}（${Object.keys(VARIANTS).join(", ")}）`);
     f(d);
   }
@@ -188,5 +188,16 @@ function stageBoss(name: string): ((d: Data) => void) | undefined {
     const st = d.stages.find((x) => x.id === m[1]);
     if (!st) throw new Error(`未知のステージ: ${m[1]}`);
     st.playerCounts["1"].bossHp = Number(m[2]);
+  };
+}
+
+/** ステージ1つの、2／3／4人のボスの生命力を指定する候補。例：bossN_stage1_24_40_56 */
+function stageBossMulti(name: string): ((d: Data) => void) | undefined {
+  const m = /^bossN_(\w+?)_(\d+)_(\d+)_(\d+)$/.exec(name);
+  if (!m) return undefined;
+  return (d) => {
+    const st = d.stages.find((x) => x.id === m[1]);
+    if (!st) throw new Error(`未知のステージ: ${m[1]}`);
+    for (const [i, n] of ["2", "3", "4"].entries()) if (st.playerCounts[n]) st.playerCounts[n].bossHp = Number(m[i + 2]);
   };
 }

@@ -25,9 +25,9 @@
     "earlyHalf": ["enemy_skeleton"],
     "playerCounts": {
       "1": { "villageHp": 15, "bossHp": 18, "enemies": { "enemy_goblin": 4, "enemy_wolf": 3, "enemy_skeleton": 4 } },
-      "2": { "villageHp": 15, "bossHp": 31, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 5 } },
-      "3": { "villageHp": 20, "bossHp": 51, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 7 } },
-      "4": { "villageHp": 20, "bossHp": 74, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 8 } }
+      "2": { "villageHp": 15, "bossHp": 24, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 5 } },
+      "3": { "villageHp": 20, "bossHp": 40, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 7 } },
+      "4": { "villageHp": 20, "bossHp": 56, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 8 } }
     }
   },
   {
@@ -41,9 +41,9 @@
     "earlyHalf": ["enemy_skeleton", "enemy_ghost"],
     "playerCounts": {
       "1": { "villageHp": 15, "bossHp": 20, "enemies": { "enemy_goblin": 4, "enemy_wolf": 3, "enemy_skeleton": 2, "enemy_ghost": 3, "enemy_shaman": 2 } },
-      "2": { "villageHp": 15, "bossHp": 35, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 3, "enemy_ghost": 4, "enemy_shaman": 2 } },
-      "3": { "villageHp": 20, "bossHp": 57, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 4, "enemy_ghost": 5, "enemy_shaman": 3 } },
-      "4": { "villageHp": 20, "bossHp": 83, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 5, "enemy_ghost": 5, "enemy_shaman": 4 } }
+      "2": { "villageHp": 15, "bossHp": 32, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 3, "enemy_ghost": 4, "enemy_shaman": 2 } },
+      "3": { "villageHp": 20, "bossHp": 54, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 4, "enemy_ghost": 5, "enemy_shaman": 3 } },
+      "4": { "villageHp": 20, "bossHp": 77, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 5, "enemy_ghost": 5, "enemy_shaman": 4 } }
     }
   },
   {
@@ -57,9 +57,9 @@
     "earlyHalf": ["enemy_skeleton", "enemy_ghost"],
     "playerCounts": {
       "1": { "villageHp": 15, "bossHp": 31, "enemies": { "enemy_goblin": 4, "enemy_wolf": 3, "enemy_skeleton": 2, "enemy_ghost": 2, "enemy_shaman": 2, "enemy_orc": 2, "enemy_gargoyle": 2 } },
-      "2": { "villageHp": 15, "bossHp": 53, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 3, "enemy_ghost": 3, "enemy_shaman": 2, "enemy_orc": 3, "enemy_gargoyle": 3 } },
-      "3": { "villageHp": 20, "bossHp": 88, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 4, "enemy_ghost": 3, "enemy_shaman": 3, "enemy_orc": 4, "enemy_gargoyle": 4 } },
-      "4": { "villageHp": 20, "bossHp": 128, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 4, "enemy_ghost": 4, "enemy_shaman": 4, "enemy_orc": 5, "enemy_gargoyle": 5 } }
+      "2": { "villageHp": 15, "bossHp": 54, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 3, "enemy_ghost": 3, "enemy_shaman": 2, "enemy_orc": 3, "enemy_gargoyle": 3 } },
+      "3": { "villageHp": 20, "bossHp": 90, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 4, "enemy_ghost": 3, "enemy_shaman": 3, "enemy_orc": 4, "enemy_gargoyle": 4 } },
+      "4": { "villageHp": 20, "bossHp": 131, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 4, "enemy_ghost": 4, "enemy_shaman": 4, "enemy_orc": 5, "enemy_gargoyle": 5 } }
     }
   },
   {
