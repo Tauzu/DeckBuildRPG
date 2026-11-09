@@ -73,6 +73,7 @@ docker run -p 3000:3000 deckbuild-rpg   # http://localhost:3000
 ### そのあと
 
 - `main` に push するたびに、自動で組み立てて公開し直す（数分かかる）
+- 今の公開サービスは URL 指定（Public Git Repository）で作ったため GitHub と連携しておらず、push では更新されない。**公開し直すときは Render の「Manual Deploy → Deploy latest commit」を押す**（Blueprint から作り直せば自動になる）
 - 動いているかは `https://（発行されたアドレス）/healthz` が `ok` を返すかで分かる
 
 ### 無料枠で気をつけること
