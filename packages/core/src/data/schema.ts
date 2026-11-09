@@ -127,6 +127,7 @@ export const stagesFileSchema = z
       description: z.string(),
       tutorial: z.boolean().optional(),
       fixedSeed: z.number().int().optional(),
+      backdrop: z.string().min(1).optional(),
       heroIds: z.array(z.string().min(1)).min(1),
       items: z.array(z.string().min(1)),
       bossId: z.string().min(1),

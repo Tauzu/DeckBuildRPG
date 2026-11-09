@@ -1,6 +1,7 @@
 [
   {
     "id": "tutorial",
+    "backdrop": "forest",
     "name": "村はずれの森",
     "description": "チュートリアル。騎士と魔法使いだけで、ゴブリンの親分を倒そう",
     "tutorial": true,
@@ -16,6 +17,7 @@
   },
   {
     "id": "stage1",
+    "backdrop": "road",
     "name": "古い街道",
     "description": "狩人と樫の杖が仲間に。物理に強いスケルトンには魔法で挑もう",
     "heroIds": ["knight", "mage", "hunter"],
@@ -32,6 +34,7 @@
   },
   {
     "id": "stage2",
+    "backdrop": "graveyard",
     "name": "忘れられた墓地",
     "description": "僧侶・盗賊・葡萄酒・戦斧が加わる。物理が効かない亡霊と、手札を奪う呪術師に注意",
     "heroIds": ["knight", "mage", "hunter", "priest", "thief"],
@@ -48,6 +51,7 @@
   },
   {
     "id": "stage3",
+    "backdrop": "mountain",
     "name": "山の砦",
     "description": "吟遊詩人・祝宴の料理・魔導書が加わる。オークとガーゴイルが待ち構える",
     "heroIds": ["knight", "mage", "hunter", "priest", "thief", "bard"],
@@ -64,6 +68,7 @@
   },
   {
     "id": "stage4",
+    "backdrop": "volcano",
     "name": "魔竜の巣",
     "description": "すべての英雄と装備がそろう。死霊術師の呪いをしのぎ、魔竜を討て",
     "heroIds": ["knight", "mage", "hunter", "priest", "thief", "bard"],

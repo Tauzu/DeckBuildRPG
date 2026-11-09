@@ -2453,3 +2453,34 @@ textarea {
   gap: 4px;
   margin-top: 10px;
 }
+
+/* ---------- ステージの背景（進軍ルートの後ろ） ---------- */
+.route {
+  position: relative;
+  isolation: isolate;
+}
+
+.route-backdrop {
+  position: absolute;
+  /* 窓の内側の線を残す */
+  inset: 5px;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  z-index: -1;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* マスは半透明にして背景を見せる。カードは不透明のまま */
+.route-square {
+  background: rgb(5 7 26 / 0.25);
+}
+
+.route-square-last {
+  background: rgb(60 8 8 / 0.45);
+}
+
+.route-square-label {
+  color: var(--ink);
+  text-shadow: 1px 1px 0 #000;
+}

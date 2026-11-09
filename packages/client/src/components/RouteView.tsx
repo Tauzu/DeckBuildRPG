@@ -2,6 +2,7 @@ import { findOption, reasonText, reg, useStore } from "../store.js";
 import { enemyHp } from "@deckbuild/core";
 import { PixelArt } from "../art/PixelArt.js";
 import { fortSprite, villageSprite } from "../art/sprites.js";
+import { StageBackdrop } from "../art/StageBackdrop.js";
 import { Card } from "./Card.js";
 
 export function RouteView() {
@@ -15,6 +16,7 @@ export function RouteView() {
 
   return (
     <section className="route panel">
+      <StageBackdrop name={reg.stage(view.config.stageId).backdrop ?? "plains"} />
       <div className="route-end route-fort">
         <PixelArt sprite={fortSprite} className="route-end-art" />
         <div className="route-end-title">魔物の砦</div>

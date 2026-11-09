@@ -135,6 +135,8 @@ export interface StageDef {
   tutorial?: boolean;
   /** 毎回同じ展開にするときのシード値（チュートリアル） */
   fixedSeed?: number;
+  /** 進軍ルートの背景の種類（画面の art/backdrops.ts） */
+  backdrop?: string;
   /** 登場する英雄 */
   heroIds: HeroId[];
   /** 村で買える食料・武器（枚数は setup.json の itemStock） */
