@@ -1,5 +1,6 @@
 // 演出（撃破・レベルアップ・ボス出現・集落への被害）。イベントから作り、少しの間だけ画面の中央に出す
 import type { GameEvent } from "@deckbuild/core";
+import type { Sfx } from "../audio.js";
 import { useEffect } from "react";
 import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
@@ -153,4 +154,56 @@ function FxCard({ item }: { item: FxItem }) {
       </div>
     </div>
   );
+}
+
+/** イベントから効果音を選ぶ。演出と同じ順番・間隔で鳴らす */
+export function soundsFrom(events: GameEvent[], viewerId: string): { name: Sfx; delay: number }[] {
+  const out: { name: Sfx; delay: number }[] = [];
+  let order = 0;
+  const staged = (name: Sfx) => out.push({ name, delay: order++ * FX_STAGGER });
+  for (const ev of events) {
+    switch (ev.type) {
+      case "cardPlayed":
+        out.push({ name: "play", delay: 0 });
+        break;
+      case "weaponEquipped":
+        out.push({ name: "equip", delay: 0 });
+        break;
+      case "cardBought":
+        staged("buy");
+        break;
+      case "attackResolved":
+        staged(ev.defeated ? "defeat" : "hit");
+        break;
+      case "leveledUp":
+        staged("levelup");
+        break;
+      case "enemyRevealed":
+        if (reg.enemy(ev.defId).isBoss) staged("boss");
+        else out.push({ name: "reveal", delay: order * FX_STAGGER });
+        break;
+      case "enemyArrived":
+        if (ev.damage > 0) staged("village");
+        break;
+      case "turnEnded":
+        order++;
+        break;
+      case "enemyMoved":
+        if (ev.moves.length > 0) staged("march");
+        break;
+      case "marchSkipped":
+        staged("skip");
+        break;
+      case "turnStarted":
+        if (ev.playerId === viewerId) staged("myturn");
+        else order++;
+        break;
+      case "gameEnded":
+        out.push({ name: ev.result.outcome === "win" ? "win" : "lose", delay: order * FX_STAGGER });
+        break;
+      default:
+        break;
+    }
+  }
+  return out;
 }

@@ -1,7 +1,8 @@
 // 画面の状態（設計書 4.2）
 import { type Action, type ActionOption, defaultRegistry } from "@deckbuild/core";
 import { create } from "zustand";
-import { effectsFrom, FX_STAGGER, type FxItem, nextFxId } from "./components/Effects.js";
+import { playSfx, setBgmMood } from "./audio.js";
+import { effectsFrom, FX_STAGGER, type FxItem, nextFxId, soundsFrom } from "./components/Effects.js";
 import { type GameConnection, type GameUpdate, LocalConnection, RemoteConnection, randomSeed } from "./connection.js";
 import { loadSession, Online, type RoomInfo } from "./online.js";
 import { loadProgress, markCleared, type Progress, saveProgress } from "./progress.js";
@@ -127,9 +128,12 @@ export const useStore = create<Store>()((set, get) => {
     const nameOf = (id: string) => conn.current().view.players.find((p) => p.id === id)?.name ?? id;
     unsubscribe = conn.subscribe((u) => {
       if (u.error) {
+        playSfx("error");
         set({ update: u, toast: u.error });
         return;
       }
+      for (const s of soundsFrom(u.events, u.view.viewerId)) playSfx(s.name, s.delay);
+      setBgmMood(u.view.route.flat().some((c) => reg.enemy(c.defId).isBoss) ? "tense" : "calm");
       const fx = effectsFrom(u.events, u.view.viewerId, nameOf).map((f, i) => ({ ...f, id: nextFxId(), delay: i * FX_STAGGER }));
       const hits = u.events.filter((e) => e.type === "enemyArrived" && e.damage > 0).length;
       const marched = u.events.some((e) => e.type === "enemyMoved" && e.moves.length > 0);

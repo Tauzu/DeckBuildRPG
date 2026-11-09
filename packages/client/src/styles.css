@@ -1701,3 +1701,40 @@ h3 {
     transform: none;
   }
 }
+
+/* 音の設定 */
+.sound-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sound-controls .sound-on {
+  border-color: var(--focus);
+}
+
+.sound-volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.sound-volume input {
+  width: 90px;
+}
+
+.sound-compact {
+  margin-left: auto;
+}
+
+.sound-compact + .game-seed {
+  margin-left: 0;
+}
+
+.title-sound {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+}

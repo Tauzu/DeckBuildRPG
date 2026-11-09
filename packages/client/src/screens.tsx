@@ -8,6 +8,7 @@ import { RouteView } from "./components/RouteView.js";
 import { BattlePanel } from "./components/BattlePanel.js";
 import { Effects } from "./components/Effects.js";
 import { OthersPanel } from "./components/OthersPanel.js";
+import { SoundControls } from "./components/SoundControls.js";
 import { TutorialHint } from "./components/TutorialHint.js";
 import { VillageStock } from "./components/VillageStock.js";
 import { isUnlocked, stageSelectUnlocked } from "./progress.js";
@@ -53,6 +54,9 @@ export function TitleScreen() {
           <button type="button" onClick={() => go("rules")}>
             遊び方
           </button>
+        </div>
+        <div className="title-sound">
+          <SoundControls />
         </div>
       </div>
     </main>
@@ -185,6 +189,7 @@ export function GameScreen() {
         </button>
         <span className="game-title">{reg.stage(update.view.config.stageId).name}</span>
         <span className="game-turn">手番 {update.view.turnCount}</span>
+        <SoundControls compact />
         {remote ? (
           <span className="game-seed">ルーム {room?.code}</span>
         ) : (

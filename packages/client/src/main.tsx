@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { LobbyScreen } from "./components/LobbyScreen.js";
 import { GameScreen, RulesScreen, StageSelectScreen, TitleScreen } from "./screens.js";
+import { playSfx, unlockAudio } from "./audio.js";
 import { useStore } from "./store.js";
 import "./styles.css";
 
@@ -13,6 +14,15 @@ function App() {
   if (screen === "lobby") return <LobbyScreen />;
   return <TitleScreen />;
 }
+
+// ブラウザは操作があるまで音を出させないので、最初の操作で音の準備をする
+window.addEventListener("pointerdown", () => unlockAudio(), { once: true });
+window.addEventListener("keydown", () => unlockAudio(), { once: true });
+// カード以外のボタンを押したときの小さな音
+document.addEventListener("click", (e) => {
+  const b = (e.target as HTMLElement | null)?.closest("button");
+  if (b && !b.classList.contains("card") && !b.disabled) playSfx("click");
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
