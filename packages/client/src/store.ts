@@ -5,6 +5,7 @@ import { playSfx, setBgmMood } from "./audio.js";
 import { effectsFrom, FX_STAGGER, type FxItem, nextFxId, soundsFrom } from "./components/Effects.js";
 import { type GameConnection, type GameUpdate, LocalConnection, RemoteConnection, randomSeed } from "./connection.js";
 import { loadSession, Online, type RoomInfo } from "./online.js";
+import { clearInviteFromAddress, inviteCodeFrom } from "./invite.js";
 import { addSeen, seedSeen, visibleDefIds } from "./codex.js";
 import { type AchievementDef, addToTally, emptyTally, type GameTally, recordGameEnd } from "./achievements.js";
 import { addToReview, emptyReview, type Review } from "./review.js";
@@ -57,6 +58,9 @@ interface Store {
   online: boolean;
   /** 前回入力した名前 */
   playerName: string;
+  /** 招待リンクから開いたときのルームコード（参加する画面で使う） */
+  inviteCode: string | null;
+  clearInvite(): void;
 
   /** 表示中の演出 */
   fx: FxItem[];
@@ -287,11 +291,13 @@ export const useStore = create<Store>()((set, get) => {
     return null;
   };
 
+  const inviteCode = typeof location === "undefined" ? null : inviteCodeFrom(location.search);
+
   // 前回のルームの席が残っていれば戻る
   if (loadSession()) queueMicrotask(() => net());
 
   return {
-    screen: "title",
+    screen: inviteCode ? "lobby" : "title",
     conn: null,
     update: null,
     log: [],
@@ -310,6 +316,11 @@ export const useStore = create<Store>()((set, get) => {
     myId: null,
     online: false,
     playerName: loadName(),
+    inviteCode,
+    clearInvite() {
+      clearInviteFromAddress();
+      set({ inviteCode: null });
+    },
     fx: [],
     villageHits: 0,
     marches: 0,

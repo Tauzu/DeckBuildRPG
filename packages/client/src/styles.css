@@ -2636,3 +2636,30 @@ textarea {
     columns: 1;
   }
 }
+
+/* 招待リンク */
+.invite-banner {
+  border: 2px solid var(--accent);
+  padding: 8px 10px;
+  line-height: 1.6;
+}
+
+.invite-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.invite-link span {
+  flex-basis: 100%;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.invite-link input {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-size: 13px;
+}

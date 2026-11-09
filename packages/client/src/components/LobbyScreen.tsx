@@ -1,5 +1,6 @@
 // ルーム待機（仕様書 9.2、10.1）。ルームを作る・参加する・開始する
 import { useRef, useState } from "react";
+import { inviteUrl } from "../invite.js";
 import { isUnlocked, maxDangerFor } from "../progress.js";
 import { reg, useStore } from "../store.js";
 import { DangerPicker, dangerTexts } from "./DangerPicker.js";
@@ -16,7 +17,9 @@ function EnterRoom() {
   const joinRoom = useStore((s) => s.joinRoom);
   const progress = useStore((s) => s.progress);
   const [name, setName] = useState(() => useStore.getState().playerName);
-  const [code, setCode] = useState("");
+  const inviteCode = useStore((s) => s.inviteCode);
+  const clearInvite = useStore((s) => s.clearInvite);
+  const [code, setCode] = useState(inviteCode ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -26,22 +29,31 @@ function EnterRoom() {
 
   const run = async (p: () => Promise<string | null>) => {
     setBusy(true);
-    setError(await p());
+    const err = await p();
+    setError(err);
     setBusy(false);
+    // 入れたら、招待の指定は片づける
+    if (!err) clearInvite();
   };
   const nameOk = name.trim().length > 0;
 
   return (
     <div className="rules panel lobby">
       <h1>みんなで遊ぶ</h1>
+      {inviteCode && (
+        <p className="invite-banner">
+          ルーム <strong>{inviteCode}</strong> に招待されています。名前を入れて「参加する」を押してください。
+        </p>
+      )}
       <label className="field">
         <span>あなたの名前</span>
         <input value={name} maxLength={12} onChange={(e) => setName(e.target.value)} placeholder="12文字まで" autoFocus />
       </label>
       <div className="lobby-columns">
+        {!inviteCode && (
         <section className="lobby-box">
           <h2>ルームを作る</h2>
-          <p className="dialog-note">ルームコードが発行されます。一緒に遊ぶ人に伝えてください。</p>
+          <p className="dialog-note">ルームコードと、すぐ参加できる招待リンクが発行されます。一緒に遊ぶ人に送ってください。</p>
           <button
             type="button"
             className="primary"
@@ -51,6 +63,7 @@ function EnterRoom() {
             ルームを作る
           </button>
         </section>
+        )}
         <section className="lobby-box">
           <h2>ルームに参加する</h2>
           <label className="field">
@@ -79,7 +92,13 @@ function EnterRoom() {
         </p>
       )}
       <div className="dialog-buttons">
-        <button type="button" onClick={() => go("title")}>
+        <button
+          type="button"
+          onClick={() => {
+            clearInvite();
+            go("title");
+          }}
+        >
           戻る
         </button>
       </div>
@@ -99,7 +118,7 @@ function RoomView() {
   const go = useStore((s) => s.go);
   const hasGame = useStore((s) => !!s.update);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"code" | "link" | null>(null);
   /** 選んだがサーバーの返事を待っている危険度（続けて押しても、押した分だけ上がるように） */
   const [pendingDanger, setPendingDanger] = useState<number | null>(null);
   const dangerRequest = useRef(0);
@@ -117,15 +136,17 @@ function RoomView() {
   const countOk = !!stage.playerCounts[String(n) as "1"];
   const counts = Object.keys(stage.playerCounts).join("・");
 
-  const copy = async () => {
+  const link = inviteUrl(location.href, room.code);
+  const copy = async (text: string, what: "code" | "link") => {
     try {
-      await navigator.clipboard.writeText(room.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      await navigator.clipboard.writeText(text);
+      setCopied(what);
+      setTimeout(() => setCopied(null), 1500);
     } catch {
-      // コピーできない環境では、表示されたコードを伝えてもらう
+      // コピーできない環境では、表示されたコードやリンクを伝えてもらう
     }
   };
+  const share = () => navigator.share({ title: "FOODIE QUEST", text: "いっしょに遊ぼう！", url: link }).catch(() => undefined);
 
   return (
     <div className="rules panel lobby">
@@ -134,9 +155,21 @@ function RoomView() {
       <div className="room-code">
         <span>ルームコード</span>
         <strong>{room.code}</strong>
-        <button type="button" className="ghost mini" onClick={copy}>
-          {copied ? "コピーしました" : "コピー"}
+        <button type="button" className="ghost mini" onClick={() => copy(room.code, "code")}>
+          {copied === "code" ? "コピーしました" : "コピー"}
         </button>
+      </div>
+      <div className="invite-link">
+        <span>招待リンク（開くとすぐ参加できる）</span>
+        <input readOnly value={link} onFocus={(e) => e.target.select()} aria-label="招待リンク" />
+        <button type="button" className="mini" onClick={() => copy(link, "link")}>
+          {copied === "link" ? "コピーしました" : "リンクをコピー"}
+        </button>
+        {typeof navigator.share === "function" && (
+          <button type="button" className="ghost mini" onClick={share}>
+            共有
+          </button>
+        )}
       </div>
       <h2>参加者（{n} / 4人）</h2>
       <ul className="member-list">
