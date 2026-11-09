@@ -4,6 +4,7 @@ import { LobbyScreen } from "./components/LobbyScreen.js";
 import { GameScreen, RulesScreen, StageSelectScreen, TitleScreen } from "./screens.js";
 import { playSfx, unlockAudio } from "./audio.js";
 import { useStore } from "./store.js";
+import "@fontsource/dotgothic16/400.css";
 import "./styles.css";
 
 function App() {

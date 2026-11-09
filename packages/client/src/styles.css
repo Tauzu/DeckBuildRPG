@@ -1,25 +1,38 @@
+/* レトロゲーム風：黒の背景に、紺の地と白い枠の「窓」。色はドット絵と同じ系統に絞る */
 :root {
-  --bg: #2b2620;
-  --panel: #f3ead7;
-  --panel-edge: #c9b48a;
-  --ink: #2a2117;
-  --ink-soft: #6b5b45;
-  --accent: #8a2f1d;
-  --accent-ink: #fff7ea;
-  --good: #2f6b34;
-  --bad: #9b2b1f;
-  --hero: #e7d3a5;
-  --weapon: #d3d6db;
-  --food: #e6cf9a;
-  --enemy: #d9b2a8;
-  --boss: #b7473a;
-  --curse: #b9adc4;
-  --phys: #7a3b12;
-  --mag: #2c4e8a;
-  --focus: #e0a43a;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.25);
-  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --bg: #000;
+  --panel: #0b0f2c;
+  --panel-2: #181f4e;
+  --panel-edge: #e8e8f0;
+  --edge-dim: #4a5288;
+  --ink: #f2f2f2;
+  --ink-soft: #9aa2c8;
+  --accent: #ffd23c;
+  --accent-ink: #1a1200;
+  --gold: #ffd23c;
+  --good: #7ee05a;
+  --bad: #ff5a44;
+  --hero: #12285e;
+  --hero-edge: #5a8ee8;
+  --weapon: #262b36;
+  --weapon-edge: #c3cbd4;
+  --food: #3a240c;
+  --food-edge: #f0a040;
+  --enemy: #3c0f10;
+  --enemy-edge: #e0503a;
+  --boss: #5a0a0a;
+  --boss-edge: #ffd23c;
+  --curse: #2a1244;
+  --curse-edge: #a878d8;
+  --phys: #ffa24a;
+  --mag: #7cc0ff;
+  --focus: #ffd23c;
+  --shadow: 3px 3px 0 rgb(0 0 0 / 0.6);
+  font-family: "DotGothic16", "MS Gothic", monospace;
+  font-synthesis: none;
   color: var(--ink);
+  color-scheme: dark;
+  scrollbar-color: var(--edge-dim) #000;
 }
 
 * {
@@ -34,18 +47,29 @@ body {
 }
 
 body {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
 }
 
 button {
   font: inherit;
   cursor: pointer;
-  border: 1px solid var(--panel-edge);
-  background: #fffaf0;
+  border: 2px solid var(--panel-edge);
+  background: var(--panel-2);
   color: var(--ink);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 6px 14px;
+  box-shadow: 0 3px 0 var(--edge-dim);
+}
+
+button:not(.card):not(:disabled):not([aria-disabled="true"]):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button:not(.card):not(:disabled):not([aria-disabled="true"]):active {
+  transform: translateY(3px);
+  box-shadow: none;
 }
 
 button:disabled,
@@ -55,6 +79,7 @@ button[aria-disabled="true"] {
 
 button:disabled {
   opacity: 0.45;
+  box-shadow: none;
 }
 
 button:focus-visible {
@@ -64,17 +89,31 @@ button:focus-visible {
 
 button.primary {
   background: var(--accent);
-  border-color: var(--accent);
+  border-color: #fff4c0;
   color: var(--accent-ink);
-  font-weight: bold;
+  box-shadow: 0 3px 0 #8a6a00;
+}
+
+button.primary:not(:disabled):not([aria-disabled="true"]):hover {
+  background: #ffe27a;
+  color: var(--accent-ink);
 }
 
 button.primary.danger {
-  background: #6e1f12;
+  background: #c8321e;
+  border-color: #ffb09a;
+  color: #fff;
+  box-shadow: 0 3px 0 #5a0e08;
+}
+
+button.primary.danger:not(:disabled):not([aria-disabled="true"]):hover {
+  background: #e04a30;
+  color: #fff;
 }
 
 button.ghost {
   background: transparent;
+  box-shadow: none;
 }
 
 button.mini {
@@ -101,10 +140,10 @@ h3 {
 
 .panel {
   background: var(--panel);
-  border: 1px solid var(--panel-edge);
-  border-radius: 10px;
+  border: 3px solid var(--panel-edge);
+  border-radius: 4px;
   padding: 10px 12px;
-  box-shadow: var(--shadow);
+  box-shadow: inset 0 0 0 2px var(--panel), inset 0 0 0 3px var(--edge-dim);
 }
 
 /* ---------- タイトル・遊び方 ---------- */
@@ -131,8 +170,9 @@ h3 {
 }
 
 .title-box h1 {
-  font-size: 36px;
+  font-size: 40px;
   color: var(--accent);
+  text-shadow: 3px 3px 0 #a0281a;
   margin: 6px 0 12px;
 }
 
@@ -149,6 +189,18 @@ h3 {
 .title-buttons button {
   padding: 10px;
   font-size: 16px;
+}
+
+/* 選んでいるボタンに「▶」を出す */
+.title-buttons button::before {
+  content: "▶";
+  margin-right: 8px;
+  visibility: hidden;
+}
+
+.title-buttons button:hover::before,
+.title-buttons button:focus-visible::before {
+  visibility: visible;
 }
 
 .rules {
@@ -176,13 +228,12 @@ h3 {
   display: flex;
   align-items: center;
   gap: 16px;
-  color: #efe3c8;
+  color: var(--ink);
   flex-wrap: wrap;
 }
 
 .game-header button {
-  color: #efe3c8;
-  border-color: #6b5b45;
+  border-color: var(--edge-dim);
 }
 
 .game-title {
@@ -224,18 +275,20 @@ h3 {
   justify-content: center;
   align-items: center;
   text-align: center;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px;
 }
 
 .route-fort {
-  background: #4b3a33;
+  background: #26100e;
+  border: 3px solid #a04a3a;
   color: #f0d9cf;
 }
 
 .route-village {
-  background: #5b6b3a;
-  color: #f2f0d8;
+  background: #0e2812;
+  border: 3px solid #5c9c40;
+  color: #e2f5d0;
 }
 
 .route-end-title {
@@ -253,7 +306,7 @@ h3 {
 }
 
 .village-hp.danger {
-  color: #ffb3a6;
+  color: var(--bad);
 }
 
 .route-squares {
@@ -263,15 +316,15 @@ h3 {
 }
 
 .route-square {
-  background: #e6d9bc;
-  border: 1px dashed var(--panel-edge);
-  border-radius: 8px;
+  background: #05071a;
+  border: 2px dashed var(--edge-dim);
+  border-radius: 0;
   padding: 4px;
   min-height: 150px;
 }
 
 .route-square-last {
-  background: #ead0b8;
+  background: #1e0606;
   border-color: var(--bad);
 }
 
@@ -370,7 +423,7 @@ h3 {
 
 .info-gold {
   font-weight: bold;
-  color: #8a6212;
+  color: var(--gold);
 }
 
 .info-ok {
@@ -384,22 +437,34 @@ h3 {
 }
 
 .info-boss {
-  color: #8a6212;
+  color: var(--gold);
   font-weight: bold;
 }
 
 /* ボスの残り生命力のゲージ */
 .boss-gauge {
-  height: 6px;
+  position: relative;
+  height: 8px;
   margin-top: 4px;
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.25);
+  border-radius: 0;
+  background: #000;
+  border: 1px solid var(--boss-edge);
   overflow: hidden;
 }
 
 .boss-gauge > div {
   height: 100%;
-  background: #d9534f;
+  background: var(--bad);
+}
+
+/* ゲージを区切る */
+.boss-gauge::after,
+.battle-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 6px, rgb(0 0 0 / 0.7) 6px 8px);
+  pointer-events: none;
 }
 
 .action-side {
@@ -457,14 +522,14 @@ h3 {
   width: 128px;
   min-height: 168px;
   padding: 6px 8px;
-  border-radius: 8px;
-  border: 2px solid rgb(0 0 0 / 0.25);
+  border-radius: 0;
+  border: 3px solid var(--card-edge, var(--panel-edge));
   display: flex;
   flex-direction: column;
   text-align: left;
   gap: 2px;
   box-shadow: var(--shadow);
-  transition: transform 0.08s ease;
+  transition: transform 0.08s steps(2);
 }
 
 .card-small {
@@ -475,28 +540,35 @@ h3 {
 
 .card-hero {
   background: var(--hero);
+  --card-edge: var(--hero-edge);
 }
 .card-weapon {
   background: var(--weapon);
+  --card-edge: var(--weapon-edge);
 }
 .card-food {
   background: var(--food);
+  --card-edge: var(--food-edge);
 }
 .card-enemy {
   background: var(--enemy);
+  --card-edge: var(--enemy-edge);
 }
 .card-boss {
   background: var(--boss);
+  --card-edge: var(--boss-edge);
   color: #fff3ea;
 }
 .card-curse {
   background: var(--curse);
+  --card-edge: var(--curse-edge);
 }
 
 .card-empty {
   display: grid;
   place-items: center;
-  background: #e0d6c2;
+  background: #10142e;
+  --card-edge: var(--edge-dim);
   color: var(--ink-soft);
 }
 
@@ -532,9 +604,9 @@ h3 {
 }
 
 .card-cost {
-  background: #8a6212;
-  color: #fff;
-  border-radius: 999px;
+  background: var(--gold);
+  color: #000;
+  border-radius: 0;
   min-width: 20px;
   text-align: center;
   font-weight: bold;
@@ -598,7 +670,7 @@ h3 {
 }
 
 .card-gold {
-  color: #7a560e;
+  color: var(--gold);
   font-weight: bold;
 }
 
@@ -608,8 +680,9 @@ h3 {
 
 .equip-badge {
   font-size: 10px;
-  background: rgb(255 255 255 / 0.6);
-  border-radius: 4px;
+  background: var(--accent);
+  color: #000;
+  border-radius: 0;
   padding: 0 3px;
 }
 
@@ -631,7 +704,7 @@ h3 {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgb(20 15 10 / 0.6);
+  background: rgb(0 0 0 / 0.75);
   display: grid;
   place-items: center;
   padding: 16px;
@@ -707,7 +780,7 @@ h3 {
 
 .result-table th,
 .result-table td {
-  border-bottom: 1px solid var(--panel-edge);
+  border-bottom: 1px solid var(--edge-dim);
   padding: 4px;
 }
 
@@ -717,7 +790,7 @@ h3 {
   color: var(--accent-ink);
   font-size: 11px;
   padding: 0 4px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .toast {
@@ -725,10 +798,11 @@ h3 {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: #3a2a1c;
-  color: #fff3df;
+  background: var(--panel);
+  color: var(--ink);
+  border: 3px solid var(--panel-edge);
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   z-index: 20;
   box-shadow: var(--shadow);
 }
@@ -770,10 +844,22 @@ h3 {
   gap: 8px;
 }
 
+.stage-button::before {
+  content: "▶";
+  grid-row: 1 / span 2;
+  visibility: hidden;
+  color: var(--accent);
+}
+
+.stage-button:not(:disabled):hover::before,
+.stage-button:focus-visible::before {
+  visibility: visible;
+}
+
 .stage-button {
   width: 100%;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto;
   gap: 2px 12px;
   align-items: baseline;
   text-align: left;
@@ -797,7 +883,7 @@ h3 {
 }
 
 .stage-desc {
-  grid-column: 1 / -1;
+  grid-column: 2 / -1;
   font-size: 0.85rem;
   color: var(--ink-soft);
 }
@@ -866,8 +952,8 @@ h3 {
 
 .others-item {
   padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--panel-edge);
+  border-radius: 0;
+  border: 2px solid var(--edge-dim);
 }
 
 .others-turn {
@@ -894,8 +980,8 @@ h3 {
   font-size: 0.75rem;
   font-weight: normal;
   padding: 0 6px;
-  border-radius: 999px;
-  border: 1px solid var(--panel-edge);
+  border-radius: 0;
+  border: 1px solid var(--edge-dim);
   color: var(--ink-soft);
 }
 
@@ -919,7 +1005,7 @@ h3 {
   background: var(--bad);
   color: #fff3df;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 0;
   text-align: center;
 }
 
@@ -934,9 +1020,9 @@ h3 {
 .lobby input {
   font: inherit;
   padding: 6px 10px;
-  border: 1px solid var(--panel-edge);
-  border-radius: 6px;
-  background: #fffaf0;
+  border: 2px solid var(--panel-edge);
+  border-radius: 0;
+  background: #000;
   color: var(--ink);
 }
 
@@ -959,8 +1045,8 @@ h3 {
 }
 
 .lobby-box {
-  border: 1px solid var(--panel-edge);
-  border-radius: 8px;
+  border: 2px solid var(--edge-dim);
+  border-radius: 0;
   padding: 10px 14px;
 }
 
@@ -983,7 +1069,7 @@ h3 {
 .room-code strong {
   font-size: 1.8rem;
   letter-spacing: 0.15em;
-  font-family: ui-monospace, monospace;
+  color: var(--accent);
 }
 
 .member-list {
@@ -1006,30 +1092,27 @@ h3 {
 
 /* ---------- カードの絵 ---------- */
 .card-art {
-  height: 44px;
+  height: 52px;
   display: grid;
   place-items: center;
-  background: rgb(255 255 255 / 0.28);
-  border-radius: 4px;
+  background: rgb(255 255 255 / 0.2);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 0;
   margin: 1px 0 2px;
 }
 
 .card-art svg {
-  height: 40px;
-  width: 40px;
+  height: 48px;
+  width: 48px;
 }
 
 .card-small .card-art {
-  height: 34px;
+  height: 36px;
 }
 
 .card-small .card-art svg {
-  height: 30px;
-  width: 30px;
-}
-
-.card-boss .card-art {
-  background: rgb(0 0 0 / 0.18);
+  height: 32px;
+  width: 32px;
 }
 
 /* ---------- 演出・アニメーション ---------- */
@@ -1051,14 +1134,14 @@ h3 {
   align-items: center;
   gap: 14px;
   padding: 12px 22px;
-  border-radius: 12px;
-  background: rgb(30 22 14 / 0.88);
-  color: #fff3df;
-  box-shadow: 0 6px 24px rgb(0 0 0 / 0.45);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 0 0 3px #000, 6px 6px 0 3px rgb(0 0 0 / 0.6);
   animation-name: fx-pop;
-  animation-timing-function: ease-out;
+  animation-timing-function: steps(4, end);
   animation-fill-mode: both;
-  border: 2px solid #c9b48a;
+  border: 3px solid var(--panel-edge);
 }
 
 .fx-defeat {
@@ -1072,7 +1155,7 @@ h3 {
 .fx-boss,
 .fx-village {
   border-color: var(--bad);
-  background: rgb(70 14 8 / 0.9);
+  background: #3a0a06;
 }
 
 .fx-art {
@@ -1112,7 +1195,7 @@ h3 {
 .fx-sparkle {
   position: absolute;
   inset: -8px;
-  border-radius: 50%;
+  border-radius: 0;
   border: 3px solid #7fdcec;
   animation: fx-ring 1s ease-out both;
 }
@@ -1134,6 +1217,20 @@ h3 {
 .fx-sub {
   font-size: 0.95rem;
   opacity: 0.9;
+}
+
+/* 大事な知らせは文字を点滅させる */
+.fx-defeat .fx-title,
+.fx-levelup .fx-title,
+.fx-boss .fx-title,
+.fx-march .fx-title {
+  animation: fx-blink 0.24s steps(1) 0.15s 4;
+}
+
+@keyframes fx-blink {
+  50% {
+    opacity: 0;
+  }
 }
 
 @keyframes fx-pop {
@@ -1238,11 +1335,11 @@ h3 {
 /* カードが出る・敵が進む */
 .zone-cards .card-wrap,
 .stock .card-wrap {
-  animation: card-in 0.25s ease-out both;
+  animation: card-in 0.24s steps(3, end) both;
 }
 
 .route-square-cards .card-wrap {
-  animation: march-in 0.45s ease-out both;
+  animation: march-in 0.45s steps(5, end) both;
 }
 
 @keyframes card-in {
@@ -1273,12 +1370,6 @@ h3 {
 }
 
 /* ---------- 見直し（テストプレイの感想） ---------- */
-/* 英雄と食料の色を分ける */
-:root {
-  --hero: #cfdcea;
-  --food: #ecd49a;
-}
-
 /* カードの大きさをそろえる */
 .card {
   height: 214px;
@@ -1287,7 +1378,7 @@ h3 {
 }
 
 .card-small {
-  height: 184px;
+  height: 192px;
   min-height: 0;
 }
 
@@ -1315,9 +1406,10 @@ h3 {
   width: max-content;
   max-width: 220px;
   padding: 5px 9px;
-  border-radius: 6px;
-  background: #2a2117;
-  color: #fff3df;
+  border-radius: 0;
+  background: #000;
+  border: 2px solid var(--panel-edge);
+  color: var(--ink);
   font-size: 12px;
   line-height: 1.4;
   text-align: center;
@@ -1335,15 +1427,16 @@ h3 {
   left: 50%;
   margin-left: -5px;
   border: 5px solid transparent;
-  border-top-color: #2a2117;
+  border-top-color: var(--panel-edge);
 }
 
 .card-tip-ng {
-  background: #6b2318;
+  background: #3a0a06;
+  border-color: var(--bad);
 }
 
 .card-tip-ng::after {
-  border-top-color: #6b2318;
+  border-top-color: var(--bad);
 }
 
 .card-wrap:hover > .card-tip,
@@ -1361,7 +1454,7 @@ h3 {
   top: auto;
   bottom: 100%;
   border-top-color: transparent;
-  border-bottom-color: #2a2117;
+  border-bottom-color: var(--panel-edge);
 }
 
 /* 案内と操作のボタンを画面の上に固定する */
@@ -1381,8 +1474,8 @@ h3 {
 
 /* 砦と村の絵 */
 .route-end-art {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
 }
 
 /* 場と手札を画面の下に固定する */
@@ -1403,7 +1496,7 @@ h3 {
 }
 
 .player-dock .zone + .zone {
-  border-left: 1px solid var(--panel-edge);
+  border-left: 2px solid var(--edge-dim);
   padding-left: 10px;
 }
 
@@ -1441,14 +1534,14 @@ h3 {
 .hero-slot {
   width: 18px;
   height: 22px;
-  border-radius: 4px;
-  border: 2px dashed #7a8ea6;
+  border-radius: 0;
+  border: 2px dashed var(--hero-edge);
   background: transparent;
 }
 
 .hero-slot-used {
   border-style: solid;
-  border-color: #3d5a7e;
+  border-color: var(--hero-edge);
   background: var(--hero);
   box-shadow: inset 0 0 0 3px #fff8;
 }
@@ -1496,20 +1589,21 @@ h3 {
 
 .battle-bar {
   position: relative;
-  height: 14px;
-  border-radius: 7px;
-  background: #d9c9a8;
+  height: 18px;
+  border-radius: 0;
+  background: #000;
+  border: 2px solid var(--edge-dim);
   overflow: hidden;
   display: flex;
 }
 
 .battle-bar-prev {
-  background: #9b6a5e;
+  background: #7a2a20;
 }
 
 .battle-bar-now {
   background: var(--bad);
-  transition: width 0.25s;
+  transition: width 0.24s steps(3, end);
 }
 
 .battle-result {
@@ -1527,11 +1621,11 @@ h3 {
 .fx-turn {
   min-width: 360px;
   justify-content: center;
-  border-color: #c9b48a;
+  border-color: var(--panel-edge);
 }
 
 .fx-turn {
-  background: rgb(38 58 30 / 0.92);
+  background: #0e2a10;
   border-color: #b6e07a;
 }
 
@@ -1542,7 +1636,7 @@ h3 {
 .fx-march {
   min-width: 360px;
   justify-content: center;
-  background: rgb(80 18 10 / 0.92);
+  background: #3a0a06;
   border-color: #f0902a;
 }
 
@@ -1568,8 +1662,8 @@ h3 {
   pointer-events: none;
   background: linear-gradient(90deg, transparent 0%, rgb(220 60 30 / 0.35) 45%, rgb(240 140 40 / 0.45) 50%, transparent 60%);
   background-size: 250% 100%;
-  animation: march-sweep 0.9s ease-in-out 0.45s both;
-  border-radius: 8px;
+  animation: march-sweep 0.9s steps(9, end) 0.45s both;
+  border-radius: 0;
 }
 
 @keyframes march-sweep {
@@ -1584,7 +1678,7 @@ h3 {
 }
 
 .route-marching .route-square-cards .card-wrap {
-  animation: march-in-strong 0.7s cubic-bezier(0.2, 0.8, 0.3, 1.2) 0.45s both;
+  animation: march-in-strong 0.7s steps(7, end) 0.45s both;
 }
 
 @keyframes march-in-strong {
@@ -1606,13 +1700,13 @@ h3 {
 /* 空いている英雄の枠（場にカードの形で出す） */
 .slot-card {
   background: transparent;
-  border: 2px dashed #7a8ea6;
+  border: 3px dashed var(--hero-edge);
   box-shadow: none;
   justify-content: center;
   align-items: center;
   text-align: center;
   gap: 8px;
-  color: #4d6380;
+  color: var(--hero-edge);
 }
 
 .slot-card-title {
@@ -1626,7 +1720,7 @@ h3 {
 }
 
 .slot-card-none {
-  border-color: #b06a5c;
+  border-color: var(--bad);
   color: var(--bad);
 }
 
@@ -1661,7 +1755,7 @@ h3 {
 }
 
 .fx-buy .fx-art svg {
-  animation: fx-buy-hop 0.6s ease-out both;
+  animation: fx-buy-hop 0.6s steps(3, end) both;
 }
 
 .fx-buy .fx-title {
@@ -1694,6 +1788,7 @@ h3 {
 @keyframes discard-pulse {
   0% {
     background: #ffd75a;
+    color: #000;
     transform: scale(1.25);
   }
   100% {
@@ -1771,9 +1866,10 @@ h3 {
 .card-detail-tip {
   margin: 0;
   padding: 8px 12px;
-  border-radius: 8px;
-  background: #2a2117;
-  color: #fff3df;
+  border-radius: 0;
+  background: var(--panel);
+  border: 3px solid var(--panel-edge);
+  color: var(--ink);
   text-align: center;
   font-size: 14px;
 }
@@ -1810,17 +1906,18 @@ button {
 .mobile-tab {
   flex: 1;
   padding: 6px 4px;
-  border-radius: 8px 8px 0 0;
-  background: #4b3f33;
-  color: #e9dcc2;
-  border: 1px solid #6b5b45;
+  border-radius: 0;
+  background: var(--panel-2);
+  color: var(--ink-soft);
+  border: 2px solid var(--edge-dim);
+  box-shadow: none;
   font-size: 13px;
 }
 
 .mobile-tab-on {
   background: var(--panel);
-  color: var(--ink);
-  font-weight: bold;
+  color: var(--accent);
+  border-color: var(--panel-edge);
 }
 
 /* ---------- スマートフォンの縦持ち ---------- */
@@ -1899,12 +1996,12 @@ button {
   }
 
   .card-small .card-art {
-    height: 30px;
+    height: 34px;
   }
 
   .card-small .card-art svg {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
 
   .card-small .card-text,
@@ -1927,7 +2024,7 @@ button {
 
   /* 進軍ルート：5マスを1列に。砦と村は細い帯に */
   .route {
-    grid-template-columns: 30px minmax(0, 1fr) 40px;
+    grid-template-columns: 36px minmax(0, 1fr) 40px;
     gap: 4px;
     padding: 6px;
   }
@@ -1944,8 +2041,8 @@ button {
   }
 
   .route-end-art {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
   }
 
   .route-end-title {
@@ -1990,12 +2087,12 @@ button {
   }
 
   .route .card-art {
-    height: 26px;
+    height: 34px;
   }
 
   .route .card-art svg {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
   }
 
   .route .stats {
@@ -2018,7 +2115,7 @@ button {
   .player-dock .zone + .zone {
     border-left: none;
     padding-left: 0;
-    border-top: 1px solid var(--panel-edge);
+    border-top: 2px solid var(--edge-dim);
     padding-top: 4px;
   }
 
@@ -2095,8 +2192,8 @@ button {
 
   .fx-art,
   .fx-art svg {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
   }
 
   .log {

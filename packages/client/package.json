@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@deckbuild/core": "*",
+    "@fontsource/dotgothic16": "^5.3.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "socket.io-client": "^4.8.4",
