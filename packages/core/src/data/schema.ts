@@ -37,11 +37,19 @@ export const heroDefSchema = z.object({
   nextLevelExp: positive.nullable(),
 });
 
+const weaponAbilitySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("pierce") }),
+  z.object({ kind: z.literal("perLevel"), physical: nonNeg, magic: nonNeg }),
+  z.object({ kind: z.literal("defeatExp"), amount: positive }),
+  z.object({ kind: z.literal("solo") }),
+]);
+
 export const weaponDefSchema = z.object({
   ...base,
   type: z.literal("weapon"),
   physical: nonNeg,
   magic: nonNeg,
+  ability: weaponAbilitySchema.nullable().default(null),
 });
 
 export const foodDefSchema = z.object({

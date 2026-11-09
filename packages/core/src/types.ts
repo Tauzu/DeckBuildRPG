@@ -39,10 +39,22 @@ export interface HeroDef extends BaseDef {
   nextLevelExp: number | null;
 }
 
+/** 武器の特殊能力（仕様書 3.2） */
+export type WeaponAbility =
+  /** 装備した英雄の攻撃は耐性を受けない */
+  | { kind: "pierce" }
+  /** 装備した英雄のレベル1つにつき攻撃力が増える */
+  | { kind: "perLevel"; physical: number; magic: number }
+  /** この武器で戦って撃破すると経験値が増える */
+  | { kind: "defeatExp"; amount: number }
+  /** 英雄がいなくても、武器だけで攻撃に加われる */
+  | { kind: "solo" };
+
 export interface WeaponDef extends BaseDef {
   type: "weapon";
   physical: number;
   magic: number;
+  ability: WeaponAbility | null;
 }
 
 export interface FoodDef extends BaseDef {
@@ -274,6 +286,8 @@ export type Action =
   | { type: "playFood"; uid: string }
   | { type: "playHero"; uid: string }
   | { type: "equip"; weaponUid: string; heroUid: string }
+  /** 英雄なしで使える武器（solo）を、装備せずに場に出す */
+  | { type: "useWeapon"; weaponUid: string }
   | { type: "undoBattleCard"; uid: string }
   | { type: "confirmAttack" }
   | { type: "buy"; stackId: StackId }

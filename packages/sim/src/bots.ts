@@ -34,12 +34,24 @@ function factor(r: EnemyDef["resistPhysical"]): number {
 
 function attackOf(reg: CardRegistry, c: CardInstance) {
   const d = reg.get(c.defId);
-  if (d.type === "hero" || d.type === "weapon") return { physical: d.physical, magic: d.magic };
+  if (d.type === "hero") return { physical: d.physical, magic: d.magic };
+  if (d.type === "weapon") {
+    // レベルで伸びる武器は Lv1 の英雄が持つとして見積もる
+    const ab = d.ability;
+    const pl = ab?.kind === "perLevel" ? ab : { physical: 0, magic: 0 };
+    return { physical: d.physical + pl.physical, magic: d.magic + pl.magic, pierce: ab?.kind === "pierce" };
+  }
   return { physical: 0, magic: 0 };
+}
+
+function isSolo(reg: CardRegistry, c: CardInstance): boolean {
+  const d = reg.get(c.defId);
+  return d.type === "weapon" && d.ability?.kind === "solo";
 }
 
 function valueAgainst(reg: CardRegistry, c: CardInstance, e: EnemyDef): number {
   const a = attackOf(reg, c);
+  if ("pierce" in a && a.pierce) return a.physical + a.magic;
   return a.physical * factor(e.resistPhysical) + a.magic * factor(e.resistMagic);
 }
 
@@ -55,11 +67,12 @@ export function maxDamage(reg: CardRegistry, hand: CardInstance[], e: EnemyDef, 
     .filter((c) => reg.get(c.defId).type === "hero")
     .sort((a, b) => valueAgainst(reg, b, e) - valueAgainst(reg, a, e))
     .slice(0, slots);
+  const solo = hand.filter((c) => isSolo(reg, c));
   const weapons = hand
-    .filter((c) => reg.get(c.defId).type === "weapon")
+    .filter((c) => reg.get(c.defId).type === "weapon" && !isSolo(reg, c))
     .sort((a, b) => valueAgainst(reg, b, e) - valueAgainst(reg, a, e))
     .slice(0, heroes.length);
-  return calcDamage([...heroes, ...weapons].map((c) => attackOf(reg, c)), e).total;
+  return calcDamage([...heroes, ...weapons, ...solo].map((c) => attackOf(reg, c)), e).total;
 }
 
 /** デッキ全体（山札・手札・場・捨て札）の構成 */
@@ -269,11 +282,15 @@ function pickPurchase(s: GameState, p: PlayerState, reg: CardRegistry, gold: num
     const attack = magicFirst ? ["mage", "hunter", "knight"] : ["knight", "hunter", "mage"];
     return (support * 4 < st.heroes ? ["bard", "priest", ...attack] : attack).map(heroStackId);
   };
-  const bigWeapon = magicFirst ? ["weapon_tome", "weapon_mithril", "weapon_axe"] : ["weapon_axe", "weapon_mithril", "weapon_tome"];
-  const smallWeapon = magicFirst ? ["weapon_staff", "weapon_sword"] : ["weapon_sword", "weapon_staff"];
+  const bigWeapon = magicFirst
+    ? ["weapon_tome", "weapon_mithril", "weapon_amulet", "weapon_sage", "weapon_axe", "weapon_hammer"]
+    : ["weapon_axe", "weapon_mithril", "weapon_hammer", "weapon_tome", "weapon_amulet"];
+  const smallWeapon = magicFirst
+    ? ["weapon_staff", "weapon_bow", "weapon_sword", "weapon_javelin"]
+    : ["weapon_sword", "weapon_bow", "weapon_javelin", "weapon_staff"];
 
   if (needFood) return first("food_feast", "food_jerky");
-  if (gold >= 6 && st.weapons * 2 < st.heroes) return first(...bigWeapon, ...heroOrder());
+  if (gold >= 5 && st.weapons * 2 < st.heroes) return first(...bigWeapon, ...heroOrder());
   if (gold >= 4) return first(...heroOrder(), ...bigWeapon);
   if (gold >= 3 && st.weapons * 2 < st.heroes) return first(...smallWeapon);
   if (gold >= 3 && st.food < st.heroes + 2) return first("food_jerky");
@@ -296,9 +313,11 @@ function battleStep(s: GameState, p: PlayerState, reg: CardRegistry): Action {
     if (hero) return { type: "playHero", uid: hero.uid };
   }
 
+  const solo = p.hand.find((c) => isSolo(reg, c) && valueAgainst(reg, c, e) > 0);
+  if (solo) return { type: "useWeapon", weaponUid: solo.uid };
   const unequipped = p.field.filter((c) => reg.get(c.defId).type === "hero" && !turn.equips[c.uid]);
   const weapon = p.hand
-    .filter((c) => reg.get(c.defId).type === "weapon")
+    .filter((c) => reg.get(c.defId).type === "weapon" && !isSolo(reg, c))
     .sort((a, b) => valueAgainst(reg, b, e) - valueAgainst(reg, a, e))[0];
   if (weapon && unequipped[0] && valueAgainst(reg, weapon, e) > 0) {
     return { type: "equip", weaponUid: weapon.uid, heroUid: unequipped[0].uid };

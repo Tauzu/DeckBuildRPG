@@ -11,7 +11,7 @@ import {
 } from "./context.js";
 import { enqueueEffect } from "./effects.js";
 import { endGame } from "./flow.js";
-import { battleAttackers, calcDamage, cardsGold, enemyHp } from "./rules.js";
+import { battleAttackers, bonusExpOnDefeat, calcDamage, cardsGold, enemyHp } from "./rules.js";
 import type { Action, CardInstance, PlayerState } from "./types.js";
 
 export function dispatch(ctx: Ctx, playerId: string, action: Action): void {
@@ -38,6 +38,8 @@ export function dispatch(ctx: Ctx, playerId: string, action: Action): void {
       return playHero(ctx, action.uid);
     case "equip":
       return equip(ctx, action.weaponUid, action.heroUid);
+    case "useWeapon":
+      return useWeapon(ctx, action.weaponUid);
     case "undoBattleCard":
       return undoBattleCard(ctx, action.uid);
     case "confirmAttack":
@@ -177,6 +179,20 @@ function equip(ctx: Ctx, weaponUid: string, heroUid: string): void {
   ctx.events.push({ type: "weaponEquipped", playerId: p.id, heroUid, weaponUid });
 }
 
+/** 英雄なしで使える武器を、装備せずに場に出す */
+function useWeapon(ctx: Ctx, weaponUid: string): void {
+  requireStep(ctx, "battle");
+  battleTurn(ctx);
+  const p = currentPlayer(ctx.s);
+  const weapon = handCard(p, weaponUid);
+  const def = ctx.reg.get(weapon.defId);
+  if (def.type !== "weapon") fail("WRONG_CARD_TYPE", "武器カードではありません");
+  if (def.ability?.kind !== "solo") fail("WRONG_CARD_TYPE", "この武器は英雄に装備しないと使えません");
+  takeCard(p.hand, weaponUid);
+  p.field.push(weapon);
+  ctx.events.push({ type: "cardPlayed", playerId: p.id, uid: weaponUid, defId: weapon.defId });
+}
+
 function undoBattleCard(ctx: Ctx, uid: string): void {
   requireStep(ctx, "battle");
   const turn = battleTurn(ctx);
@@ -245,10 +261,11 @@ function confirmAttack(ctx: Ctx): void {
     takeCard(square, target.uid);
     if (s.config.lootToDeck) p.discard.push(target);
     else s.trash.push(target);
-    p.exp += def.exp;
-    p.totalExp += def.exp;
+    const exp = def.exp + bonusExpOnDefeat(s, ctx.reg);
+    p.exp += exp;
+    p.totalExp += exp;
     p.kills += 1;
-    ctx.events.push({ type: "expGained", playerId: p.id, amount: def.exp });
+    ctx.events.push({ type: "expGained", playerId: p.id, amount: exp });
     if (def.isBoss) {
       endGame(ctx, "win", "bossDefeated");
       return;

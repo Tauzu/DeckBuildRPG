@@ -1,5 +1,5 @@
 // 画面の文言（設計書 4.3：文言は1か所にまとめる）
-import type { CardDef, CardRegistry, Effect, ErrorCode, GameEvent, PlayerView, Resist } from "@deckbuild/core";
+import type { CardDef, CardRegistry, Effect, ErrorCode, GameEvent, PlayerView, Resist, WeaponAbility } from "@deckbuild/core";
 
 export const ERROR_TEXT: Record<ErrorCode, string> = {
   GAME_OVER: "ゲームは終了しています",
@@ -32,6 +32,22 @@ export const HERO_NAMES: Record<string, string> = {
   bard: "吟遊詩人",
   youth: "村の若者",
 };
+
+/** 武器の能力の説明 */
+export function describeWeaponAbility(a: WeaponAbility): string {
+  switch (a.kind) {
+    case "pierce":
+      return "装備した英雄の攻撃は耐性を受けない";
+    case "perLevel": {
+      const parts = [a.physical > 0 && `物+${a.physical}`, a.magic > 0 && `魔+${a.magic}`].filter(Boolean).join("・");
+      return `英雄のLv1つにつき${parts}`;
+    }
+    case "defeatExp":
+      return `撃破すると経験値+${a.amount}`;
+    case "solo":
+      return "英雄がいなくても使える";
+  }
+}
 
 export function describeEffect(e: Effect): string {
   switch (e.kind) {

@@ -104,7 +104,10 @@ export function legalActions(state: GameState, playerId: string, reg: CardRegist
         const t = reg.get(c.defId).type;
         if (t === "food") candidates.push({ type: "playFood", uid: c.uid });
         if (t === "hero") candidates.push({ type: "playHero", uid: c.uid });
-        if (t === "weapon") for (const h of heroesOnField) candidates.push({ type: "equip", weaponUid: c.uid, heroUid: h.uid });
+        if (t === "weapon") {
+          for (const h of heroesOnField) candidates.push({ type: "equip", weaponUid: c.uid, heroUid: h.uid });
+          if (reg.weapon(c.defId).ability?.kind === "solo") candidates.push({ type: "useWeapon", weaponUid: c.uid });
+        }
       }
       for (const c of me.field) candidates.push({ type: "undoBattleCard", uid: c.uid });
       candidates.push({ type: "confirmAttack" });

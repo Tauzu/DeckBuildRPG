@@ -3,15 +3,26 @@ import { battlePreview, calcDamage } from "../src/index.js";
 import { act, errorOf, hand, mutate, placeEnemy, reg, setHand, start, uidOf } from "./helpers.js";
 
 describe("ダメージの計算（仕様書 5.3.1）", () => {
-  it("仕様書の例：騎士Lv1＋鉄の剣と狩人Lv1でスケルトンを攻撃するとダメージ4", () => {
+  it("仕様書の例：騎士Lv1＋鉄の剣と狩人Lv1でスケルトンを攻撃するとダメージ5", () => {
     const d = calcDamage(
       [
-        { physical: 3 + 2, magic: 0 },
+        { physical: 3 + 3, magic: 0 },
         { physical: 2, magic: 1 },
       ],
       reg.enemy("enemy_skeleton"),
     );
-    expect(d).toEqual({ physical: 7, magic: 1, physicalAfter: 3, magicAfter: 1, total: 4 });
+    expect(d).toEqual({ physical: 8, magic: 1, physicalAfter: 4, magicAfter: 1, total: 5 });
+  });
+
+  it("耐性を受けない攻撃（破魔の槌など）は、耐性をかけずに足す", () => {
+    const d = calcDamage(
+      [
+        { physical: 6, magic: 0, pierce: true },
+        { physical: 3, magic: 0 },
+      ],
+      reg.enemy("enemy_ghost"),
+    );
+    expect(d).toEqual({ physical: 9, magic: 0, physicalAfter: 6, magicAfter: 0, total: 6 });
   });
 
   it("無効の耐性は0にする", () => {
@@ -66,7 +77,7 @@ describe("敵を倒す（仕様書 5.3）", () => {
     expect(errorOf(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_club"), heroUid: knight })).toBe(
       "ALREADY_EQUIPPED",
     );
-    expect(battlePreview(s, reg)?.total).toBe(5);
+    expect(battlePreview(s, reg)?.total).toBe(6);
   });
 
   it("確定前なら出したカードを手札に戻せる。英雄を戻すと装備した武器も戻る", () => {
@@ -174,5 +185,52 @@ describe("敵を倒す（仕様書 5.3）", () => {
     expect(r.state.enemyDamage[target]).toBeUndefined();
     expect(r.state.step.kind).toBe("finished");
     expect(errorOf(r.state, "p1", { type: "chooseVillage" })).toBe("GAME_OVER");
+  });
+});
+
+describe("武器の能力（仕様書 3.2）", () => {
+  it("破魔の槌：装備した英雄の攻撃は耐性を受けない", () => {
+    const { s: s0, h } = battle(["hero_knight_1", "weapon_hammer"], "enemy_skeleton");
+    const knight = uidOf(h, "hero_knight_1");
+    let s = act(s0, "p1", { type: "playHero", uid: knight }).state;
+    expect(battlePreview(s, reg)?.total).toBe(1);
+    s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_hammer"), heroUid: knight }).state;
+    expect(battlePreview(s, reg)?.total).toBe(6);
+  });
+
+  it("賢者の杖：英雄のレベル1つにつき魔法+1", () => {
+    const { s: s0, h } = battle(["hero_mage_2", "weapon_sage"], "enemy_orc");
+    const mage = uidOf(h, "hero_mage_2");
+    let s = act(s0, "p1", { type: "playHero", uid: mage }).state;
+    s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_sage"), heroUid: mage }).state;
+    // 魔法使いLv2（魔5）＋杖（魔2）＋レベル2つ分（魔2）
+    expect(battlePreview(s, reg)?.total).toBe(9);
+  });
+
+  it("投げ槍：英雄がいなくても使える。ほかの武器は英雄なしでは使えない", () => {
+    const { s: s0, h } = battle(["weapon_javelin", "weapon_sword"], "enemy_goblin");
+    expect(errorOf(s0, "p1", { type: "useWeapon", weaponUid: uidOf(h, "weapon_sword") })).toBe("WRONG_CARD_TYPE");
+    let s = act(s0, "p1", { type: "useWeapon", weaponUid: uidOf(h, "weapon_javelin") }).state;
+    expect(battlePreview(s, reg)?.total).toBe(2);
+    s = act(s, "p1", { type: "undoBattleCard", uid: uidOf(h, "weapon_javelin") }).state;
+    expect(hand(s)).toHaveLength(2);
+    expect(battlePreview(s, reg)?.total).toBe(0);
+  });
+
+  it("投げ槍は英雄に装備してもよく、そのときは英雄の攻撃に加わる（二重には数えない）", () => {
+    const { s: s0, h } = battle(["hero_knight_1", "weapon_javelin"], "enemy_orc");
+    const knight = uidOf(h, "hero_knight_1");
+    let s = act(s0, "p1", { type: "playHero", uid: knight }).state;
+    s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_javelin"), heroUid: knight }).state;
+    expect(battlePreview(s, reg)?.total).toBe(5);
+  });
+
+  it("狩りの弓：この武器を使って撃破すると経験値+1", () => {
+    const { s: s0, h } = battle(["hero_knight_1", "weapon_bow"], "enemy_goblin");
+    const knight = uidOf(h, "hero_knight_1");
+    let s = act(s0, "p1", { type: "playHero", uid: knight }).state;
+    s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_bow"), heroUid: knight }).state;
+    s = act(s, "p1", { type: "confirmAttack" }).state;
+    expect(s.players[0]!.exp).toBe(reg.enemy("enemy_goblin").exp + 1);
   });
 });

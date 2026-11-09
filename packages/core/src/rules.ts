@@ -1,6 +1,6 @@
 // 状態を変えずに値を計算する関数（設計書 2.8）
 import type { CardRegistry } from "./data/registry.js";
-import type { EnemyDef, GameState, PlayerState, Resist } from "./types.js";
+import type { EnemyDef, GameState, HeroDef, PlayerState, Resist, WeaponDef } from "./types.js";
 
 /** 今の所持金（仕様書 5.2）。訪問中以外は 0 */
 export function currentGold(s: GameState, reg: CardRegistry): number {
@@ -44,46 +44,89 @@ function applyResist(value: number, resist: Resist): number {
   return value;
 }
 
-/** ダメージの計算（仕様書 5.3.1） */
-export function calcDamage(
-  attackers: { physical: number; magic: number }[],
-  target: Pick<EnemyDef, "resistPhysical" | "resistMagic">,
-): DamageBreakdown {
-  let physical = 0;
-  let magic = 0;
-  for (const a of attackers) {
-    physical += a.physical;
-    magic += a.magic;
-  }
-  const physicalAfter = applyResist(physical, target.resistPhysical);
-  const magicAfter = applyResist(magic, target.resistMagic);
-  return { physical, magic, physicalAfter, magicAfter, total: physicalAfter + magicAfter };
+/** 攻撃に加わる1人（または英雄なしの武器1枚）の攻撃力。pierce なら耐性を受けない */
+export interface Attacker {
+  physical: number;
+  magic: number;
+  pierce?: boolean;
 }
 
-/** 戦闘中の場の英雄と武器から攻撃力の一覧を作る */
-export function battleAttackers(s: GameState, reg: CardRegistry): { physical: number; magic: number }[] {
+/** ダメージの計算（仕様書 5.3.1）。耐性は、耐性を受ける攻撃の合計にかける */
+export function calcDamage(attackers: Attacker[], target: Pick<EnemyDef, "resistPhysical" | "resistMagic">): DamageBreakdown {
+  let physical = 0;
+  let magic = 0;
+  let piercePhysical = 0;
+  let pierceMagic = 0;
+  for (const a of attackers) {
+    if (a.pierce) {
+      piercePhysical += a.physical;
+      pierceMagic += a.magic;
+    } else {
+      physical += a.physical;
+      magic += a.magic;
+    }
+  }
+  const physicalAfter = applyResist(physical, target.resistPhysical) + piercePhysical;
+  const magicAfter = applyResist(magic, target.resistMagic) + pierceMagic;
+  return {
+    physical: physical + piercePhysical,
+    magic: magic + pierceMagic,
+    physicalAfter,
+    magicAfter,
+    total: physicalAfter + magicAfter,
+  };
+}
+
+/** 英雄が武器を装備したときの攻撃力（武器の能力を含む） */
+export function equippedAttack(hero: HeroDef, weapon: WeaponDef | null): Attacker {
+  let physical = hero.physical;
+  let magic = hero.magic;
+  let pierce = false;
+  if (weapon) {
+    physical += weapon.physical;
+    magic += weapon.magic;
+    const ab = weapon.ability;
+    if (ab?.kind === "perLevel") {
+      physical += ab.physical * hero.level;
+      magic += ab.magic * hero.level;
+    }
+    if (ab?.kind === "pierce") pierce = true;
+  }
+  return { physical, magic, pierce };
+}
+
+/** 戦闘中の場の英雄と武器から攻撃力の一覧を作る。装備していない武器は、英雄なしで使える武器だけが加わる */
+export function battleAttackers(s: GameState, reg: CardRegistry): Attacker[] {
   if (s.turn?.action !== "battle") return [];
   const p = s.players[s.currentPlayer];
   if (!p) return [];
   const turn = s.turn;
-  const list: { physical: number; magic: number }[] = [];
+  const equipped = new Set(Object.values(turn.equips));
+  const list: Attacker[] = [];
   for (const c of p.field) {
     const d = reg.get(c.defId);
-    if (d.type !== "hero") continue;
-    let physical = d.physical;
-    let magic = d.magic;
-    const weaponUid = turn.equips[c.uid];
-    if (weaponUid) {
-      const w = p.field.find((x) => x.uid === weaponUid);
-      if (w) {
-        const wd = reg.weapon(w.defId);
-        physical += wd.physical;
-        magic += wd.magic;
-      }
+    if (d.type === "hero") {
+      const weaponUid = turn.equips[c.uid];
+      const w = weaponUid ? p.field.find((x) => x.uid === weaponUid) : undefined;
+      list.push(equippedAttack(d, w ? reg.weapon(w.defId) : null));
+    } else if (d.type === "weapon" && !equipped.has(c.uid) && d.ability?.kind === "solo") {
+      list.push({ physical: d.physical, magic: d.magic });
     }
-    list.push({ physical, magic });
   }
   return list;
+}
+
+/** 撃破したときに増える経験値（武器の defeatExp）。場で使われている武器だけ数える */
+export function bonusExpOnDefeat(s: GameState, reg: CardRegistry): number {
+  if (s.turn?.action !== "battle") return 0;
+  const p = s.players[s.currentPlayer];
+  if (!p) return 0;
+  let sum = 0;
+  for (const c of p.field) {
+    const d = reg.get(c.defId);
+    if (d.type === "weapon" && d.ability?.kind === "defeatExp") sum += d.ability.amount;
+  }
+  return sum;
 }
 
 /** 戦闘中のダメージの見込み。戦闘中でなければ null */

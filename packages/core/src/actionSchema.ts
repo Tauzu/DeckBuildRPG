@@ -12,6 +12,7 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion("type", [
   z.object({ type: z.literal("playFood"), uid: id }),
   z.object({ type: z.literal("playHero"), uid: id }),
   z.object({ type: z.literal("equip"), weaponUid: id, heroUid: id }),
+  z.object({ type: z.literal("useWeapon"), weaponUid: id }),
   z.object({ type: z.literal("undoBattleCard"), uid: id }),
   z.object({ type: z.literal("confirmAttack") }),
   z.object({ type: z.literal("buy"), stackId: id }),

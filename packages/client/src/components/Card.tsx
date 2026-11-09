@@ -1,7 +1,7 @@
 import type { CardDef } from "@deckbuild/core";
 import type { ReactNode } from "react";
 import { reg } from "../store.js";
-import { cardTitle, describeEffect, resistText } from "../text.js";
+import { cardTitle, describeEffect, describeWeaponAbility, resistText } from "../text.js";
 
 interface Props {
   defId: string;
@@ -89,7 +89,8 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
             {def.physical > 0 && <span className="stat-phys">物 +{def.physical}</span>}
             {def.magic > 0 && <span className="stat-mag">魔 +{def.magic}</span>}
           </div>
-          <div className="card-note">英雄1人に1枚装備</div>
+          {def.ability && <div className="card-text">{describeWeaponAbility(def.ability)}</div>}
+          <div className="card-note">{def.ability?.kind === "solo" ? "装備せずにそのまま出す" : "英雄1人に1枚装備"}</div>
         </div>
       );
     case "food":

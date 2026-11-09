@@ -57,6 +57,11 @@ function HandCard({ card }: { card: CardInstance }) {
       const o = option((a) => a.type === "playHero" && a.uid === card.uid);
       onClick = () => send({ type: "playHero", uid: card.uid });
       reason = reasonText(o);
+    } else if (def.type === "weapon" && step === "battle" && def.ability?.kind === "solo") {
+      // 英雄なしで使える武器は、クリックするとそのまま場に出す
+      const o = option((a) => a.type === "useWeapon" && a.weaponUid === card.uid);
+      onClick = () => send({ type: "useWeapon", weaponUid: card.uid });
+      reason = reasonText(o);
     } else if (def.type === "weapon" && step === "battle") {
       const canEquip = legal.options.some((o) => o.action.type === "equip" && o.action.weaponUid === card.uid && !o.reason);
       onClick = () => selectWeapon(selectedWeapon === card.uid ? null : card.uid);

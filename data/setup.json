@@ -23,6 +23,11 @@
     {"id": "weapon_club", "count": 6},
     {"id": "weapon_sword", "count": 6},
     {"id": "weapon_staff", "count": 6},
+    {"id": "weapon_javelin", "count": 6},
+    {"id": "weapon_bow", "count": 4},
+    {"id": "weapon_hammer", "count": 4},
+    {"id": "weapon_sage", "count": 4},
+    {"id": "weapon_amulet", "count": 4},
     {"id": "weapon_axe", "count": 4},
     {"id": "weapon_tome", "count": 4},
     {"id": "weapon_mithril", "count": 3}

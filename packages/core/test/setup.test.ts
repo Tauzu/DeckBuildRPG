@@ -40,7 +40,7 @@ describe("ステージ（企画書 12章）", () => {
     const s = createGame({ seed: 1, players: players(1), stageId: "stage1" }, reg).state;
     expect(s.config.heroIds).toEqual(["knight", "mage", "hunter"]);
     expect(Object.keys(s.village.stacks).sort()).toEqual(
-      ["food_bread", "food_jerky", "hero:hunter", "hero:knight", "hero:mage", "weapon_club", "weapon_staff", "weapon_sword"].sort(),
+      ["food_bread", "food_jerky", "hero:hunter", "hero:knight", "hero:mage", "weapon_club", "weapon_javelin", "weapon_staff", "weapon_sword"].sort(),
     );
     const enemyIds = new Set(s.enemyDeck.map((c) => c.defId));
     expect([...enemyIds].sort()).toEqual(["enemy_bone_general", "enemy_goblin", "enemy_skeleton", "enemy_wolf"]);
