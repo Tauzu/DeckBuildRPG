@@ -88,7 +88,7 @@ export function legalActions(state: GameState, playerId: string, reg: CardRegist
           candidates.push({ type: "playHero", uid: c.uid });
           const hd = reg.hero(c.defId);
           if (hd.level === 0) {
-            for (const heroId of reg.setup.heroStock.heroIds) candidates.push({ type: "changeClass", uid: c.uid, heroId });
+            for (const heroId of state.config.heroIds) candidates.push({ type: "changeClass", uid: c.uid, heroId });
           } else {
             candidates.push({ type: "levelUp", uid: c.uid });
           }
@@ -115,7 +115,7 @@ export function legalActions(state: GameState, playerId: string, reg: CardRegist
         if (reg.get(c.defId).type !== "hero") continue;
         const hd = reg.hero(c.defId);
         if (hd.level === 0) {
-          for (const heroId of reg.setup.heroStock.heroIds) candidates.push({ type: "changeClass", uid: c.uid, heroId });
+          for (const heroId of state.config.heroIds) candidates.push({ type: "changeClass", uid: c.uid, heroId });
         } else {
           candidates.push({ type: "levelUp", uid: c.uid });
         }

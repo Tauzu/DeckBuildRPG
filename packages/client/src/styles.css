@@ -729,3 +729,84 @@ h3 {
 .log {
   max-height: 360px;
 }
+
+/* ---------- ステージ選択 ---------- */
+.stage-lead {
+  color: var(--ink-soft);
+}
+
+.stage-list {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.stage-button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 2px 12px;
+  align-items: baseline;
+  text-align: left;
+  padding: 10px 14px;
+}
+
+.stage-label {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.stage-name {
+  font-weight: bold;
+  font-size: 1.05rem;
+}
+
+.stage-cleared {
+  font-size: 0.8rem;
+  color: var(--good);
+  font-weight: bold;
+}
+
+.stage-desc {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.stage-locked .stage-button {
+  opacity: 0.55;
+}
+
+.result-unlock {
+  color: var(--good);
+  font-weight: bold;
+}
+
+/* ---------- チュートリアルの案内 ---------- */
+.tutorial-hint {
+  border-color: var(--focus);
+  border-width: 2px;
+  padding: 8px 14px;
+}
+
+.tutorial-hint p {
+  margin: 4px 0 0;
+  line-height: 1.6;
+}
+
+.tutorial-hint-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tutorial-hint-label {
+  font-weight: bold;
+  color: var(--accent);
+}
+
+.tutorial-hint-hidden {
+  text-align: right;
+}

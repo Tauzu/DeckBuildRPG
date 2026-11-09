@@ -7,15 +7,17 @@ import type {
   HeroDef,
   HeroId,
   SetupData,
+  StageDef,
   WeaponDef,
 } from "../types.js";
-import { enemiesFileSchema, heroesFileSchema, itemsFileSchema, setupFileSchema } from "./schema.js";
+import { enemiesFileSchema, heroesFileSchema, itemsFileSchema, setupFileSchema, stagesFileSchema } from "./schema.js";
 
 export interface RawData {
   heroes: unknown;
   items: unknown;
   enemies: unknown;
   setup: unknown;
+  stages: unknown;
 }
 
 export class DataError extends Error {
@@ -28,13 +30,14 @@ export class DataError extends Error {
 export class CardRegistry {
   private readonly defs = new Map<CardId, CardDef>();
   private readonly heroes = new Map<HeroId, HeroDef[]>();
-  readonly bossId: CardId;
   readonly curseId: CardId;
   readonly hash: string;
 
   constructor(
     defs: CardDef[],
     readonly setup: SetupData,
+    /** ステージ（ファイルに書かれた順。チュートリアル → ステージ1 → …） */
+    readonly stages: StageDef[],
   ) {
     for (const d of defs) this.defs.set(d.id, d);
     for (const d of defs) {
@@ -44,10 +47,21 @@ export class CardRegistry {
       this.heroes.set(d.heroId, list);
     }
     for (const list of this.heroes.values()) list.sort((a, b) => a.level - b.level);
-    this.bossId = setup.enemyDeck.bossId;
     const curse = defs.find((d) => d.type === "curse");
     this.curseId = curse?.id ?? "curse";
-    this.hash = fnv1a(JSON.stringify({ defs, setup }));
+    this.hash = fnv1a(JSON.stringify({ defs, setup, stages }));
+  }
+
+  /** ステージの定義。見つからなければ例外 */
+  stage(id: string): StageDef {
+    const st = this.stages.find((x) => x.id === id);
+    if (!st) throw new Error(`未定義のステージ: ${id}`);
+    return st;
+  }
+
+  /** ステージを指定しないときに使うステージ（最後のステージ＝すべてのカードが登場する） */
+  get defaultStageId(): string {
+    return this.stages[this.stages.length - 1]!.id;
   }
 
   has(id: CardId): boolean {
@@ -108,16 +122,17 @@ export function createRegistry(raw: RawData): CardRegistry {
   const items = parse("items.json", itemsFileSchema, raw.items);
   const enemies = parse("enemies.json", enemiesFileSchema, raw.enemies);
   const setup = parse("setup.json", setupFileSchema, raw.setup) as SetupData | null;
-  if (!heroes || !items || !enemies || !setup) throw new DataError(problems);
+  const stages = parse("stages.json", stagesFileSchema, raw.stages) as StageDef[] | null;
+  if (!heroes || !items || !enemies || !setup || !stages) throw new DataError(problems);
 
   const defs: CardDef[] = [...heroes, ...items, ...enemies];
-  problems.push(...checkConsistency(defs, setup));
+  problems.push(...checkConsistency(defs, setup, stages));
   if (problems.length > 0) throw new DataError(problems);
-  return new CardRegistry(defs, setup);
+  return new CardRegistry(defs, setup, stages);
 }
 
 /** データ同士の整合性チェック（設計書 3.2） */
-function checkConsistency(defs: CardDef[], setup: SetupData): string[] {
+function checkConsistency(defs: CardDef[], setup: SetupData, stages: StageDef[]): string[] {
   const problems: string[] = [];
   const byId = new Map<CardId, CardDef>();
   for (const d of defs) {
@@ -137,7 +152,8 @@ function checkConsistency(defs: CardDef[], setup: SetupData): string[] {
 
   // 英雄：Lv1から順にそろっているか、在庫のレベルが定義されているか
   const levels = Object.keys(setup.heroStock.countsByLevel).map(Number);
-  for (const heroId of setup.heroStock.heroIds) {
+  const heroIds = [...new Set(stages.flatMap((st) => st.heroIds))];
+  for (const heroId of heroIds) {
     const list = defs.filter((d): d is HeroDef => d.type === "hero" && d.heroId === heroId).sort((a, b) => a.level - b.level);
     if (list.length === 0) {
       problems.push(`英雄が定義されていません: ${heroId}`);
@@ -154,11 +170,6 @@ function checkConsistency(defs: CardDef[], setup: SetupData): string[] {
     }
   }
 
-  // ボス
-  const bosses = defs.filter((d) => d.type === "enemy" && d.isBoss);
-  if (bosses.length !== 1) problems.push(`ボスはちょうど1種類必要です（${bosses.length}種類）`);
-  const boss = byId.get(setup.enemyDeck.bossId);
-  if (!boss || boss.type !== "enemy" || !boss.isBoss) problems.push(`enemyDeck.bossId がボスではありません: ${setup.enemyDeck.bossId}`);
   for (const d of defs) {
     if (d.type !== "enemy") continue;
     if (!d.isBoss && (d.hp === null || d.invasion === null)) problems.push(`ボス以外の敵には hp と invasion が必要です: ${d.id}`);
@@ -167,23 +178,33 @@ function checkConsistency(defs: CardDef[], setup: SetupData): string[] {
   // 呪い
   if (!defs.some((d) => d.type === "curse")) problems.push("呪いカードが定義されていません");
 
-  // 人数ごとの設定
-  for (const n of ["1", "2", "3", "4"]) {
-    const pc = setup.playerCounts[n];
-    if (!pc) {
-      problems.push(`playerCounts に ${n}人 の設定がありません`);
-      continue;
+  // ステージ
+  const stageIds = new Set<string>();
+  for (const st of stages) {
+    const at = `stages.${st.id}`;
+    if (stageIds.has(st.id)) problems.push(`ステージIDが重複しています: ${st.id}`);
+    stageIds.add(st.id);
+    const boss = byId.get(st.bossId);
+    if (!boss || boss.type !== "enemy" || !boss.isBoss) problems.push(`${at}.bossId がボスではありません: ${st.bossId}`);
+    for (const id of st.items) {
+      need(id, `${at}.items`);
+      if (!setup.itemStock.some((e) => e.id === id)) problems.push(`${at}.items のカードが itemStock にありません: ${id}`);
     }
-    let total = 0;
-    for (const [id, count] of Object.entries(pc.enemies)) {
-      need(id, `playerCounts.${n}.enemies`);
-      const d = byId.get(id);
-      if (d && (d.type !== "enemy" || d.isBoss)) problems.push(`playerCounts.${n}.enemies にボス以外の敵ではないカードがあります: ${id}`);
-      total += count;
+    for (const id of [...st.earlyFull, ...st.earlyHalf]) need(id, at);
+    const counts = Object.entries(st.playerCounts);
+    if (counts.length === 0) problems.push(`${at} に遊べる人数の設定がありません`);
+    for (const [n, pc] of counts) {
+      if (!pc) continue;
+      let total = 0;
+      for (const [id, count] of Object.entries(pc.enemies)) {
+        need(id, `${at}.playerCounts.${n}.enemies`);
+        const d = byId.get(id);
+        if (d && (d.type !== "enemy" || d.isBoss)) problems.push(`${at}.playerCounts.${n}.enemies にボス以外の敵ではないカードがあります: ${id}`);
+        total += count;
+      }
+      if (total < setup.enemyDeck.bossGroupSize - 1) problems.push(`${at} の ${n}人 の敵の枚数が少なすぎます`);
     }
-    if (total < setup.enemyDeck.bossGroupSize - 1) problems.push(`${n}人 の敵の枚数が少なすぎます`);
   }
-  for (const id of [...setup.enemyDeck.earlyFull, ...setup.enemyDeck.earlyHalf]) need(id, "enemyDeck");
 
   return problems;
 }

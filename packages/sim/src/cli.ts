@@ -1,5 +1,6 @@
 // 使い方:
-//   npm run sim -- --players 1,2,4 --games 300 --bot smart --variants base,cheapLv,cheapLv+moreExp
+//   npm run sim -- --stage stage1,stage4 --players 1,2,4 --games 300 --bot smart --variants base,cheapLv,cheapLv+moreExp
+// --stage を省略すると最後のステージ
 // 候補は "+" でつなぐと組み合わせになる
 import { mkdirSync, writeFileSync } from "node:fs";
 import { type Bot, passiveBot, smartBot } from "./bots.js";
@@ -19,6 +20,7 @@ const BOTS: Record<string, Bot> = {
 };
 
 const playerCounts = arg("players", "1").split(",").map(Number);
+const stageArg = arg("stage", "");
 const games = Number(arg("games", "200"));
 const botNames = arg("bot", "smart").split(",");
 const variants = arg("variants", "base").split(",");
@@ -33,11 +35,16 @@ for (const v of variants) {
   for (const botName of botNames) {
     const bot = BOTS[botName];
     if (!bot) throw new Error(`未知のボット: ${botName}`);
-    for (const n of playerCounts) {
-      const list: GameStats[] = [];
-      for (let i = 0; i < games; i++) list.push(playGame(reg, bot, seed0 + i, n).stats);
-      all.push(...list);
-      rows.push(summarize(`${v} / ${botName} / ${n}人`, list));
+    const stageIds = stageArg ? stageArg.split(",") : [reg.defaultStageId];
+    for (const stageId of stageIds) {
+      const stage = reg.stage(stageId);
+      for (const n of playerCounts) {
+        if (!stage.playerCounts[String(n)]) continue;
+        const list: GameStats[] = [];
+        for (let i = 0; i < games; i++) list.push(playGame(reg, bot, seed0 + i, n, stageId).stats);
+        all.push(...list);
+        rows.push(summarize(`${stageId} / ${v} / ${botName} / ${n}人`, list));
+      }
     }
   }
 }

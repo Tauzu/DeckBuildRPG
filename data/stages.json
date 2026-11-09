@@ -1,0 +1,81 @@
+[
+  {
+    "id": "tutorial",
+    "name": "村はずれの森",
+    "description": "チュートリアル。騎士と魔法使いだけで、ゴブリンの親分を倒そう",
+    "tutorial": true,
+    "fixedSeed": 7,
+    "heroIds": ["knight", "mage"],
+    "items": ["food_bread", "food_jerky", "weapon_club", "weapon_sword"],
+    "bossId": "enemy_goblin_chief",
+    "earlyFull": ["enemy_goblin", "enemy_wolf"],
+    "earlyHalf": [],
+    "playerCounts": {
+      "1": { "villageHp": 15, "bossHp": 12, "enemies": { "enemy_goblin": 4, "enemy_wolf": 3 } }
+    }
+  },
+  {
+    "id": "stage1",
+    "name": "古い街道",
+    "description": "狩人と樫の杖が仲間に。物理に強いスケルトンには魔法で挑もう",
+    "heroIds": ["knight", "mage", "hunter"],
+    "items": ["food_bread", "food_jerky", "weapon_club", "weapon_sword", "weapon_staff"],
+    "bossId": "enemy_bone_general",
+    "earlyFull": ["enemy_goblin", "enemy_wolf"],
+    "earlyHalf": ["enemy_skeleton"],
+    "playerCounts": {
+      "1": { "villageHp": 15, "bossHp": 15, "enemies": { "enemy_goblin": 4, "enemy_wolf": 3, "enemy_skeleton": 4 } },
+      "2": { "villageHp": 15, "bossHp": 27, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 5 } },
+      "3": { "villageHp": 20, "bossHp": 45, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 7 } },
+      "4": { "villageHp": 20, "bossHp": 64, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 8 } }
+    }
+  },
+  {
+    "id": "stage2",
+    "name": "忘れられた墓地",
+    "description": "僧侶・盗賊・葡萄酒・戦斧が加わる。物理が効かない亡霊と、手札を奪う呪術師に注意",
+    "heroIds": ["knight", "mage", "hunter", "priest", "thief"],
+    "items": ["food_bread", "food_jerky", "food_wine", "weapon_club", "weapon_sword", "weapon_staff", "weapon_axe"],
+    "bossId": "enemy_wraith_queen",
+    "earlyFull": ["enemy_goblin", "enemy_wolf"],
+    "earlyHalf": ["enemy_skeleton", "enemy_ghost"],
+    "playerCounts": {
+      "1": { "villageHp": 15, "bossHp": 17, "enemies": { "enemy_goblin": 4, "enemy_wolf": 3, "enemy_skeleton": 2, "enemy_ghost": 3, "enemy_shaman": 2 } },
+      "2": { "villageHp": 15, "bossHp": 30, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 3, "enemy_ghost": 4, "enemy_shaman": 2 } },
+      "3": { "villageHp": 20, "bossHp": 51, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 4, "enemy_ghost": 5, "enemy_shaman": 3 } },
+      "4": { "villageHp": 20, "bossHp": 73, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 5, "enemy_ghost": 5, "enemy_shaman": 4 } }
+    }
+  },
+  {
+    "id": "stage3",
+    "name": "山の砦",
+    "description": "吟遊詩人・祝宴の料理・魔導書が加わる。オークとガーゴイルが待ち構える",
+    "heroIds": ["knight", "mage", "hunter", "priest", "thief", "bard"],
+    "items": ["food_bread", "food_jerky", "food_wine", "food_feast", "weapon_club", "weapon_sword", "weapon_staff", "weapon_axe", "weapon_tome"],
+    "bossId": "enemy_ogre_chief",
+    "earlyFull": ["enemy_goblin", "enemy_wolf"],
+    "earlyHalf": ["enemy_skeleton", "enemy_ghost"],
+    "playerCounts": {
+      "1": { "villageHp": 15, "bossHp": 28, "enemies": { "enemy_goblin": 4, "enemy_wolf": 3, "enemy_skeleton": 2, "enemy_ghost": 2, "enemy_shaman": 2, "enemy_orc": 2, "enemy_gargoyle": 2 } },
+      "2": { "villageHp": 15, "bossHp": 50, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 3, "enemy_ghost": 3, "enemy_shaman": 2, "enemy_orc": 3, "enemy_gargoyle": 3 } },
+      "3": { "villageHp": 20, "bossHp": 84, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 4, "enemy_ghost": 3, "enemy_shaman": 3, "enemy_orc": 4, "enemy_gargoyle": 4 } },
+      "4": { "villageHp": 20, "bossHp": 120, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 4, "enemy_ghost": 4, "enemy_shaman": 4, "enemy_orc": 5, "enemy_gargoyle": 5 } }
+    }
+  },
+  {
+    "id": "stage4",
+    "name": "魔竜の巣",
+    "description": "すべての英雄と装備がそろう。死霊術師の呪いをしのぎ、魔竜を討て",
+    "heroIds": ["knight", "mage", "hunter", "priest", "thief", "bard"],
+    "items": ["food_bread", "food_jerky", "food_wine", "food_feast", "weapon_club", "weapon_sword", "weapon_staff", "weapon_axe", "weapon_tome", "weapon_mithril"],
+    "bossId": "enemy_dragon",
+    "earlyFull": ["enemy_goblin", "enemy_wolf"],
+    "earlyHalf": ["enemy_skeleton", "enemy_ghost"],
+    "playerCounts": {
+      "1": { "villageHp": 15, "bossHp": 36, "enemies": { "enemy_goblin": 4, "enemy_wolf": 3, "enemy_skeleton": 2, "enemy_ghost": 2, "enemy_shaman": 2, "enemy_orc": 2, "enemy_gargoyle": 2, "enemy_necro": 1 } },
+      "2": { "villageHp": 15, "bossHp": 62, "enemies": { "enemy_goblin": 5, "enemy_wolf": 4, "enemy_skeleton": 3, "enemy_ghost": 3, "enemy_shaman": 2, "enemy_orc": 3, "enemy_gargoyle": 3, "enemy_necro": 1 } },
+      "3": { "villageHp": 20, "bossHp": 105, "enemies": { "enemy_goblin": 6, "enemy_wolf": 5, "enemy_skeleton": 4, "enemy_ghost": 3, "enemy_shaman": 3, "enemy_orc": 4, "enemy_gargoyle": 3, "enemy_necro": 2 } },
+      "4": { "villageHp": 20, "bossHp": 150, "enemies": { "enemy_goblin": 7, "enemy_wolf": 6, "enemy_skeleton": 4, "enemy_ghost": 4, "enemy_shaman": 4, "enemy_orc": 5, "enemy_gargoyle": 4, "enemy_necro": 2 } }
+    }
+  }
+]

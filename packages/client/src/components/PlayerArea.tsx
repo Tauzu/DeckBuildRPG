@@ -143,7 +143,7 @@ function GrowthButtons({ card }: { card: CardInstance }) {
       extra =
         classChangeFor === card.uid ? (
           <div className="class-picker">
-            {reg.setup.heroStock.heroIds.map((heroId) => {
+            {view.config.heroIds.map((heroId) => {
               const o = option((a) => a.type === "changeClass" && a.uid === card.uid && a.heroId === heroId);
               const r = reasonText(o);
               return (

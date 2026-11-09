@@ -135,7 +135,7 @@ export function eventText(
     case "deckShuffled":
       return "捨て札をシャッフルして山札にした";
     case "gameEnded":
-      return e.result.outcome === "win" ? "魔竜を討ち取った！" : "集落は陥落した……";
+      return e.result.outcome === "win" ? "ボスを討ち取った！" : "集落は陥落した……";
     case "effectResolved": {
       if (e.playerId !== null) return null;
       const src = lookup.get(e.sourceUid);
@@ -153,8 +153,16 @@ export function eventText(
   }
 }
 
-export const RESULT_REASON: Record<string, string> = {
-  bossDefeated: "魔竜を討ち取り、集落を守り抜いた。",
-  villageDestroyed: "集落の守りが尽き、魔物の群れに蹂躙された。",
-  bossArrived: "魔竜が集落に到達し、すべてが炎に包まれた。",
-};
+/** 結果の説明。boss はそのステージのボスの名前 */
+export function resultReason(reason: string, boss: string): string {
+  switch (reason) {
+    case "bossDefeated":
+      return `${boss}を討ち取り、集落を守り抜いた。`;
+    case "villageDestroyed":
+      return "集落の守りが尽き、魔物の群れに蹂躙された。";
+    case "bossArrived":
+      return `${boss}が集落に到達し、集落は落ちた。`;
+    default:
+      return "";
+  }
+}

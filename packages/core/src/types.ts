@@ -105,9 +105,34 @@ export interface SetupData {
   marchSkip?: MarchSkip;
   curseStock: number;
   startingDeck: { id: CardId; count: number }[];
-  heroStock: { heroIds: HeroId[]; countsByLevel: Record<string, number> };
+  /** 英雄在庫のレベルごとの枚数（登場する英雄はステージで決まる） */
+  heroStock: { countsByLevel: Record<string, number> };
+  /** 食料・武器の在庫の枚数（登場するカードはステージで決まる） */
   itemStock: { id: CardId; count: number }[];
-  enemyDeck: { bossId: CardId; bossGroupSize: number; earlyFull: CardId[]; earlyHalf: CardId[] };
+  enemyDeck: { bossGroupSize: number };
+}
+
+// ---------------------------------------------------------------------------
+// ステージ（data/stages.json。企画書 12章）
+
+export interface StageDef {
+  id: string;
+  name: string;
+  description: string;
+  /** チュートリアル（画面に案内を出す） */
+  tutorial?: boolean;
+  /** 毎回同じ展開にするときのシード値（チュートリアル） */
+  fixedSeed?: number;
+  /** 登場する英雄 */
+  heroIds: HeroId[];
+  /** 村で買える食料・武器（枚数は setup.json の itemStock） */
+  items: CardId[];
+  bossId: CardId;
+  /** 序盤の束にすべて入れる敵 */
+  earlyFull: CardId[];
+  /** 序盤の束に半分入れる敵 */
+  earlyHalf: CardId[];
+  /** 遊べる人数ごとの設定（書かれていない人数では遊べない） */
   playerCounts: Record<string, PlayerCountSetup>;
 }
 
@@ -115,6 +140,9 @@ export interface SetupData {
 // ゲーム状態（設計書 2.2）
 
 export interface GameConfig {
+  stageId: string;
+  /** このステージに登場する英雄（転職先） */
+  heroIds: HeroId[];
   playerCount: number;
   handSize: number;
   routeLength: number;

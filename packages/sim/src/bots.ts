@@ -249,7 +249,7 @@ function pickHeroId(s: GameState, p: PlayerState, reg: CardRegistry): string | n
   const st = deckStats(reg, p);
   const available = (id: string) => (s.village.stacks[heroStackId(id)] ?? []).some((c) => reg.hero(c.defId).level === 1);
   const order = st.magic < st.physical ? ["mage", "hunter", "knight"] : ["knight", "hunter", "mage"];
-  return order.find(available) ?? reg.setup.heroStock.heroIds.find(available) ?? null;
+  return order.find(available) ?? s.config.heroIds.find(available) ?? null;
 }
 
 function pickPurchase(s: GameState, p: PlayerState, reg: CardRegistry, gold: number): string | null {

@@ -31,10 +31,16 @@ export interface GameStats {
   maxLevelReached: number;
 }
 
-export function playGame(reg: CardRegistry, bot: Bot, seed: number, n: number): { stats: GameStats; record: GameRecord } {
+export function playGame(
+  reg: CardRegistry,
+  bot: Bot,
+  seed: number,
+  n: number,
+  stageId: string = reg.defaultStageId,
+): { stats: GameStats; record: GameRecord } {
   const players = Array.from({ length: n }, (_, i) => ({ id: `p${i + 1}`, name: `bot${i + 1}` }));
-  let s = createGame({ seed, players }, reg).state;
-  const record = newRecord(seed, players, reg);
+  let s = createGame({ seed, players, stageId }, reg).state;
+  const record = newRecord(seed, players, reg, stageId);
   const st: GameStats = {
     seed,
     players: n,

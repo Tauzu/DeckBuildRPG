@@ -11,11 +11,12 @@ interface Data {
   items: Json[];
   enemies: Json[];
   setup: Json;
+  stages: Json[];
 }
 
 export function loadData(): Data {
   const read = (f: string) => JSON.parse(readFileSync(dataDir + f, "utf8")) as Json;
-  return { heroes: read("heroes.json"), items: read("items.json"), enemies: read("enemies.json"), setup: read("setup.json") };
+  return { heroes: read("heroes.json"), items: read("items.json"), enemies: read("enemies.json"), setup: read("setup.json"), stages: read("stages.json") };
 }
 
 /** 候補の名前 → データの書き換え */
@@ -69,11 +70,11 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   // --- 敵の強さ ---
   /** ボスの生命力を下げる（1人15、以降+4） */
   bossLow: (d) => {
-    for (const [n, pc] of Object.entries(d.setup.playerCounts) as [string, Json][]) pc.bossHp = 15 + (Number(n) - 1) * 4;
+    for (const [n, pc] of allCounts(d)) pc.bossHp = 15 + (Number(n) - 1) * 4;
   },
   /** ボスの生命力を少し下げる（1人20、以降+5） */
   bossMid: (d) => {
-    for (const [n, pc] of Object.entries(d.setup.playerCounts) as [string, Json][]) pc.bossHp = 20 + (Number(n) - 1) * 5;
+    for (const [n, pc] of allCounts(d)) pc.bossHp = 20 + (Number(n) - 1) * 5;
   },
   /** ボス以外の敵の生命力 -1 */
   enemyHp1: (d) => {
@@ -89,7 +90,7 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   },
   /** ボスの生命力を大きく下げる（1人10、以降+3） */
   bossTiny: (d) => {
-    for (const [n, pc] of Object.entries(d.setup.playerCounts) as [string, Json][]) pc.bossHp = 10 + (Number(n) - 1) * 3;
+    for (const [n, pc] of allCounts(d)) pc.bossHp = 10 + (Number(n) - 1) * 3;
   },
   /** 倒した敵をデッキに入れない */
   noLoot: (d) => {
@@ -113,11 +114,11 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   },
   /** ボスの生命力 +5 */
   bossUp: (d) => {
-    for (const pc of Object.values(d.setup.playerCounts) as Json[]) pc.bossHp += 5;
+    for (const pc of allCounts(d).map(([, pc]) => pc)) pc.bossHp += 5;
   },
   /** ボスの生命力 +10 */
   bossUp2: (d) => {
-    for (const pc of Object.values(d.setup.playerCounts) as Json[]) pc.bossHp += 10;
+    for (const pc of allCounts(d).map(([, pc]) => pc)) pc.bossHp += 10;
   },
   /** 食料なしでも英雄を1人出せる */
   free1: (d) => {
@@ -149,14 +150,14 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   },
   /** 集落の耐久値 +5 */
   village5: (d) => {
-    for (const pc of Object.values(d.setup.playerCounts) as Json[]) pc.villageHp += 5;
+    for (const pc of allCounts(d).map(([, pc]) => pc)) pc.villageHp += 5;
   },
 };
 
 export function buildRegistry(names: string[]): CardRegistry {
   const d = loadData();
   for (const n of names) {
-    const f = VARIANTS[n] ?? perCount(n);
+    const f = VARIANTS[n] ?? perCount(n) ?? stageBoss(n);
     if (!f) throw new Error(`未知の候補: ${n}（${Object.keys(VARIANTS).join(", ")}）`);
     f(d);
   }
@@ -170,6 +171,22 @@ function perCount(name: string): ((d: Data) => void) | undefined {
   const key = m[1]!;
   const values = m.slice(2).map(Number);
   return (d) => {
-    for (const [n, pc] of Object.entries(d.setup.playerCounts) as [string, Json][]) pc[key] = values[Number(n) - 1];
+    for (const [n, pc] of allCounts(d)) pc[key] = values[Number(n) - 1];
+  };
+}
+
+/** すべてのステージの、人数ごとの設定（[人数, 設定]） */
+function allCounts(d: Data): [string, Json][] {
+  return d.stages.flatMap((st) => Object.entries(st.playerCounts) as [string, Json][]);
+}
+
+/** ステージ1つの、1人用のボスの生命力を指定する候補。例：boss1p_stage1_14 */
+function stageBoss(name: string): ((d: Data) => void) | undefined {
+  const m = /^boss1p_(\w+?)_(\d+)$/.exec(name);
+  if (!m) return undefined;
+  return (d) => {
+    const st = d.stages.find((x) => x.id === m[1]);
+    if (!st) throw new Error(`未知のステージ: ${m[1]}`);
+    st.playerCounts["1"].bossHp = Number(m[2]);
   };
 }

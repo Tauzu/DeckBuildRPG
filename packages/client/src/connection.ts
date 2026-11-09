@@ -58,11 +58,12 @@ export class LocalConnection implements GameConnection {
     readonly seed: number,
     playerName: string,
     private readonly reg: CardRegistry,
+    stageId: string = reg.defaultStageId,
   ) {
     const players = [{ id: this.playerId, name: playerName }];
-    const created = createGame({ seed, players }, reg);
+    const created = createGame({ seed, players, stageId }, reg);
     this.state = created.state;
-    this.rec = newRecord(seed, players, reg);
+    this.rec = newRecord(seed, players, reg, stageId);
     this.last = this.makeUpdate(created.events, null);
   }
 

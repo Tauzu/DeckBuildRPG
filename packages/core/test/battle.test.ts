@@ -147,7 +147,7 @@ describe("敵を倒す（仕様書 5.3）", () => {
 
   it("ボスに与えたダメージは残る（倒しきれなくても削れる）", () => {
     const { s, target } = bossBattle();
-    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 35, prevDamage: 0 });
+    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 36, prevDamage: 0 });
     const r = act(s, "p1", { type: "confirmAttack" });
     expect(r.state.result).toBeNull();
     expect(r.state.enemyDamage[target]).toBe(24);
@@ -166,9 +166,9 @@ describe("敵を倒す（仕様書 5.3）", () => {
     let { s, target } = bossBattle();
     s = mutate(s, (d) => {
       d.villageHp = 12; // 15 の 80%
-      d.enemyDamage[target] = 11; // 前の手番までに削った分
+      d.enemyDamage[target] = 12; // 前の手番までに削った分
     });
-    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 35, prevDamage: 11 });
+    expect(battlePreview(s, reg)).toMatchObject({ total: 24, hp: 36, prevDamage: 12 });
     const r = act(s, "p1", { type: "confirmAttack" });
     expect(r.state.result).toMatchObject({ outcome: "win", reason: "bossDefeated", rank: "S" });
     expect(r.state.enemyDamage[target]).toBeUndefined();

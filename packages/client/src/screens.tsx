@@ -5,13 +5,18 @@ import { PendingDialog } from "./components/PendingDialog.js";
 import { PlayerArea } from "./components/PlayerArea.js";
 import { ResultOverlay } from "./components/ResultOverlay.js";
 import { RouteView } from "./components/RouteView.js";
+import { TutorialHint } from "./components/TutorialHint.js";
 import { VillageStock } from "./components/VillageStock.js";
-import { useStore } from "./store.js";
+import { isUnlocked, stageSelectUnlocked } from "./progress.js";
+import { reg, useStore } from "./store.js";
 
 export function TitleScreen() {
   const startSolo = useStore((s) => s.startSolo);
   const go = useStore((s) => s.go);
   const hasGame = useStore((s) => !!s.update && !s.update.view.result);
+  const progress = useStore((s) => s.progress);
+  const unlocked = stageSelectUnlocked(reg.stages, progress);
+  const tutorial = reg.stages.find((st) => st.tutorial);
   return (
     <main className="title-screen">
       <div className="title-box panel">
@@ -24,14 +29,68 @@ export function TitleScreen() {
               続きから遊ぶ
             </button>
           )}
-          <button type="button" className={hasGame ? "" : "primary"} onClick={() => startSolo()}>
-            ひとりで遊ぶ
-          </button>
+          {unlocked ? (
+            <button type="button" className={hasGame ? "" : "primary"} onClick={() => go("stages")}>
+              ステージを選ぶ
+            </button>
+          ) : (
+            <>
+              <button type="button" className={hasGame ? "" : "primary"} onClick={() => startSolo(tutorial?.id)}>
+                チュートリアルを始める
+              </button>
+              <button type="button" disabled title="チュートリアルをクリアすると遊べます">
+                ステージを選ぶ（チュートリアルをクリアすると解放）
+              </button>
+            </>
+          )}
           <button type="button" disabled title="フェーズ4で対応予定">
             ルームを作る（準備中）
           </button>
           <button type="button" onClick={() => go("rules")}>
             遊び方
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export function StageSelectScreen() {
+  const startSolo = useStore((s) => s.startSolo);
+  const go = useStore((s) => s.go);
+  const progress = useStore((s) => s.progress);
+  return (
+    <main className="rules-screen">
+      <div className="rules panel stage-select">
+        <h1>ステージを選ぶ</h1>
+        <p className="stage-lead">ステージをクリアすると、次のステージが解放されます。先へ進むほど、登場するカードと敵が増えます。</p>
+        <ol className="stage-list">
+          {reg.stages.map((st, i) => {
+            const open = isUnlocked(reg.stages, progress, st.id);
+            const cleared = progress.cleared.includes(st.id);
+            const label = st.tutorial ? "チュートリアル" : `ステージ${i}`;
+            const boss = reg.enemy(st.bossId).name;
+            return (
+              <li key={st.id} className={`stage-item${open ? "" : " stage-locked"}`}>
+                <button
+                  type="button"
+                  className="stage-button"
+                  disabled={!open}
+                  title={open ? undefined : "前のステージをクリアすると遊べます"}
+                  onClick={() => startSolo(st.id)}
+                >
+                  <span className="stage-label">{label}</span>
+                  <span className="stage-name">{open ? st.name : "？？？"}</span>
+                  {cleared && <span className="stage-cleared">クリア</span>}
+                  <span className="stage-desc">{open ? `${st.description}（ボス：${boss}）` : "前のステージをクリアすると解放されます"}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+        <div className="dialog-buttons">
+          <button type="button" className="primary" onClick={() => go("title")}>
+            戻る
           </button>
         </div>
       </div>
@@ -48,7 +107,7 @@ export function RulesScreen() {
         <h2>目的</h2>
         <p>
           敵は砦から集落へ向けて、全員の手番が終わるたびに1歩ずつ進軍してきます（そのあいだに全員が敵を撃破していれば進軍しません。1人で遊ぶときは、撃破した手番は進軍しません）。敵の山札の底のほうに潜む
-          <strong>魔竜（ボス）</strong>を倒せば勝利。集落の耐久値が0になるか、魔竜が集落に着くと敗北です。
+          <strong>ボス</strong>を倒せば勝利。集落の耐久値が0になるか、ボスが集落に着くと敗北です。ボスはステージごとに違い、最後に待つのは魔竜です。
         </p>
         <h2>手番</h2>
         <p>
@@ -77,8 +136,10 @@ export function RulesScreen() {
             <strong>敵カード</strong>：倒すと捨て札に入る。金価値だけを持つ戦利品で、集落を訪れた手番の終わりに手札にあれば売却されてデッキから消える
           </li>
         </ul>
-        <h2>魔竜</h2>
-        <p>魔竜に与えたダメージは次の手番以降も残ります。1回で倒せなくても、少しずつ削りましょう（他の敵のダメージは残りません）。</p>
+        <h2>ボス</h2>
+        <p>ボスに与えたダメージは次の手番以降も残ります。1回で倒せなくても、少しずつ削りましょう（他の敵のダメージは残りません）。</p>
+        <h2>ステージ</h2>
+        <p>最初はチュートリアルで遊び方を覚えます。クリアするとステージ選択が解放され、ステージをクリアするたびに次のステージが遊べます。先へ進むほど、登場するカードと敵が増えます。進み具合はこのブラウザに保存されます。</p>
         <h2>耐性</h2>
         <p>物理や魔法の合計に対して「半減（端数切り捨て）」「無効」がかかります。狩人や武器で両方を用意しましょう。</p>
         <h2>成長</h2>
@@ -115,7 +176,7 @@ export function GameScreen() {
         <button type="button" className="ghost mini" onClick={() => go("title")}>
           タイトル
         </button>
-        <span className="game-title">辺境村の英雄たち</span>
+        <span className="game-title">{reg.stage(update.view.config.stageId).name}</span>
         <span className="game-turn">手番 {update.view.turnCount}</span>
         <span className="game-seed" title="不具合の報告に使います">
           シード {conn ? conn.seed >>> 0 : "-"}
@@ -126,6 +187,7 @@ export function GameScreen() {
         <VillageStock />
         <LogPanel />
       </div>
+      <TutorialHint />
       <ActionBar />
       <PlayerArea />
       <PendingDialog />

@@ -8,6 +8,8 @@ import type { CardInstance, EngineResult, GameState, PlayerState } from "./types
 export interface CreateGameParams {
   seed: number;
   players: { id: string; name: string }[];
+  /** 省略すると最後のステージ（すべてのカードが登場する） */
+  stageId?: string;
 }
 
 export function createGame(params: CreateGameParams, reg: CardRegistry): EngineResult {
@@ -16,8 +18,9 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
   if (new Set(players.map((p) => p.id)).size !== players.length) throw new Error("プレイヤーIDが重複しています");
 
   const setup = reg.setup;
-  const pc = setup.playerCounts[String(players.length)];
-  if (!pc) throw new Error(`${players.length}人用の設定がありません`);
+  const stage = reg.stage(params.stageId ?? reg.defaultStageId);
+  const pc = stage.playerCounts[String(players.length)];
+  if (!pc) throw new Error(`ステージ「${stage.name}」は${players.length}人では遊べません`);
 
   const s: GameState = {
     version: 1,
@@ -25,6 +28,8 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     rng: params.seed | 0,
     nextUid: 1,
     config: {
+      stageId: stage.id,
+      heroIds: [...stage.heroIds],
       playerCount: players.length,
       handSize: setup.handSize,
       routeLength: setup.routeLength,
@@ -58,7 +63,7 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
   const ctx: Ctx = { s, reg, events: [] };
 
   // 村の在庫
-  for (const heroId of setup.heroStock.heroIds) {
+  for (const heroId of stage.heroIds) {
     const stack: CardInstance[] = [];
     for (const def of reg.heroLevels(heroId)) {
       const count = setup.heroStock.countsByLevel[String(def.level)] ?? 0;
@@ -66,7 +71,7 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     }
     s.village.stacks[heroStackId(heroId)] = stack;
   }
-  for (const item of setup.itemStock) {
+  for (const item of setup.itemStock.filter((e) => stage.items.includes(e.id))) {
     s.village.stacks[item.id] = Array.from({ length: item.count }, () => newCard(s, item.id));
   }
   s.village.curses = Array.from({ length: setup.curseStock }, () => newCard(s, reg.curseId));
@@ -75,9 +80,9 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
   const early: CardInstance[] = [];
   const late: CardInstance[] = [];
   for (const [id, count] of Object.entries(pc.enemies)) {
-    const earlyCount = setup.enemyDeck.earlyFull.includes(id)
+    const earlyCount = stage.earlyFull.includes(id)
       ? count
-      : setup.enemyDeck.earlyHalf.includes(id)
+      : stage.earlyHalf.includes(id)
         ? Math.floor(count / 2)
         : 0;
     for (let i = 0; i < count; i++) (i < earlyCount ? early : late).push(newCard(s, id));
@@ -85,7 +90,7 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
   shuffleInPlace(s, early);
   shuffleInPlace(s, late);
   const bossGroup = late.splice(0, setup.enemyDeck.bossGroupSize - 1);
-  bossGroup.push(newCard(s, setup.enemyDeck.bossId));
+  bossGroup.push(newCard(s, stage.bossId));
   shuffleInPlace(s, bossGroup);
   s.enemyDeck = [...early, ...late, ...bossGroup];
 

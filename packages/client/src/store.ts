@@ -2,11 +2,12 @@
 import { type Action, type ActionOption, defaultRegistry } from "@deckbuild/core";
 import { create } from "zustand";
 import { type GameConnection, type GameUpdate, LocalConnection, randomSeed } from "./connection.js";
+import { loadProgress, markCleared, type Progress, saveProgress } from "./progress.js";
 import { buildLookup, ERROR_TEXT, eventText } from "./text.js";
 
 export const reg = defaultRegistry();
 
-export type Screen = "title" | "game" | "rules";
+export type Screen = "title" | "game" | "rules" | "stages";
 
 export interface LogLine {
   id: number;
@@ -26,8 +27,16 @@ interface Store {
   classChangeFor: string | null;
   /** 廃棄・手札を捨てる選択中のカード */
   selection: string[];
+  /** ステージの進み具合 */
+  progress: Progress;
+  /** 今のゲームで新しくクリアしたステージ（結果画面で「解放」を知らせる） */
+  newlyCleared: string | null;
+  /** チュートリアルの案内を隠しているか */
+  hideHints: boolean;
 
-  startSolo(seed?: number): void;
+  /** ひとりで遊ぶ。ステージを省略すると最後のステージ */
+  startSolo(stageId?: string, seed?: number): void;
+  setHideHints(hide: boolean): void;
   go(screen: Screen): void;
   send(action: Action): void;
   selectWeapon(uid: string | null): void;
@@ -69,10 +78,14 @@ export const useStore = create<Store>()((set, get) => ({
   selectedWeapon: null,
   classChangeFor: null,
   selection: [],
+  progress: loadProgress(),
+  newlyCleared: null,
+  hideHints: false,
 
-  startSolo(seed) {
+  startSolo(stageId, seed) {
     unsubscribe?.();
-    const conn = new LocalConnection(seed ?? randomSeed(), "あなた", reg);
+    const stage = reg.stage(stageId ?? reg.defaultStageId);
+    const conn = new LocalConnection(seed ?? stage.fixedSeed ?? randomSeed(), "あなた", reg, stage.id);
     const first = conn.current();
     const nameOf = (id: string) => first.view.players.find((p) => p.id === id)?.name ?? id;
     unsubscribe = conn.subscribe((u) => {
@@ -87,6 +100,14 @@ export const useStore = create<Store>()((set, get) => ({
         classChangeFor: null,
         selection: [],
       }));
+      // 勝ったらクリアを記録する
+      if (u.view.result?.outcome === "win") {
+        const { progress, isNew } = markCleared(get().progress, u.view.config.stageId);
+        if (isNew) {
+          saveProgress(progress);
+          set({ progress, newlyCleared: u.view.config.stageId });
+        }
+      }
     });
     set({
       screen: "game",
@@ -97,7 +118,13 @@ export const useStore = create<Store>()((set, get) => ({
       selectedWeapon: null,
       classChangeFor: null,
       selection: [],
+      newlyCleared: null,
+      hideHints: false,
     });
+  },
+
+  setHideHints(hide) {
+    set({ hideHints: hide });
   },
 
   go(screen) {

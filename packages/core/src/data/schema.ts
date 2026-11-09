@@ -88,22 +88,35 @@ export const setupFileSchema = z.object({
   curseStock: nonNeg,
   startingDeck: z.array(countEntry).min(1),
   heroStock: z.object({
-    heroIds: z.array(z.string().min(1)).min(1),
     countsByLevel: z.record(z.string(), positive),
   }),
   itemStock: z.array(countEntry),
   enemyDeck: z.object({
-    bossId: z.string().min(1),
     bossGroupSize: positive,
-    earlyFull: z.array(z.string()),
-    earlyHalf: z.array(z.string()),
   }),
-  playerCounts: z.record(
-    z.enum(["1", "2", "3", "4"]),
-    z.object({
-      villageHp: positive,
-      bossHp: positive,
-      enemies: z.record(z.string(), positive),
-    }),
-  ),
 });
+
+export const stagesFileSchema = z
+  .array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      description: z.string(),
+      tutorial: z.boolean().optional(),
+      fixedSeed: z.number().int().optional(),
+      heroIds: z.array(z.string().min(1)).min(1),
+      items: z.array(z.string().min(1)),
+      bossId: z.string().min(1),
+      earlyFull: z.array(z.string()),
+      earlyHalf: z.array(z.string()),
+      playerCounts: z.partialRecord(
+        z.enum(["1", "2", "3", "4"]),
+        z.object({
+          villageHp: positive,
+          bossHp: positive,
+          enemies: z.record(z.string(), positive),
+        }),
+      ),
+    }),
+  )
+  .min(1);

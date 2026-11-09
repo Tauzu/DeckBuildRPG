@@ -1,14 +1,18 @@
-import { useStore } from "../store.js";
-import { RESULT_REASON } from "../text.js";
+import { nextStage } from "../progress.js";
+import { reg, useStore } from "../store.js";
+import { resultReason } from "../text.js";
 
 export function ResultOverlay() {
   const update = useStore((s) => s.update)!;
   const conn = useStore((s) => s.conn);
   const startSolo = useStore((s) => s.startSolo);
   const go = useStore((s) => s.go);
+  const newlyCleared = useStore((s) => s.newlyCleared);
   const result = update.view.result;
   if (!result) return null;
   const win = result.outcome === "win";
+  const stage = reg.stage(update.view.config.stageId);
+  const next = win ? nextStage(reg.stages, stage.id) : null;
   const multi = update.view.players.length >= 2;
 
   const download = () => {
@@ -27,7 +31,14 @@ export function ResultOverlay() {
     <div className="overlay">
       <div className={`dialog panel result ${win ? "result-win" : "result-lose"}`} role="dialog" aria-modal="true">
         <h2 className="result-title">{win ? "勝利" : "敗北"}</h2>
-        <p>{RESULT_REASON[result.reason]}</p>
+        <p>
+          {stage.name}：{resultReason(result.reason, reg.enemy(stage.bossId).name)}
+        </p>
+        {newlyCleared === stage.id && (
+          <p className="result-unlock">
+            {stage.tutorial ? "ステージ選択が解放されました！" : next ? `次のステージ「${next.name}」が解放されました！` : "すべてのステージをクリアしました！"}
+          </p>
+        )}
         <div className="result-rank">
           チーム評価 <strong>{result.rank}</strong>
         </div>
@@ -64,9 +75,14 @@ export function ResultOverlay() {
           <button type="button" className="ghost" onClick={() => go("title")}>
             タイトルへ
           </button>
-          <button type="button" className="primary" onClick={() => startSolo()}>
+          <button type="button" className={next ? "ghost" : "primary"} onClick={() => startSolo(stage.id)}>
             もう一度
           </button>
+          {next && (
+            <button type="button" className="primary" onClick={() => startSolo(next.id)}>
+              次のステージへ
+            </button>
+          )}
         </div>
       </div>
     </div>
