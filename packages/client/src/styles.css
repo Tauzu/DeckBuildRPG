@@ -170,10 +170,12 @@ h3 {
 }
 
 .title-box h1 {
-  font-size: 40px;
+  font-size: 52px;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
   color: var(--accent);
-  text-shadow: 3px 3px 0 #a0281a;
-  margin: 6px 0 12px;
+  text-shadow: 4px 4px 0 #a0281a;
+  margin: 10px 0 6px;
 }
 
 .title-lead {
@@ -2522,4 +2524,21 @@ textarea {
 
 .card-unknown .card-art {
   background: rgb(255 255 255 / 0.12);
+}
+
+/* タイトルのサブタイトル */
+.title-sub {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 700px) {
+  .title-box h1 {
+    font-size: 38px;
+  }
+  .title-sub {
+    font-size: 15px;
+  }
 }

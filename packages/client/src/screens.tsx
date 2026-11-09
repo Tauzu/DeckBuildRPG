@@ -30,7 +30,8 @@ export function TitleScreen() {
     <main className="title-screen">
       <div className="title-box panel">
         <p className="title-kicker">デッキビルド × RPG</p>
-        <h1>辺境村の英雄たち</h1>
+        <h1 className="title-logo">FOODIE QUEST</h1>
+        <p className="title-sub">エルムの村のはらぺこ英雄たち</p>
         <p className="title-lead">魔竜の軍勢が集落に届く前に、英雄たちを育てて魔竜を討て。</p>
         <div className="title-buttons">
           {hasGame && (
