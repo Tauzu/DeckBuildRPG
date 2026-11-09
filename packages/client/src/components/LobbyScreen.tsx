@@ -1,5 +1,5 @@
 // ルーム待機（仕様書 9.2、10.1）。ルームを作る・参加する・開始する
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { isUnlocked, maxDangerFor } from "../progress.js";
 import { reg, useStore } from "../store.js";
 import { DangerPicker, dangerTexts } from "./DangerPicker.js";
@@ -100,6 +100,17 @@ function RoomView() {
   const hasGame = useStore((s) => !!s.update);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  /** 選んだがサーバーの返事を待っている危険度（続けて押しても、押した分だけ上がるように） */
+  const [pendingDanger, setPendingDanger] = useState<number | null>(null);
+  const dangerRequest = useRef(0);
+  const changeDanger = async (d: number) => {
+    setPendingDanger(d);
+    const id = ++dangerRequest.current;
+    const err = await setRoomStage(room.stageId, d);
+    // 最後に押した分の返事が来たら、サーバーの値に戻す（ルームの情報は返事より先に届いている）
+    if (id === dangerRequest.current) setPendingDanger(null);
+    setError(err);
+  };
   const isHost = room.hostId === myId;
   const stage = reg.stage(room.stageId);
   const n = room.members.length;
@@ -168,11 +179,11 @@ function RoomView() {
           </ol>
           {!stage.tutorial && maxDangerFor(stage, progress, reg.maxDanger) > 0 && (
             <DangerPicker
-              value={room.danger}
+              value={pendingDanger ?? room.danger}
               max={maxDangerFor(stage, progress, reg.maxDanger)}
               best={progress.bestDanger[stage.id]}
               disabled={room.started}
-              onChange={async (d) => setError(await setRoomStage(stage.id, d))}
+              onChange={changeDanger}
             />
           )}
           <p className="dialog-note">あなたが解放したステージと危険度から選べます。クリアすると、参加者全員の進み具合に記録されます。</p>
