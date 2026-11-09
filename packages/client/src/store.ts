@@ -1,7 +1,7 @@
 // 画面の状態（設計書 4.2）
 import { type Action, type ActionOption, defaultRegistry } from "@deckbuild/core";
 import { create } from "zustand";
-import { effectsFrom, type FxItem, nextFxId } from "./components/Effects.js";
+import { effectsFrom, FX_STAGGER, type FxItem, nextFxId } from "./components/Effects.js";
 import { type GameConnection, type GameUpdate, LocalConnection, RemoteConnection, randomSeed } from "./connection.js";
 import { loadSession, Online, type RoomInfo } from "./online.js";
 import { loadProgress, markCleared, type Progress, saveProgress } from "./progress.js";
@@ -52,6 +52,8 @@ interface Store {
   fx: FxItem[];
   /** 集落が攻撃された回数（揺らす演出のきっかけ） */
   villageHits: number;
+  /** 敵が進軍した回数（進軍ルートの演出のきっかけ） */
+  marches: number;
 
   /** ひとりで遊ぶ。ステージを省略すると最後のステージ */
   startSolo(stageId?: string, seed?: number): void;
@@ -126,12 +128,14 @@ export const useStore = create<Store>()((set, get) => {
         set({ update: u, toast: u.error });
         return;
       }
-      const fx = effectsFrom(u.events, u.view.viewerId, nameOf).map((f) => ({ ...f, id: nextFxId() }));
+      const fx = effectsFrom(u.events, u.view.viewerId, nameOf).map((f, i) => ({ ...f, id: nextFxId(), delay: i * FX_STAGGER }));
       const hits = u.events.filter((e) => e.type === "enemyArrived" && e.damage > 0).length;
+      const marched = u.events.some((e) => e.type === "enemyMoved" && e.moves.length > 0);
       set((st) => ({
         update: u,
         fx: fx.length ? [...st.fx, ...fx].slice(-6) : st.fx,
         villageHits: st.villageHits + hits,
+        marches: st.marches + (marched ? 1 : 0),
         log: [...st.log, ...logLines(u, nameOf)].slice(-300),
         selectedWeapon: null,
         classChangeFor: null,
@@ -236,6 +240,7 @@ export const useStore = create<Store>()((set, get) => {
     playerName: loadName(),
     fx: [],
     villageHits: 0,
+    marches: 0,
 
     startSolo(stageId, seed) {
       if (get().room) get().leaveRoom();

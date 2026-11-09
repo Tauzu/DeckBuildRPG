@@ -10,6 +10,7 @@ export function RouteView() {
   const choosing = view.step.kind === "chooseAction" && legal.waitingForMe;
   const target = view.turn?.action === "battle" ? view.turn.targetUid : null;
   const villageHits = useStore((s) => s.villageHits);
+  const marches = useStore((s) => s.marches);
 
   return (
     <section className="route panel">
@@ -18,7 +19,7 @@ export function RouteView() {
         <div className="route-end-title">魔物の砦</div>
         <div className="route-end-sub">敵の山札 残り {view.enemyDeckCount}枚</div>
       </div>
-      <div className="route-squares">
+      <div key={`march-${marches}`} className={`route-squares${marches > 0 ? " route-marching" : ""}`}>
         {view.route.map((square, i) => (
           <div key={i} className={`route-square ${i === view.route.length - 1 ? "route-square-last" : ""}`}>
             <div className="route-square-label">{i + 1}</div>
@@ -52,7 +53,7 @@ export function RouteView() {
           </div>
         ))}
       </div>
-      <div key={villageHits} className={`route-end route-village${villageHits > 0 ? " village-hit" : ""}`}>
+      <div key={`village-${villageHits}`} className={`route-end route-village${villageHits > 0 ? " village-hit" : ""}`}>
         <PixelArt sprite={villageSprite} className="route-end-art" />
         <div className="route-end-title">エルム村</div>
         <div className={`village-hp ${view.villageHp <= view.config.villageHp / 3 ? "danger" : ""}`}>

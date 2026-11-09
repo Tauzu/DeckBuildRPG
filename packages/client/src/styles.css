@@ -1421,3 +1421,184 @@ h3 {
     padding-left: 0;
   }
 }
+
+/* 英雄の枠 */
+.hero-slots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  font-weight: normal;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.hero-slots-label {
+  color: var(--ink-soft);
+  margin-right: 2px;
+}
+
+.hero-slot {
+  width: 18px;
+  height: 22px;
+  border-radius: 4px;
+  border: 2px dashed #7a8ea6;
+  background: transparent;
+}
+
+.hero-slot-used {
+  border-style: solid;
+  border-color: #3d5a7e;
+  background: var(--hero);
+  box-shadow: inset 0 0 0 3px #fff8;
+}
+
+.hero-slots-count {
+  margin-left: 4px;
+  font-weight: bold;
+}
+
+.hero-slots-tip {
+  color: var(--bad);
+  margin-left: 6px;
+}
+
+/* 戦闘中の表示（在庫の代わり） */
+.battle-panel h2 {
+  margin-top: 0;
+}
+
+.battle-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.battle-numbers {
+  flex: 1;
+  min-width: 240px;
+  max-width: 420px;
+  display: grid;
+  gap: 6px;
+}
+
+.battle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 1rem;
+}
+
+.battle-row strong {
+  font-size: 1.6rem;
+}
+
+.battle-bar {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: #d9c9a8;
+  overflow: hidden;
+  display: flex;
+}
+
+.battle-bar-prev {
+  background: #9b6a5e;
+}
+
+.battle-bar-now {
+  background: var(--bad);
+  transition: width 0.25s;
+}
+
+.battle-result {
+  font-weight: bold;
+  margin: 4px 0 0;
+}
+
+.battle-win {
+  color: var(--good);
+  font-size: 1.2rem;
+}
+
+/* 手番の区切り・進軍の演出 */
+.fx-turnEnd,
+.fx-turn {
+  min-width: 360px;
+  justify-content: center;
+  border-color: #c9b48a;
+}
+
+.fx-turn {
+  background: rgb(38 58 30 / 0.92);
+  border-color: #b6e07a;
+}
+
+.fx-turn .fx-title {
+  color: #d9f5ad;
+}
+
+.fx-march {
+  min-width: 360px;
+  justify-content: center;
+  background: rgb(80 18 10 / 0.92);
+  border-color: #f0902a;
+}
+
+.fx-march .fx-title {
+  color: #ffb26b;
+}
+
+.fx-skip {
+  min-width: 360px;
+  justify-content: center;
+  border-color: #b6e07a;
+}
+
+/* 進軍：ルートを赤い光が走り、敵が大きく滑り込む */
+.route-marching {
+  position: relative;
+}
+
+.route-marching::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, rgb(220 60 30 / 0.35) 45%, rgb(240 140 40 / 0.45) 50%, transparent 60%);
+  background-size: 250% 100%;
+  animation: march-sweep 0.9s ease-in-out 0.45s both;
+  border-radius: 8px;
+}
+
+@keyframes march-sweep {
+  from {
+    background-position: 100% 0;
+    opacity: 1;
+  }
+  to {
+    background-position: -50% 0;
+    opacity: 0;
+  }
+}
+
+.route-marching .route-square-cards .card-wrap {
+  animation: march-in-strong 0.7s cubic-bezier(0.2, 0.8, 0.3, 1.2) 0.45s both;
+}
+
+@keyframes march-in-strong {
+  0% {
+    opacity: 0.2;
+    transform: translateX(-90px);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  60% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgb(240 80 30 / 0.9));
+  }
+  100% {
+    transform: none;
+    filter: none;
+  }
+}
