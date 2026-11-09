@@ -94,13 +94,15 @@ export function ActionBar() {
         <span>英雄の枠 {info.slots.used} / {info.slots.total}</span>
         {p && p.prevDamage > 0 && <span>これまでのダメージ {p.prevDamage}</span>}
         {p && (
-          <span className={p.prevDamage + p.total >= p.hp ? "info-ok" : "info-ng"}>
+          <span className={p.prevDamage + p.total >= p.hp ? "info-ok" : tdef?.isBoss && p.total > 0 ? "info-boss" : "info-ng"}>
             ダメージ見込み {p.total}
             {(p.physical !== p.physicalAfter || p.magic !== p.magicAfter) &&
               `（物理 ${p.physical}→${p.physicalAfter}、魔法 ${p.magic}→${p.magicAfter}）`}
             {p.prevDamage + p.total >= p.hp
               ? ` … 倒せる！（${marchNote}）`
-              : ` … あと ${p.hp - p.prevDamage - p.total}`}
+              : tdef?.isBoss
+                ? ` … 残り生命力 ${p.hp - p.prevDamage - p.total}。ボスに与えたダメージは残るので、次の手番に続きから削れます`
+                : ` … あと ${p.hp - p.prevDamage - p.total}`}
           </span>
         )}
       </div>

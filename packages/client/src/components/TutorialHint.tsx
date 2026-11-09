@@ -46,7 +46,10 @@ export function hintText(u: GameUpdate): string {
   switch (view.step.kind) {
     case "chooseAction": {
       if (boss) {
-        return `ボス「${reg.get(boss.defId).name}」が現れました！ 倒せば勝利、集落に着かれたら負けです。ボスに与えたダメージは残るので、何回かに分けて削りましょう。`;
+        const hp = view.config.bossHp - (view.enemyDamage[boss.uid] ?? 0);
+        const sq = view.route.findIndex((s) => s.some((c) => c.uid === boss.uid));
+        const left = view.route.length - sq;
+        return `ボス「${reg.get(boss.defId).name}」（残り生命力 ${hp}）が現れました！ 倒せば勝利、集落に着かれたら負けです（あと${left}回進軍すると着きます）。ボスに与えたダメージは残るので、1回で倒せなくても毎手番攻撃して削りましょう。`;
       }
       if (enemies.length === 0) {
         return "手番では「集落を訪れる」か「敵と戦う」のどちらかを行います。まだ敵がいないので、まずは集落を訪れて、手札の金でカードを買いましょう。";
@@ -70,6 +73,11 @@ export function hintText(u: GameUpdate): string {
       const p = u.info.preview;
       if (p && p.prevDamage + p.total >= p.hp) {
         return "ダメージ見込みが敵の生命力に届きました。「攻撃を確定」で撃破です！";
+      }
+      const targetUid = view.turn?.action === "battle" ? view.turn.targetUid : null;
+      const target = enemies.find((c) => c.uid === targetUid);
+      if (p && target && reg.enemy(target.defId).isBoss && p.total > 0) {
+        return "ボスは1回で倒しきれなくても大丈夫。与えたダメージは残るので、「攻撃を確定」で削っておけば、次の手番は残りの生命力から戦えます。";
       }
       return "手札の英雄をクリックして場に出します。英雄は1人なら食料なしで出せ、食料を出すと食糧値の人数だけ追加で出せます。武器は、クリックしてから場の英雄をクリックすると装備できます。";
     }

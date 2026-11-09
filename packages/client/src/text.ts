@@ -115,7 +115,9 @@ export function eventText(
     }
     case "attackResolved": {
       const sum = e.prevDamage > 0 ? `（累計 ${e.prevDamage + e.damage} / 生命力${e.hp}）` : `（生命力${e.hp}）`;
-      return `${name(e.targetDefId)}に${e.damage}ダメージ${sum}… ${e.defeated ? "撃破！" : "倒せなかった"}`;
+      const boss = reg.enemy(e.targetDefId).isBoss;
+      const rest = boss && !e.defeated && e.damage > 0 ? `… 残り生命力 ${e.hp - e.prevDamage - e.damage}（ダメージは残る）` : `… ${e.defeated ? "撃破！" : "倒せなかった"}`;
+      return `${name(e.targetDefId)}に${e.damage}ダメージ${sum}${rest}`;
     }
     case "expGained":
       return `経験値+${e.amount}`;

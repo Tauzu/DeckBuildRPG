@@ -121,7 +121,12 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
           )}
           {def.onReveal && <div className="card-text">出現：{describeEffect(def.onReveal)}</div>}
           {def.onMarch && <div className="card-text">進軍：{describeEffect(def.onMarch)}</div>}
-          {def.isBoss && <div className="card-note">与えたダメージは残る</div>}
+          {def.isBoss && hp !== undefined && (
+            <div className="boss-gauge" title={`残り生命力 ${hp - (damage ?? 0)} / ${hp}`}>
+              <div style={{ width: `${Math.max(0, ((hp - (damage ?? 0)) / hp) * 100)}%` }} />
+            </div>
+          )}
+          {def.isBoss && <div className="card-note">与えたダメージは残る（何回かに分けて削れる）</div>}
           {!def.isBoss && <div className="card-note">戦利品：集落で金として使うと手放す</div>}
         </div>
       );
