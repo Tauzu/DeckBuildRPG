@@ -1646,3 +1646,58 @@ h3 {
 .field-foods > .card-wrap:hover {
   z-index: 2;
 }
+
+/* 購入：小さめの演出と、捨て札の枚数を光らせる */
+.fx-buy {
+  padding: 6px 16px;
+  gap: 10px;
+  border-color: #e8b923;
+}
+
+.fx-buy .fx-art,
+.fx-buy .fx-art svg {
+  width: 40px;
+  height: 40px;
+}
+
+.fx-buy .fx-art svg {
+  animation: fx-buy-hop 0.6s ease-out both;
+}
+
+.fx-buy .fx-title {
+  font-size: 1.1rem;
+  color: #ffd75a;
+}
+
+.fx-buy .fx-sub {
+  font-size: 0.85rem;
+}
+
+@keyframes fx-buy-hop {
+  0% {
+    transform: translateY(8px) scale(0.7);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.1);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.discard-pulse {
+  display: inline-block;
+  animation: discard-pulse 0.9s ease-out;
+  border-radius: 4px;
+}
+
+@keyframes discard-pulse {
+  0% {
+    background: #ffd75a;
+    transform: scale(1.25);
+  }
+  100% {
+    background: transparent;
+    transform: none;
+  }
+}

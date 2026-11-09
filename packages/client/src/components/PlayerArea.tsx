@@ -8,6 +8,7 @@ export function PlayerArea() {
   const update = useStore((s) => s.update)!;
   const { view } = update;
   const me = view.players.find((p) => p.id === view.viewerId)!;
+  const buys = useStore((s) => s.buys);
   // 食料は枠を増やすだけなので、左に重ねて置き、英雄と武器を見やすくする
   const foods = me.field.filter((c) => reg.get(c.defId).type === "food");
   const others = me.field.filter((c) => reg.get(c.defId).type !== "food");
@@ -35,7 +36,13 @@ export function PlayerArea() {
       </div>
       <div className="zone">
         <h2>
-          手札 <span className="zone-sub">山札 {me.deckCount}枚 ／ 捨て札 {me.discardCount}枚</span>
+          手札{" "}
+          <span className="zone-sub">
+            山札 {me.deckCount}枚 ／{" "}
+            <span key={buys} className={buys > 0 ? "discard-pulse" : undefined}>
+              捨て札 {me.discardCount}枚
+            </span>
+          </span>
         </h2>
         <div className="zone-cards">
           {me.hand?.map((c) => (

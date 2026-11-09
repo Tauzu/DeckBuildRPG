@@ -8,7 +8,7 @@ import { cardTitle } from "../text.js";
 
 export interface FxItem {
   id: number;
-  kind: "defeat" | "hit" | "levelup" | "boss" | "village" | "turnEnd" | "march" | "skip" | "turn";
+  kind: "defeat" | "hit" | "levelup" | "boss" | "village" | "turnEnd" | "march" | "skip" | "turn" | "buy";
   title: string;
   sub: string;
   /** 絵を出すカード */
@@ -28,6 +28,7 @@ const DURATION: Record<FxItem["kind"], number> = {
   march: 1400,
   skip: 1400,
   turn: 1300,
+  buy: 1100,
 };
 
 /** 続けて起きた演出の間隔 */
@@ -83,6 +84,11 @@ export function effectsFrom(events: GameEvent[], viewerId: string, nameOf: (id: 
           out.push({ kind: "village", title: `集落に${e.damage}ダメージ`, sub: `${reg.get(e.defId).name}が集落に着いた（耐久値 ${Math.max(0, e.villageHp)}）`, defId: e.defId });
         }
         break;
+      case "cardBought": {
+        const d = reg.get(e.defId);
+        out.push({ kind: "buy", title: `${who(e.playerId)}購入！`, sub: `${cardTitle(d)}（${e.cost}金）→ 捨て札へ`, defId: e.defId });
+        break;
+      }
       case "turnEnded":
         out.push({ kind: "turnEnd", title: "手番終了", sub: e.playerId === viewerId ? "あなたの手番が終わった" : `${nameOf(e.playerId)}の手番が終わった`, defId: null });
         break;

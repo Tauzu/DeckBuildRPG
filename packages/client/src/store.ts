@@ -54,6 +54,8 @@ interface Store {
   villageHits: number;
   /** 敵が進軍した回数（進軍ルートの演出のきっかけ） */
   marches: number;
+  /** 自分がカードを買った回数（捨て札の枚数を光らせるきっかけ） */
+  buys: number;
 
   /** ひとりで遊ぶ。ステージを省略すると最後のステージ */
   startSolo(stageId?: string, seed?: number): void;
@@ -131,11 +133,13 @@ export const useStore = create<Store>()((set, get) => {
       const fx = effectsFrom(u.events, u.view.viewerId, nameOf).map((f, i) => ({ ...f, id: nextFxId(), delay: i * FX_STAGGER }));
       const hits = u.events.filter((e) => e.type === "enemyArrived" && e.damage > 0).length;
       const marched = u.events.some((e) => e.type === "enemyMoved" && e.moves.length > 0);
+      const bought = u.events.some((e) => e.type === "cardBought" && e.playerId === u.view.viewerId);
       set((st) => ({
         update: u,
         fx: fx.length ? [...st.fx, ...fx].slice(-6) : st.fx,
         villageHits: st.villageHits + hits,
         marches: st.marches + (marched ? 1 : 0),
+        buys: st.buys + (bought ? 1 : 0),
         log: [...st.log, ...logLines(u, nameOf)].slice(-300),
         selectedWeapon: null,
         classChangeFor: null,
@@ -241,6 +245,7 @@ export const useStore = create<Store>()((set, get) => {
     fx: [],
     villageHits: 0,
     marches: 0,
+    buys: 0,
 
     startSolo(stageId, seed) {
       if (get().room) get().leaveRoom();
