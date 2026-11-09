@@ -646,6 +646,14 @@ h3 {
   padding: 18px;
 }
 
+.tutorial-modal {
+  max-width: 560px;
+}
+
+.tutorial-modal p {
+  line-height: 1.7;
+}
+
 .dialog-note {
   color: var(--ink-soft);
 }

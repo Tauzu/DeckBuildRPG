@@ -98,7 +98,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
           <div className="stats">
             <span className="stat-food">食糧 {def.food}</span>
           </div>
-          <div className="card-note">英雄を{def.food}人出せる</div>
+          <div className="card-note">英雄を追加で{def.food}人出せる</div>
         </div>
       );
     case "enemy": {

@@ -33,10 +33,13 @@ interface Store {
   newlyCleared: string | null;
   /** チュートリアルの案内を隠しているか */
   hideHints: boolean;
+  /** チュートリアルで、ダイアログで見せ終えた案内の種類 */
+  seenHints: string[];
 
   /** ひとりで遊ぶ。ステージを省略すると最後のステージ */
   startSolo(stageId?: string, seed?: number): void;
   setHideHints(hide: boolean): void;
+  markHintSeen(key: string): void;
   go(screen: Screen): void;
   send(action: Action): void;
   selectWeapon(uid: string | null): void;
@@ -81,6 +84,7 @@ export const useStore = create<Store>()((set, get) => ({
   progress: loadProgress(),
   newlyCleared: null,
   hideHints: false,
+  seenHints: [],
 
   startSolo(stageId, seed) {
     unsubscribe?.();
@@ -120,11 +124,16 @@ export const useStore = create<Store>()((set, get) => ({
       selection: [],
       newlyCleared: null,
       hideHints: false,
+      seenHints: [],
     });
   },
 
   setHideHints(hide) {
     set({ hideHints: hide });
+  },
+
+  markHintSeen(key) {
+    set((s) => ({ seenHints: s.seenHints.includes(key) ? s.seenHints : [...s.seenHints, key] }));
   },
 
   go(screen) {
