@@ -12,6 +12,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "sim": "npm run sim -w @deckbuild/sim --",
     "dev:server": "npm run dev -w @deckbuild/server",
-    "start": "npm run build && npm run start -w @deckbuild/server"
+    "start": "npm run build && npm run start -w @deckbuild/server",
+    "dev:lan": "npm run dev:lan -w @deckbuild/client"
   }
 }

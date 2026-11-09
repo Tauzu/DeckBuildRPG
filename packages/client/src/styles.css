@@ -1743,3 +1743,423 @@ h3 {
   margin-top: 14px;
   justify-content: center;
 }
+
+/* ---------- カードの詳細（長押し・右クリック） ---------- */
+.card-detail {
+  z-index: 30;
+}
+
+.card-detail-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 320px;
+}
+
+.card-detail-card {
+  transform: scale(1.5);
+  transform-origin: top center;
+  margin-bottom: 110px;
+  pointer-events: none;
+}
+
+.card-detail-card .card-wrap {
+  animation: none;
+}
+
+.card-detail-tip {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #2a2117;
+  color: #fff3df;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* タッチ操作：長押しのメニューや文字の選択を出さない。ダブルタップでの拡大もしない */
+.card {
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+/* ホバーのない端末では、マウス用の説明を出さない（長押しで詳細を見る） */
+@media (hover: none) {
+  .card-tip {
+    display: none;
+  }
+}
+
+/* タブ（スマートフォン） */
+.mobile-panels {
+  display: grid;
+  gap: 6px;
+}
+
+.mobile-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.mobile-tab {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 8px 8px 0 0;
+  background: #4b3f33;
+  color: #e9dcc2;
+  border: 1px solid #6b5b45;
+  font-size: 13px;
+}
+
+.mobile-tab-on {
+  background: var(--panel);
+  color: var(--ink);
+  font-weight: bold;
+}
+
+/* ---------- スマートフォンの縦持ち ---------- */
+@media (max-width: 700px) {
+  .game {
+    padding: 4px 6px 8px;
+    gap: 6px;
+  }
+
+  .panel {
+    padding: 8px;
+  }
+
+  .game-header {
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .game-title {
+    font-size: 15px;
+  }
+
+  .game-seed {
+    display: none;
+  }
+
+  /* 上の操作欄：小さく、ボタンは押しやすく */
+  .action-bar {
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .action-message {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .action-bar .info-row {
+    font-size: 12px;
+    gap: 2px 10px;
+  }
+
+  .action-bar button {
+    min-height: 40px;
+    padding: 6px 12px;
+  }
+
+  .tutorial-hint p {
+    font-size: 12px;
+    margin: 4px 0 0;
+  }
+
+  /* 小さいカード：絵・名前・数字だけ。説明は長押しで見る */
+  .card-small {
+    width: 78px;
+    height: 116px;
+    padding: 3px 5px;
+    font-size: 11px;
+    gap: 1px;
+  }
+
+  .card-small .card-name {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-small .card-head {
+    font-size: 9px;
+  }
+
+  .card-small .card-cost {
+    min-width: 16px;
+    font-size: 10px;
+  }
+
+  .card-small .card-art {
+    height: 30px;
+  }
+
+  .card-small .card-art svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .card-small .card-text,
+  .card-small .card-note {
+    display: none;
+  }
+
+  .card-small .stats {
+    gap: 3px;
+    font-size: 11px;
+  }
+
+  .card-small .card-foot {
+    font-size: 10px;
+  }
+
+  .stock-row {
+    gap: 4px;
+  }
+
+  /* 進軍ルート：5マスを1列に。砦と村は細い帯に */
+  .route {
+    grid-template-columns: 30px minmax(0, 1fr) 40px;
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .route-squares {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow: visible;
+    gap: 3px;
+  }
+
+  .route-end {
+    padding: 4px 2px;
+    gap: 2px;
+  }
+
+  .route-end-art {
+    width: 26px;
+    height: 26px;
+  }
+
+  .route-end-title {
+    display: none;
+  }
+
+  .route-end-sub {
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .village-hp {
+    font-size: 11px;
+  }
+
+  .route-square {
+    min-height: 92px;
+    padding: 2px;
+  }
+
+  .route-square-label {
+    font-size: 9px;
+  }
+
+  .route-square-cards {
+    gap: 3px;
+  }
+
+  .route .card-small {
+    width: 100%;
+    height: 82px;
+    padding: 2px 3px;
+  }
+
+  .route .card-head,
+  .route .card-foot {
+    display: none;
+  }
+
+  .route .card-name {
+    font-size: 9px;
+  }
+
+  .route .card-art {
+    height: 26px;
+  }
+
+  .route .card-art svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .route .stats {
+    font-size: 10px;
+  }
+
+  .route .stats > span:not(.stat-hp) {
+    display: none;
+  }
+
+  /* 場と手札：画面の下に固定し、横にスクロール */
+  .player-dock {
+    position: sticky;
+    bottom: 0;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 4px 6px;
+  }
+
+  .player-dock .zone + .zone {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--panel-edge);
+    padding-top: 4px;
+  }
+
+  .player-dock .zone h2 {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .player-dock .zone-cards {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 4px;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+
+  .player-dock .zone-cards > * {
+    flex: none;
+  }
+
+  .player-dock .zone-empty {
+    font-size: 11px;
+  }
+
+  .field-foods > .card-wrap + .card-wrap {
+    margin-left: -60px;
+  }
+
+  .slot-card-text {
+    display: none;
+  }
+
+  .slot-card-title {
+    font-size: 11px;
+  }
+
+  .card-extra button {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+
+  /* 戦闘の表示 */
+  .battle-body {
+    gap: 10px;
+  }
+
+  .battle-numbers {
+    min-width: 0;
+  }
+
+  .battle-row strong {
+    font-size: 1.3rem;
+  }
+
+  /* 演出は画面の幅に収める */
+  .fx-layer {
+    top: 22%;
+    width: 94vw;
+  }
+
+  .fx,
+  .fx-turnEnd,
+  .fx-turn,
+  .fx-march,
+  .fx-skip {
+    min-width: 0;
+    max-width: 94vw;
+    padding: 8px 12px;
+  }
+
+  .fx-title {
+    font-size: 1.2rem;
+  }
+
+  .fx-art,
+  .fx-art svg {
+    width: 44px;
+    height: 44px;
+  }
+
+  .log {
+    max-height: 50vh;
+  }
+}
+
+/* 中身（横スクロールの手札など）に引っぱられて画面より広がらないようにする */
+.game {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.game > *,
+.player-dock > .zone {
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  /* 手札は固定せず、進軍ルートのすぐ下に置く（在庫はその下のタブ） */
+  .player-dock {
+    position: static;
+    box-shadow: none;
+  }
+
+  .action-help,
+  .exp-total {
+    display: none;
+  }
+
+  .action-bar {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .action-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .action-side {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .action-side .exp {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .action-bar button {
+    min-height: 36px;
+    padding: 4px 10px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .slot-card {
+    height: 116px;
+  }
+}

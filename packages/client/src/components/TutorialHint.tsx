@@ -1,6 +1,7 @@
 // チュートリアルの案内（企画書 12.3）。状況に合わせてヒントを出すだけで、操作は自由
 import type { GameUpdate } from "../connection.js";
 import { reg, useStore } from "../store.js";
+import { touchText } from "../text.js";
 
 /** 初めて出たときにダイアログでも見せる案内（操作の途中で出るものは除く） */
 const MODAL_KEYS = new Set(["start", "appear", "close", "boss", "villageBuy", "villageHero", "villageLevel", "battle", "battleBoss", "afterLevel"]);
@@ -14,6 +15,9 @@ export function TutorialHint() {
   const stage = reg.stage(update.view.config.stageId);
   if (!stage.tutorial || update.view.result) return null;
   const hint = currentHint(update);
+  // タッチの端末では「タップ」と言い換え、最初の案内で長押しのことも伝える
+  const touch = window.matchMedia("(hover: none)").matches;
+  const text = touchText(hint.text) + (touch && hint.key === "start" ? "（カードを長押しすると、詳しい説明が出ます）" : "");
   const modal = !hide && hint.key !== "" && MODAL_KEYS.has(hint.key) && !seen.includes(hint.key);
 
   if (hide) {
@@ -33,12 +37,12 @@ export function TutorialHint() {
           隠す
         </button>
       </div>
-      <p>{hint.text}</p>
+      <p>{text}</p>
       {modal && (
         <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="tutorial-modal-title">
           <div className="dialog panel tutorial-modal">
             <h2 id="tutorial-modal-title">案内</h2>
-            <p>{hint.text}</p>
+            <p>{text}</p>
             <div className="dialog-buttons">
               <button type="button" className="ghost" onClick={() => setHide(true)}>
                 案内を出さない

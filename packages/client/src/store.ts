@@ -57,6 +57,8 @@ interface Store {
   marches: number;
   /** 自分がカードを買った回数（捨て札の枚数を光らせるきっかけ） */
   buys: number;
+  /** 大きく表示しているカード（長押し・右クリック） */
+  detail: { defId: string; hp?: number | undefined; damage?: number | undefined; tip?: string | null | undefined } | null;
 
   /** ひとりで遊ぶ。ステージを省略すると最後のステージ */
   startSolo(stageId?: string, seed?: number): void;
@@ -70,6 +72,7 @@ interface Store {
   clearToast(): void;
   showToast(message: string): void;
   removeFx(id: number): void;
+  showDetail(detail: Store["detail"]): void;
 
   createRoom(name: string, stageId: string): Promise<string | null>;
   joinRoom(code: string, name: string): Promise<string | null>;
@@ -250,6 +253,7 @@ export const useStore = create<Store>()((set, get) => {
     villageHits: 0,
     marches: 0,
     buys: 0,
+    detail: null,
 
     startSolo(stageId, seed) {
       if (get().room) get().leaveRoom();
@@ -295,6 +299,10 @@ export const useStore = create<Store>()((set, get) => {
 
     showToast(message) {
       set({ toast: message });
+    },
+
+    showDetail(detail) {
+      set({ detail });
     },
 
     removeFx(id) {

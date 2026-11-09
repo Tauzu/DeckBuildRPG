@@ -1,5 +1,5 @@
 import { findOption, reasonText, reg, useStore } from "../store.js";
-import { resistText } from "../text.js";
+import { resistText, touchText } from "../text.js";
 
 /** 今の段階の説明と、今できる操作のボタン */
 export function ActionBar() {
@@ -173,7 +173,7 @@ export function ActionBar() {
   return (
     <section className="action-bar panel">
       <div className="action-main">
-        <div className="action-message">{message}</div>
+        <div className="action-message">{splitHelp(touchText(message), myTurn && (step === "chooseAction" || step === "village" || step === "battle"))}</div>
         {detail}
       </div>
       <div className="action-side">
@@ -186,5 +186,17 @@ export function ActionBar() {
         <div className="action-buttons">{buttons}</div>
       </div>
     </section>
+  );
+}
+
+/** 「見出し：説明」の説明の部分を、スマートフォンでは隠せるように分ける */
+function splitHelp(message: string, split: boolean) {
+  const i = message.indexOf("：");
+  if (!split || i < 0) return message;
+  return (
+    <>
+      {message.slice(0, i)}
+      <span className="action-help">{message.slice(i)}</span>
+    </>
   );
 }

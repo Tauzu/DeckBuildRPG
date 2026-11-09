@@ -184,3 +184,9 @@ export function resultReason(reason: string, boss: string): string {
       return "";
   }
 }
+
+/** タッチ操作の端末では「クリック」を「タップ」と言い換える */
+export function touchText(s: string): string {
+  const touch = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
+  return touch ? s.replaceAll("クリック", "タップ") : s;
+}

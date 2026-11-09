@@ -26,6 +26,7 @@ npm install
 npm test          # テスト
 npm run typecheck # 型チェック
 npm run dev       # 画面（http://localhost:5173）
+npm run dev:lan   # 同じWi-Fiのスマートフォンからも開ける画面（表示される Network のアドレスを開く）
 npm run dev:server  # マルチプレイのサーバー（ポート3000。画面の開発サーバーが中継する）
 npm start         # 画面をビルドし、サーバー1台で配信（公開時の形）
 npm run sim -- --players 1 --games 200   # 自動プレイ

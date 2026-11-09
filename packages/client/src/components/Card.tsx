@@ -2,7 +2,8 @@ import type { CardDef } from "@deckbuild/core";
 import type { ReactNode } from "react";
 import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
-import { reg } from "../store.js";
+import { useLongPress } from "../hooks.js";
+import { reg, useStore } from "../store.js";
 import { cardTitle, describeEffect, describeWeaponAbility, resistText } from "../text.js";
 
 interface Props {
@@ -46,12 +47,27 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, sm
     .join(" ");
 
   const tip = onClick && disabledReason ? disabledReason : hint;
+  const showDetail = useStore((s) => s.showDetail);
+  const openDetail = () => showDetail({ defId, hp, damage, tip });
+  const press = useLongPress(openDetail);
   return (
     <div className="card-wrap">
       <button
         type="button"
         className={classes}
-        onClick={clickable ? onClick : undefined}
+        {...press.handlers}
+        onClick={(e) => {
+          // 長押しで詳細を開いたときは、指を離したときのクリックを無視する
+          if (press.fired()) {
+            e.preventDefault();
+            return;
+          }
+          if (clickable) onClick?.();
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          openDetail();
+        }}
         aria-disabled={!clickable}
         aria-description={tip ?? undefined}
       >
