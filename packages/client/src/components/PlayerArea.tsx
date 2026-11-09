@@ -38,7 +38,7 @@ export function PlayerArea() {
         <h2>
           手札 {me.hand?.length ?? 0}枚{" "}
           <span className="zone-sub">
-            山札 {me.deckCount}枚 ／{" "}
+            ／ 山札 {me.deckCount}枚 ／{" "}
             <span key={buys} className={buys > 0 ? "discard-pulse" : undefined}>
               捨て札 {me.discardCount}枚
             </span>
