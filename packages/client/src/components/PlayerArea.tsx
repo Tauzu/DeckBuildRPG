@@ -1,6 +1,6 @@
 import type { Action, CardInstance } from "@deckbuild/core";
 import { findOption, reasonText, reg, useStore } from "../store.js";
-import { HERO_NAMES } from "../text.js";
+import { describeEffect, HERO_NAMES } from "../text.js";
 import { Card } from "./Card.js";
 
 /** 場と手札 */
@@ -10,7 +10,7 @@ export function PlayerArea() {
   const me = view.players.find((p) => p.id === view.viewerId)!;
 
   return (
-    <section className="player-area panel">
+    <section className="player-area player-dock panel" aria-label="場と手札">
       <div className="zone">
         <h2>場</h2>
         <div className="zone-cards">
@@ -48,27 +48,43 @@ function HandCard({ card }: { card: CardInstance }) {
 
   let onClick: (() => void) | undefined;
   let reason: string | null = null;
+  let hint: string | null = null;
   if (active) {
     if (def.type === "food") {
+      hint = `クリックで場に出す（英雄を出せる枠+${def.food}）`;
       const o = option((a) => a.type === "playFood" && a.uid === card.uid);
       onClick = () => send({ type: "playFood", uid: card.uid });
       reason = reasonText(o);
     } else if (def.type === "hero") {
+      hint =
+        step === "battle"
+          ? "クリックで場に出して戦わせる"
+          : def.villageEffect
+            ? `クリックで場に出す（村効果：${describeEffect(def.villageEffect)}）`
+            : "クリックで場に出す（村効果はない。集落では金価値として使う）";
       const o = option((a) => a.type === "playHero" && a.uid === card.uid);
       onClick = () => send({ type: "playHero", uid: card.uid });
       reason = reasonText(o);
     } else if (def.type === "weapon" && step === "battle" && def.ability?.kind === "solo") {
       // 英雄なしで使える武器は、クリックするとそのまま場に出す
+      hint = "クリックで、装備せずにそのまま戦闘に加える";
       const o = option((a) => a.type === "useWeapon" && a.weaponUid === card.uid);
       onClick = () => send({ type: "useWeapon", weaponUid: card.uid });
       reason = reasonText(o);
     } else if (def.type === "weapon" && step === "battle") {
       const canEquip = legal.options.some((o) => o.action.type === "equip" && o.action.weaponUid === card.uid && !o.reason);
       onClick = () => selectWeapon(selectedWeapon === card.uid ? null : card.uid);
+      hint = selectedWeapon === card.uid ? "クリックで選ぶのをやめる" : "クリックしてから、装備させる英雄（場）をクリック";
       reason = canEquip ? null : "装備できる英雄が場にいません";
     } else {
       reason = step === "village" ? "集落では金価値として使います" : "戦闘では使えません";
     }
+  }
+  if (step === "village" && active && (def.type === "enemy" || def.type === "weapon")) {
+    // クリックはできないが、何に使われるかを伝える
+    reason = null;
+    onClick = undefined;
+    hint = def.type === "enemy" ? `戦利品：金${def.gold}として使われ、訪問の終わりに売却される` : `集落では金${def.gold}として使われる（戦闘で装備する）`;
   }
 
   // 集落・撃破直後：レベルアップ・転職のボタン
@@ -77,8 +93,10 @@ function HandCard({ card }: { card: CardInstance }) {
   return (
     <Card
       defId={card.defId}
+      small
       onClick={onClick}
       disabledReason={reason}
+      hint={hint}
       highlight={selectedWeapon === card.uid ? "selected" : undefined}
     >
       {extra}
@@ -100,14 +118,17 @@ function FieldCard({ card }: { card: CardInstance }) {
   let onClick: (() => void) | undefined;
   let reason: string | null = null;
   let highlight: "equip" | undefined;
+  let hint: string | null = null;
   if (battle) {
     if (selectedWeapon && def.type === "hero") {
+      hint = "クリックでこの英雄に、選んだ武器を装備させる";
       const o = findOption(legal.options, (a) => a.type === "equip" && a.weaponUid === selectedWeapon && a.heroUid === card.uid);
       onClick = () => send({ type: "equip", weaponUid: selectedWeapon, heroUid: card.uid });
       reason = reasonText(o);
       if (!reason) highlight = "equip";
     } else {
       const o = findOption(legal.options, (a) => a.type === "undoBattleCard" && a.uid === card.uid);
+      hint = "クリックで手札に戻す";
       onClick = () => send({ type: "undoBattleCard", uid: card.uid });
       reason = reasonText(o);
     }
@@ -122,7 +143,7 @@ function FieldCard({ card }: { card: CardInstance }) {
   ) : null;
 
   return (
-    <Card defId={card.defId} onClick={onClick} disabledReason={reason} highlight={highlight} badge={badge}>
+    <Card defId={card.defId} small onClick={onClick} disabledReason={reason} hint={hint} highlight={highlight} badge={badge}>
       {view.step.kind === "afterBattle" ? <GrowthButtons card={card} /> : null}
     </Card>
   );

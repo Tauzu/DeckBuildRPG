@@ -1,4 +1,4 @@
-import { findOption, reasonText, useStore } from "../store.js";
+import { findOption, reasonText, reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
 
 export function VillageStock() {
@@ -6,6 +6,7 @@ export function VillageStock() {
   const send = useStore((s) => s.send);
   const { view, legal } = update;
   const visiting = view.step.kind === "village" && legal.waitingForMe && !legal.selection;
+  const choosing = view.step.kind === "chooseAction" && legal.waitingForMe && !legal.selection;
   const entries = Object.entries(view.village.stacks);
   const heroes = entries.filter(([id]) => id.startsWith("hero:"));
   const others = entries.filter(([id]) => !id.startsWith("hero:"));
@@ -27,6 +28,13 @@ export function VillageStock() {
         small
         badge={badge}
         onClick={visiting ? () => send({ type: "buy", stackId }) : undefined}
+        hint={
+          visiting
+            ? `クリックで購入する（${reg.get(st.top.defId).cost}金）。買ったカードは捨て札に入る`
+            : choosing
+              ? "「集落を訪れる」と購入できます"
+              : null
+        }
         disabledReason={visiting ? reasonText(opt) : null}
       />
     );

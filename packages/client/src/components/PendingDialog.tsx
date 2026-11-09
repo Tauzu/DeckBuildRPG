@@ -74,6 +74,7 @@ function Dialog({ title, note, groups, selection, onToggle, confirmLabel, canCon
                   defId={c.defId}
                   small
                   onClick={() => onToggle(c.uid)}
+                  hint={selection.includes(c.uid) ? "クリックで選ぶのをやめる" : "クリックで選ぶ"}
                   highlight={selection.includes(c.uid) ? "selected" : undefined}
                 />
               ))}

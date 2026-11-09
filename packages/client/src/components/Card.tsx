@@ -16,6 +16,8 @@ interface Props {
   /** 敵に残っているダメージ */
   damage?: number | undefined;
   small?: boolean;
+  /** マウスを乗せたときの説明（クリックすると何が起きるか）。押せないときは disabledReason を出す */
+  hint?: string | null | undefined;
   badge?: ReactNode;
   children?: ReactNode;
 }
@@ -28,7 +30,7 @@ const TYPE_LABEL: Record<CardDef["type"], string> = {
   curse: "呪い",
 };
 
-export function Card({ defId, onClick, disabledReason, highlight, hp, damage, small, badge, children }: Props) {
+export function Card({ defId, onClick, disabledReason, highlight, hp, damage, small, hint, badge, children }: Props) {
   const def = reg.get(defId);
   const clickable = !!onClick && !disabledReason;
   const classes = [
@@ -43,14 +45,15 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, sm
     .filter(Boolean)
     .join(" ");
 
+  const tip = onClick && disabledReason ? disabledReason : hint;
   return (
     <div className="card-wrap">
       <button
         type="button"
         className={classes}
         onClick={clickable ? onClick : undefined}
-        title={disabledReason ?? undefined}
         aria-disabled={!clickable}
+        aria-description={tip ?? undefined}
       >
         <div className="card-head">
           <span className="card-type">{TYPE_LABEL[def.type]}</span>
@@ -66,6 +69,11 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, sm
           {badge}
         </div>
       </button>
+      {tip && (
+        <span className={`card-tip${onClick && disabledReason ? " card-tip-ng" : ""}`} role="tooltip">
+          {tip}
+        </span>
+      )}
       {children && <div className="card-extra">{children}</div>}
     </div>
   );
@@ -130,8 +138,8 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
               <div style={{ width: `${Math.max(0, ((hp - (damage ?? 0)) / hp) * 100)}%` }} />
             </div>
           )}
-          {def.isBoss && <div className="card-note">与えたダメージは残る（何回かに分けて削れる）</div>}
-          {!def.isBoss && <div className="card-note">戦利品：集落で金として使うと手放す</div>}
+          {def.isBoss && <div className="card-note">ダメージは残る</div>}
+          {!def.isBoss && <div className="card-note">倒すと戦利品になる</div>}
         </div>
       );
     }

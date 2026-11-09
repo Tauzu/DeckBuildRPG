@@ -1,4 +1,6 @@
 import { findOption, reasonText, reg, useStore } from "../store.js";
+import { PixelArt } from "../art/PixelArt.js";
+import { fortSprite, villageSprite } from "../art/sprites.js";
 import { Card } from "./Card.js";
 
 export function RouteView() {
@@ -12,6 +14,7 @@ export function RouteView() {
   return (
     <section className="route panel">
       <div className="route-end route-fort">
+        <PixelArt sprite={fortSprite} className="route-end-art" />
         <div className="route-end-title">魔物の砦</div>
         <div className="route-end-sub">敵の山札 残り {view.enemyDeckCount}枚</div>
       </div>
@@ -32,6 +35,15 @@ export function RouteView() {
                     damage={view.enemyDamage[c.uid]}
                     highlight={target === c.uid ? "target" : undefined}
                     onClick={choosing ? () => send({ type: "chooseBattle", targetUid: c.uid }) : undefined}
+                    hint={
+                      target === c.uid
+                        ? "戦闘中の相手"
+                        : choosing
+                          ? def.isBoss
+                            ? "クリックでこのボスと戦う（与えたダメージは次の手番も残る）"
+                            : "クリックでこの魔物と戦う"
+                          : null
+                    }
                     disabledReason={choosing ? reasonText(opt) : null}
                   />
                 );
@@ -41,6 +53,7 @@ export function RouteView() {
         ))}
       </div>
       <div key={villageHits} className={`route-end route-village${villageHits > 0 ? " village-hit" : ""}`}>
+        <PixelArt sprite={villageSprite} className="route-end-art" />
         <div className="route-end-title">エルム村</div>
         <div className={`village-hp ${view.villageHp <= view.config.villageHp / 3 ? "danger" : ""}`}>
           耐久値 {Math.max(0, view.villageHp)} / {view.config.villageHp}

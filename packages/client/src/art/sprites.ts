@@ -25,6 +25,16 @@ export const PALETTE: Record<string, string> = {
   c: "#7fdcec", // 光
   f: "#f0902a", // 炎
   m: "#d07a62", // 肉
+  u: "#d0923e", // パンの皮
+  U: "#8e5a22", // パンの皮（濃い）
+  i: "#f6d894", // パンの切れ目
+  q: "#b85a2e", // 焼いた肉
+  Q: "#6e2c14", // 焼いた肉（濃い）
+  j: "#ec9c60", // 肉のつや
+  t: "#8c8c8c", // 石
+  T: "#555a60", // 石（濃い）
+  a: "#b04a3a", // 屋根
+  z: "#3d6b2a", // 草
 };
 
 export type Sprite = readonly string[];
@@ -359,26 +369,33 @@ const bread: Sprite = [
   "................",
   "................",
   "................",
-  "................",
-  "....NNNNNNNN....",
-  "...NnnnnnnnnN...",
-  "..NnnNnnNnnNnN..",
-  "..NnnnnnnnnnnN..",
-  "..NnnnnnnnnnnN..",
-  "..NNNNNNNNNNNN..",
+  "......UUUU......",
+  "....UUuuuuUU....",
+  "...UuuuiuuuuU...",
+  "..UuuuiuuuiuuU..",
+  "..UuuiuuuiuuuU..",
+  ".UuuuuuuiuuuuuU.",
+  ".UuuuuuuuuuuuuU.",
+  ".UUuuuuuuuuuuUU.",
+  "..UUUUUUUUUUUU..",
 ];
 
 const jerky: Sprite = [
   "................",
-  "................",
-  ".....RRRRR......",
-  "....RmmmmmR.....",
-  "...RmmmmmmmR....",
-  "...RmmmwmmmR....",
-  "...RmmmmmmmR.ee.",
-  "....RmmmmmRee...",
-  ".....RRRRRee....",
-  "..........eee...",
+  ".....QQQQQ......",
+  "...QQqqqqqQQ....",
+  "..QqqjjqqqqqQ...",
+  "..QqjjqqqqqqQ...",
+  "..QqjqqqqqqqQ...",
+  "..QqqqqqqqqqQ...",
+  "..QqqqqqqqqQQww.",
+  "...QQqqqqqQwwew.",
+  ".....QQQQQwew...",
+  ".........wew....",
+  "........wew.....",
+  ".......wwew.....",
+  "......weww......",
+  "......ww........",
 ];
 
 const wine: Sprite = [
@@ -633,6 +650,40 @@ const curse: Sprite = [
   ".....p.p.p......",
 ];
 
+/** 魔物の砦 */
+export const fortSprite: Sprite = [
+  "....r...........",
+  "....rr......r...",
+  "....r.......rr..",
+  "...TtT......r...",
+  "...TtT.....TtT..",
+  "..TtTtT....TtT..",
+  "..TtttT.T.TtttT.",
+  "..TtttTTtTTtttT.",
+  "..TtttttttttttT.",
+  "..TtxtttttttxtT.",
+  "..TttttxxxtttTT.",
+  "..TttttxxxttttT.",
+  "..TttttxxxttttT.",
+  "TTTTTTTTTTTTTTTT",
+];
+
+/** エルム村 */
+export const villageSprite: Sprite = [
+  "................",
+  "..........aa....",
+  "....aa...aaaa...",
+  "...aaaa.aaaaaa..",
+  "..aaaaaaaaaaaaa.",
+  ".aaaaaa..wwwwww.",
+  "..wwwww..wnnxww.",
+  "..wnxww..wnnxww.",
+  "..wnxww..wnnwww.",
+  "..wwwww..wwwwww.",
+  "zzzzzzzzzzzzzzzz",
+  "zgzzgzzzgzzzgzzg",
+];
+
 /** 英雄の種類ごとの絵（レベルが違っても同じ絵） */
 const HERO_SPRITES: Record<string, Sprite> = { youth, knight, mage, hunter, priest, thief, bard };
 
@@ -675,4 +726,4 @@ export function spriteFor(defId: string, heroId?: string): Sprite | null {
   return CARD_SPRITES[defId] ?? null;
 }
 
-export const ALL_SPRITES = { ...HERO_SPRITES, ...CARD_SPRITES };
+export const ALL_SPRITES = { ...HERO_SPRITES, ...CARD_SPRITES, fort: fortSprite, village: villageSprite };

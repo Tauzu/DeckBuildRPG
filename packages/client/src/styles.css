@@ -1271,3 +1271,153 @@ h3 {
     animation: none;
   }
 }
+
+/* ---------- 見直し（テストプレイの感想） ---------- */
+/* 英雄と食料の色を分ける */
+:root {
+  --hero: #cfdcea;
+  --food: #ecd49a;
+}
+
+/* カードの大きさをそろえる */
+.card {
+  height: 214px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.card-small {
+  height: 184px;
+  min-height: 0;
+}
+
+.card-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.card-small .card-text,
+.card-small .card-note {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* マウスを乗せたときの説明 */
+.card-wrap {
+  position: relative;
+}
+
+.card-tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 220px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #2a2117;
+  color: #fff3df;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 8;
+}
+
+.card-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: #2a2117;
+}
+
+.card-tip-ng {
+  background: #6b2318;
+}
+
+.card-tip-ng::after {
+  border-top-color: #6b2318;
+}
+
+.card-wrap:hover > .card-tip,
+.card-wrap:focus-within > .card-tip {
+  opacity: 1;
+}
+
+/* 進軍ルートのカードは下に説明を出す（上は画面の端に近いため） */
+.route .card-tip {
+  bottom: auto;
+  top: calc(100% + 6px);
+}
+
+.route .card-tip::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: #2a2117;
+}
+
+/* 案内と操作のボタンを画面の上に固定する */
+.game-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: grid;
+  gap: 6px;
+  padding-top: 4px;
+  background: var(--bg);
+}
+
+.game-sticky .action-bar {
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+}
+
+/* 砦と村の絵 */
+.route-end-art {
+  width: 56px;
+  height: 56px;
+}
+
+/* 場と手札を画面の下に固定する */
+.player-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: start;
+  box-shadow: 0 -4px 14px rgb(0 0 0 / 0.35);
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.player-dock .zone h2 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.player-dock .zone + .zone {
+  border-left: 1px solid var(--panel-edge);
+  padding-left: 10px;
+}
+
+.player-dock .zone-cards {
+  gap: 6px;
+}
+
+@media (max-width: 900px), (max-height: 700px) {
+  .player-dock {
+    position: static;
+    grid-template-columns: 1fr;
+  }
+  .player-dock .zone + .zone {
+    border-left: none;
+    padding-left: 0;
+  }
+}

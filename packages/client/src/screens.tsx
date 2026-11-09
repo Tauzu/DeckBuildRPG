@@ -193,6 +193,10 @@ export function GameScreen() {
         )}
       </header>
       {remote && !online && <div className="net-banner">サーバーとの接続が切れました。再接続しています…</div>}
+      <div className="game-sticky">
+        <ActionBar />
+        <TutorialHint />
+      </div>
       <RouteView />
       <div className="game-middle">
         <VillageStock />
@@ -201,8 +205,6 @@ export function GameScreen() {
           <LogPanel />
         </div>
       </div>
-      <TutorialHint />
-      <ActionBar />
       <PlayerArea />
       <PendingDialog />
       <Effects />
