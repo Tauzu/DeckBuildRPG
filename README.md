@@ -45,6 +45,16 @@ npm run build       # 画面を組み立てる（packages/client/dist）
 npm run sim -- --players 1 --games 200   # 自動プレイ（バランス調整用）
 ```
 
+## 公開用のイメージ（Docker）
+
+```sh
+docker build -t deckbuild-rpg .
+docker run -p 3000:3000 deckbuild-rpg   # http://localhost:3000
+```
+
+- 動作の確認用に `/healthz`（`ok` を返す）がある
+- 環境変数：`PORT`（既定 3000）、`MAX_ROOMS`（同時に存在できるルームの数。既定 200）
+
 ## フォルダの構成
 
 | フォルダ | 内容 |

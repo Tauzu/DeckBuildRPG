@@ -16,6 +16,9 @@ import {
 } from "./protocol.js";
 import { DEFAULT_TIMINGS, Room, RoomError, type RoomHooks, type RoomTimings } from "./Room.js";
 
+/** 同時に存在できるルームの数の既定値。環境変数 MAX_ROOMS で変えられる */
+const MAX_ROOMS = Number(process.env.MAX_ROOMS ?? 200);
+
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 見間違えやすい O/0・I/1 は使わない
 
 type IoServer = Server<ClientToServer, ServerToClient>;
@@ -32,6 +35,8 @@ export class RoomManager {
     private readonly reg: CardRegistry,
     private readonly timings: RoomTimings = DEFAULT_TIMINGS,
     private readonly log: (message: string, data?: unknown) => void = (m, d) => console.log(m, d ?? ""),
+    /** 同時に存在できるルームの数（使いすぎを防ぐ） */
+    private readonly maxRooms = MAX_ROOMS,
   ) {
     this.hooks = {
       sendRoom: (sid, room) => this.io.to(sid).emit("room:update", room),
@@ -91,6 +96,7 @@ export class RoomManager {
         const p = createSchema.safeParse(msg);
         if (!p.success) return reply({ ok: false, error: zodMessage(p.error) });
         if (!this.reg.stages.some((s) => s.id === p.data.stageId)) return reply({ ok: false, error: "そのステージはありません" });
+        if (this.rooms.size >= this.maxRooms) return reply({ ok: false, error: "ただいま混み合っています。しばらくしてからお試しください" });
         this.detach(socket);
         const room = new Room(this.newCode(), this.reg, this.hooks, this.timings, p.data.stageId);
         this.rooms.set(room.code, room);

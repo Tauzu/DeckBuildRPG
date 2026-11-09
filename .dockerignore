@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+.git
+docs
+sim-output
+coverage
+*.log
+.env
+.env.*

@@ -18,7 +18,20 @@ const MIME: Record<string, string> = {
   ".json": "application/json; charset=utf-8",
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
+  ".woff": "font/woff",
+  ".webp": "image/webp",
+  ".txt": "text/plain; charset=utf-8",
 };
+
+/** どの応答にも付ける、安全のためのヘッダー */
+const SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "no-referrer",
+  "x-frame-options": "DENY",
+};
+
+/** ビルドで作られるファイル（名前に中身のハッシュが入る）の置き場所 */
+const ASSETS = /^assets[/\\]/;
 
 export interface StartOptions {
   port?: number;
@@ -26,6 +39,8 @@ export interface StartOptions {
   timings?: RoomTimings;
   /** ビルド済みの client（index.html のあるフォルダ）。なければ配信しない */
   staticDir?: string | null;
+  /** 同時に存在できるルームの数 */
+  maxRooms?: number;
   log?: (message: string, data?: unknown) => void;
 }
 
@@ -40,26 +55,51 @@ export interface RunningServer {
 export async function startServer(opts: StartOptions = {}): Promise<RunningServer> {
   const staticDir = opts.staticDir === undefined ? defaultStaticDir() : opts.staticDir;
   const http = createServer((req, res) => {
-    if (!staticDir) {
-      res.writeHead(404).end("not found");
+    const url = new URL(req.url ?? "/", "http://localhost");
+    // 公開先の死活監視用
+    if (url.pathname === "/healthz") {
+      res.writeHead(200, { ...SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" }).end("ok");
       return;
     }
-    const url = new URL(req.url ?? "/", "http://localhost");
-    const rel = normalize(decodeURIComponent(url.pathname)).replace(/^([/\\])+/, "");
+    if (!staticDir || (req.method !== "GET" && req.method !== "HEAD")) {
+      res.writeHead(404, SECURITY_HEADERS).end("not found");
+      return;
+    }
+    let rel: string;
+    try {
+      rel = normalize(decodeURIComponent(url.pathname)).replace(/^([/\\])+/, "");
+    } catch {
+      res.writeHead(400, SECURITY_HEADERS).end("bad request");
+      return;
+    }
     let file = resolve(staticDir, rel);
-    // フォルダの外は見せない。見つからなければ index.html（画面の切り替えはブラウザ側）
-    if (!file.startsWith(resolve(staticDir)) || !existsSync(file) || statSync(file).isDirectory()) {
+    // フォルダの外は見せない
+    const found = file.startsWith(resolve(staticDir)) && existsSync(file) && !statSync(file).isDirectory();
+    if (!found) {
+      // assets/ のファイルがないときは 404。それ以外は index.html（画面の切り替えはブラウザ側）
+      if (ASSETS.test(rel)) {
+        res.writeHead(404, SECURITY_HEADERS).end("not found");
+        return;
+      }
       file = join(staticDir, "index.html");
     }
-    res.writeHead(200, { "content-type": MIME[extname(file)] ?? "application/octet-stream" });
+    res.writeHead(200, {
+      ...SECURITY_HEADERS,
+      "content-type": MIME[extname(file)] ?? "application/octet-stream",
+      // assets/ は中身が変われば名前も変わるので長く保存してよい。index.html などは毎回確認させる
+      "cache-control": found && ASSETS.test(rel) ? "public, max-age=31536000, immutable" : "no-cache",
+    });
+    if (req.method === "HEAD") {
+      res.end();
+      return;
+    }
     createReadStream(file).pipe(res);
   });
+  // 画面と同じアドレスから接続する（開発中は Vite が中継する）ので、他のサイトからの接続は受け付けない
   const io = new Server<ClientToServer, ServerToClient>(http, {
-    // 開発中は Vite（別ポート）から接続する
-    cors: { origin: true },
     maxHttpBufferSize: 64 * 1024,
   });
-  const manager = new RoomManager(io, opts.reg ?? defaultRegistry(), opts.timings, opts.log);
+  const manager = new RoomManager(io, opts.reg ?? defaultRegistry(), opts.timings, opts.log, opts.maxRooms);
   await new Promise<void>((ok) => http.listen(opts.port ?? 0, ok));
   const addr = http.address();
   const port = typeof addr === "object" && addr ? addr.port : 0;
@@ -86,4 +126,12 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const port = Number(process.env.PORT ?? 3000);
   const s = await startServer({ port });
   console.log(`サーバーを起動しました: http://localhost:${s.port}`);
+  // 公開先が止めるとき（SIGTERM）や Ctrl+C で、接続を閉じてから終わる
+  const stop = (signal: string) => {
+    console.log(`${signal} を受けたので終了します`);
+    void s.close().then(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5000).unref();
+  };
+  process.once("SIGTERM", () => stop("SIGTERM"));
+  process.once("SIGINT", () => stop("SIGINT"));
 }
