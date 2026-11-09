@@ -4,7 +4,7 @@ import type { RoomInfo } from "../src/protocol.js";
 import { Room, type RoomHooks, type RoomTimings } from "../src/Room.js";
 
 const reg = defaultRegistry();
-const T: RoomTimings = { pendingMs: 1000, disconnectedTurnMs: 2000, seatMs: 10_000, emptyRoomMs: 60_000 };
+const T: RoomTimings = { pendingMs: 1000, disconnectedTurnMs: 2000, idleTurnMs: 5000, seatMs: 10_000, emptyRoomMs: 60_000 };
 
 function setup() {
   const sent = { rooms: new Map<string, RoomInfo>(), states: new Map<string, GameUpdate>(), errors: [] as string[], disposed: false };
@@ -175,5 +175,65 @@ describe("ルーム（仕様書 9.2）", () => {
     room.backToLobby("p1");
     expect(room.started).toBe(false);
     expect(room.members).toHaveLength(2);
+  });
+});
+
+describe("つながっているのに操作しない人（放置）", () => {
+  const cur = (room: Room) => room.state?.players[room.state.currentPlayer]?.id;
+  const start = () => {
+    const x = setup();
+    x.room.join("あ", "s1");
+    x.room.join("い", "s2");
+    x.room.start("p1", 5);
+    return x;
+  };
+
+  it("操作がないまま制限時間が来たら、代わりに「集落を訪れる」→「訪問を終える」で進める", () => {
+    const { room } = start();
+    vi.advanceTimersByTime(T.idleTurnMs - 1);
+    expect(cur(room)).toBe("p1");
+    vi.advanceTimersByTime(1);
+    expect(cur(room)).toBe("p2");
+    expect(room.record?.actions.map((a) => a.action.type)).toEqual(["chooseVillage", "endVisit"]);
+    expect(room.member("p1")?.auto).toBe(false);
+  });
+
+  it("操作するたびに時間は数え直す", () => {
+    const { room } = start();
+    vi.advanceTimersByTime(T.idleTurnMs - 1);
+    room.handleAction("p1", { type: "chooseVillage" });
+    vi.advanceTimersByTime(T.idleTurnMs - 1);
+    expect(cur(room)).toBe("p1");
+    vi.advanceTimersByTime(1);
+    expect(cur(room)).toBe("p2");
+  });
+
+  it("放置が2回続くと自動になり、自分で操作すると手動に戻る", () => {
+    const { room, sent } = start();
+    vi.advanceTimersByTime(T.idleTurnMs); // p1 を代行 → p2 の手番
+    room.handleAction("p2", { type: "chooseVillage" });
+    room.handleAction("p2", { type: "endVisit" }); // p2 は普通に遊ぶ
+    expect(cur(room)).toBe("p1");
+    vi.advanceTimersByTime(T.idleTurnMs); // p1 2回目の放置
+    expect(room.member("p1")?.auto).toBe(true);
+    expect(sent.rooms.get("s2")?.members[0]?.auto).toBe(true);
+    // 以後、p1 の手番はすぐに自動で進む
+    room.handleAction("p2", { type: "chooseVillage" });
+    room.handleAction("p2", { type: "endVisit" });
+    expect(cur(room)).toBe("p2");
+    // p1 が操作すると戻る
+    room.handleAction("p1", { type: "chooseVillage" });
+    expect(room.member("p1")?.auto).toBe(false);
+    expect(sent.rooms.get("s2")?.members[0]?.auto).toBe(false);
+  });
+
+  it("自分で操作すれば、放置の回数は 0 に戻る", () => {
+    const { room } = start();
+    vi.advanceTimersByTime(T.idleTurnMs); // p1 1回目
+    room.handleAction("p2", { type: "chooseVillage" });
+    room.handleAction("p2", { type: "endVisit" });
+    room.handleAction("p1", { type: "chooseVillage" });
+    room.handleAction("p1", { type: "endVisit" });
+    expect(room.member("p1")?.idleStrikes).toBe(0);
   });
 });

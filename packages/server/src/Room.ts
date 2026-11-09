@@ -23,8 +23,10 @@ export interface Member {
   socketId: string | null;
   /** 接続が切れた時刻。つながっていれば null */
   disconnectedAt: number | null;
-  /** 席の保持時間が過ぎた（または退出した）ので、手番を自動で進める */
+  /** 席の保持時間が過ぎた・退出した・放置が続いたので、手番を自動で進める */
   auto: boolean;
+  /** つながっているのに操作がなく、代わりに進めた回数（自分で操作すると 0 に戻る） */
+  idleStrikes: number;
 }
 
 /** ルームから外へ出す処理（ソケットへの送信など）。テストでは差し替える */
@@ -37,12 +39,17 @@ export interface RoomHooks {
   log(message: string, data?: unknown): void;
 }
 
+/** 放置で代わりに進めた回数がこれになったら、以後その人は自動で進める */
+export const IDLE_STRIKES_TO_AUTO = 2;
+
 /** タイマーの時間（ミリ秒）。設計書 5.4 */
 export interface RoomTimings {
   /** 手札を捨てる選択の制限時間 */
   pendingMs: number;
   /** 接続が切れた人の手番を自動で進めるまで */
   disconnectedTurnMs: number;
+  /** つながっている人が何も操作しないとき、代わりに進めるまで */
+  idleTurnMs: number;
   /** 接続が切れた人の席を残す時間 */
   seatMs: number;
   /** 誰もつながっていないルームを消すまで */
@@ -52,6 +59,7 @@ export interface RoomTimings {
 export const DEFAULT_TIMINGS: RoomTimings = {
   pendingMs: 30_000,
   disconnectedTurnMs: 30_000,
+  idleTurnMs: 60_000,
   seatMs: 5 * 60_000,
   emptyRoomMs: 10 * 60_000,
 };
@@ -127,6 +135,7 @@ export class Room {
       socketId,
       disconnectedAt: null,
       auto: false,
+      idleStrikes: 0,
     };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.playerId;
@@ -143,6 +152,7 @@ export class Room {
     m.socketId = socketId;
     m.disconnectedAt = null;
     m.auto = false;
+    m.idleStrikes = 0;
     this.clearTimer(`seat:${m.playerId}`);
     this.clearTimer("empty");
     this.broadcastRoom();
@@ -271,6 +281,13 @@ export class Room {
   handleAction(playerId: string, action: Action): void {
     const m = this.member(playerId);
     if (!this.state || !m) return;
+    // つながっている人が操作したら、放置で自動になっていても戻る
+    if (m.socketId !== null && (m.auto || m.idleStrikes > 0)) {
+      const wasAuto = m.auto;
+      m.auto = false;
+      m.idleStrikes = 0;
+      if (wasAuto) this.broadcastRoom();
+    }
     const r = applyAction(this.state, playerId, action, this.reg);
     if (isEngineError(r)) {
       if (m.socketId) this.hooks.sendError(m.socketId, r.message);
@@ -364,6 +381,29 @@ export class Room {
         // その人の入力待ちが続く限り代わりに進める（手番が終わるまで）
         for (let guard = 0; guard < 50 && this.waitingFor().includes(offline); guard++) {
           if (!this.autoAct(offline)) break;
+        }
+        this.runAutomation();
+      });
+      return;
+    }
+    // つながっているのに何も操作しない人の手番
+    const idle = waiting.find((id) => {
+      const m = this.member(id);
+      return m && m.socketId !== null && !m.auto;
+    });
+    if (idle) {
+      this.setTimer("turn", this.timings.idleTurnMs, () => {
+        if (this.version !== v) return;
+        const m = this.member(idle);
+        if (!m) return;
+        for (let guard = 0; guard < 50 && this.waitingFor().includes(idle); guard++) {
+          if (!this.autoAct(idle)) break;
+        }
+        m.idleStrikes++;
+        if (m.idleStrikes >= IDLE_STRIKES_TO_AUTO) {
+          m.auto = true;
+          this.hooks.log("放置が続いたため自動にした", { room: this.code, player: idle });
+          this.broadcastRoom();
         }
         this.runAutomation();
       });

@@ -24,7 +24,7 @@ export function OthersPanel() {
                 )}
                 {p.name}
                 {me && <span className="others-you">あなた</span>}
-                {m && !m.connected && <span className="others-off">{m.auto ? "自動" : "接続待ち"}</span>}
+                {m && (m.auto || !m.connected) && <span className="others-off">{m.auto ? "自動" : "接続待ち"}</span>}
               </div>
               <div className="others-stats">
                 経験値 {p.exp}（総 {p.totalExp}）・撃破 {p.kills}・手札 {p.handCount}・山札 {p.deckCount}・捨て札 {p.discardCount}
