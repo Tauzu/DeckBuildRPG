@@ -2663,3 +2663,20 @@ textarea {
   min-width: 0;
   font-size: 13px;
 }
+
+/* 残り時間（マルチ） */
+.turn-timer {
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-align: right;
+  padding: 2px 8px;
+}
+
+.turn-timer-me {
+  color: var(--ink);
+}
+
+.turn-timer-low {
+  color: var(--bad);
+  font-weight: bold;
+}

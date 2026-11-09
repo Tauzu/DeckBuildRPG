@@ -76,6 +76,8 @@ export class Room {
   /** 状態が変わるたびに増やす。古いタイマーが動かないようにするため */
   private version = 0;
   private readonly timers = new Map<string, NodeJS.Timeout>();
+  /** タイマーが切れる時刻 */
+  private readonly timerEnds = new Map<string, number>();
   private nextSeat = 1;
 
   constructor(
@@ -157,8 +159,8 @@ export class Room {
     this.clearTimer("empty");
     this.broadcastRoom();
     if (this.state) {
-      this.hooks.sendState(socketId, buildUpdate(this.state, [], m.playerId, this.reg));
       this.schedule();
+      this.hooks.sendState(socketId, this.updateFor(m.playerId, []));
     }
     return m;
   }
@@ -305,14 +307,16 @@ export class Room {
 
   private afterChange(events: GameEvent[]): void {
     this.version++;
-    this.broadcastState(events);
     if (this.state?.result) {
-      this.hooks.log("ゲーム終了", { room: this.code, result: this.state.result.outcome, turns: this.state.turnCount });
       this.clearTimer("pending");
       this.clearTimer("turn");
+      this.broadcastState(events);
+      this.hooks.log("ゲーム終了", { room: this.code, result: this.state.result.outcome, turns: this.state.turnCount });
       return;
     }
+    // 残り時間を更新に載せるため、タイマーを付けてから送る
     this.schedule();
+    this.broadcastState(events);
   }
 
   /** 今入力を待っているプレイヤー */
@@ -412,8 +416,10 @@ export class Room {
 
   private setTimer(key: string, ms: number, fn: () => void): void {
     this.clearTimer(key);
+    this.timerEnds.set(key, Date.now() + ms);
     const t = setTimeout(() => {
       this.timers.delete(key);
+      this.timerEnds.delete(key);
       try {
         fn();
       } catch (e) {
@@ -428,6 +434,17 @@ export class Room {
     const t = this.timers.get(key);
     if (t) clearTimeout(t);
     this.timers.delete(key);
+    this.timerEnds.delete(key);
+  }
+
+  /** 今の入力待ちの残り時間（ミリ秒）。制限がなければ null */
+  private timeLeft(): number | null {
+    const end = this.timerEnds.get("pending") ?? this.timerEnds.get("turn");
+    return end === undefined ? null : Math.max(0, end - Date.now());
+  }
+
+  private updateFor(playerId: string, events: GameEvent[]): GameUpdate {
+    return { ...buildUpdate(this.state!, events, playerId, this.reg), timeLeftMs: this.timeLeft() };
   }
 
   // -------------------------------------------------------------------------
@@ -442,7 +459,7 @@ export class Room {
     const s = this.state;
     if (!s) return;
     for (const m of this.members) {
-      if (m.socketId) this.hooks.sendState(m.socketId, buildUpdate(s, events, m.playerId, this.reg));
+      if (m.socketId) this.hooks.sendState(m.socketId, this.updateFor(m.playerId, events));
     }
   }
 }

@@ -237,3 +237,28 @@ describe("つながっているのに操作しない人（放置）", () => {
     expect(room.member("p1")?.idleStrikes).toBe(0);
   });
 });
+
+describe("残り時間を更新に載せる", () => {
+  it("手番の人の更新に、代わりに進められるまでの残り時間が入る", () => {
+    const { room, sent } = setup();
+    room.join("あ", "s1");
+    room.join("い", "s2");
+    room.start("p1", 5);
+    expect(sent.states.get("s1")?.timeLeftMs).toBe(T.idleTurnMs);
+    expect(sent.states.get("s2")?.timeLeftMs).toBe(T.idleTurnMs);
+    vi.advanceTimersByTime(2000);
+    room.handleAction("p1", { type: "chooseVillage" });
+    expect(sent.states.get("s1")?.timeLeftMs).toBe(T.idleTurnMs); // 操作で数え直す
+  });
+
+  it("再接続した人にも、そのときの残り時間が届く", () => {
+    const { room, sent } = setup();
+    room.join("あ", "s1");
+    room.join("い", "s2");
+    room.start("p1", 5);
+    room.disconnect("s1");
+    room.handleAction("p1", { type: "chooseVillage" });
+    room.resume(room.member("p1")!.token, "s9");
+    expect(sent.states.get("s9")?.timeLeftMs).toBe(T.idleTurnMs);
+  });
+});

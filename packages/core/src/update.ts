@@ -19,6 +19,8 @@ export interface GameUpdate {
   info: TurnInfo;
   /** 直前の操作が受け付けられなかった理由 */
   error: string | null;
+  /** マルチのみ：今の入力待ちに、代わりに進められるまでの残り時間（ミリ秒）。時間制限がなければ null か省略 */
+  timeLeftMs?: number | null;
 }
 
 /** playerId から見た更新を作る。手番プレイヤー以外の戦闘のダメージ見込みも見えてよい（場は公開情報） */

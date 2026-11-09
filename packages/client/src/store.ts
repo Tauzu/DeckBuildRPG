@@ -42,6 +42,8 @@ interface Store {
   tally: GameTally;
   /** 今のゲームの流れの記録（結果画面の振り返りに使う） */
   review: Review;
+  /** マルチ：今の入力待ちが自動で進められる時刻（Date.now() 基準）。時間制限がなければ null */
+  turnDeadline: number | null;
   /** 今のゲームで達成した実績 */
   unlockedNow: AchievementDef[];
   /** チュートリアルの案内を隠しているか */
@@ -170,6 +172,7 @@ export const useStore = create<Store>()((set, get) => {
       set((st) => ({
         tally: addToTally(st.tally, u.events, u.view.viewerId, reg),
         review: addToReview(st.review, u),
+        turnDeadline: u.timeLeftMs != null ? Date.now() + u.timeLeftMs : null,
         update: u,
         fx: fx.length ? [...st.fx, ...fx].slice(-6) : st.fx,
         villageHits: st.villageHits + hits,
@@ -227,6 +230,7 @@ export const useStore = create<Store>()((set, get) => {
       newlyCleared: null,
       tally: emptyTally(),
       review: addToReview(emptyReview(), first),
+      turnDeadline: first.timeLeftMs != null ? Date.now() + first.timeLeftMs : null,
       unlockedNow: [],
       hideHints: false,
       seenHints: [],
@@ -309,6 +313,7 @@ export const useStore = create<Store>()((set, get) => {
     newlyCleared: null,
     tally: emptyTally(),
     review: emptyReview(),
+    turnDeadline: null,
     unlockedNow: [],
     hideHints: false,
     seenHints: [],

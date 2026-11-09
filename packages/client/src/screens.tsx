@@ -13,6 +13,7 @@ import { useIsPhone } from "./hooks.js";
 import { Effects } from "./components/Effects.js";
 import { OthersPanel } from "./components/OthersPanel.js";
 import { SoundControls } from "./components/SoundControls.js";
+import { TurnTimer } from "./components/TurnTimer.js";
 import { TutorialHint } from "./components/TutorialHint.js";
 import { VillageStock } from "./components/VillageStock.js";
 import { isUnlocked, maxDangerFor, stageSelectUnlocked } from "./progress.js";
@@ -235,6 +236,7 @@ export function GameScreen() {
       </header>
       {remote && !online && <div className="net-banner">サーバーとの接続が切れました。再接続しています…</div>}
       <div className="game-sticky">
+        <TurnTimer />
         <ActionBar />
         <TutorialHint />
       </div>
