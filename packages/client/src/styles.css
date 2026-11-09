@@ -837,3 +837,169 @@ h3 {
 .tutorial-hint-hidden {
   text-align: right;
 }
+
+/* ---------- マルチプレイ ---------- */
+.side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.others {
+  padding: 10px 12px;
+}
+
+.others h2 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.others-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.others-item {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--panel-edge);
+}
+
+.others-turn {
+  border-color: var(--focus);
+  border-width: 2px;
+  background: rgb(224 164 58 / 0.12);
+}
+
+.others-name {
+  font-weight: bold;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.others-mark {
+  color: var(--accent);
+}
+
+.others-you,
+.member-host,
+.others-off {
+  font-size: 0.75rem;
+  font-weight: normal;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-edge);
+  color: var(--ink-soft);
+}
+
+.member-host {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.others-off {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+.others-stats,
+.others-field {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.net-banner {
+  background: var(--bad);
+  color: #fff3df;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.lobby .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0;
+  max-width: 320px;
+}
+
+.lobby input {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--ink);
+}
+
+.code-input {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.lobby-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 700px) {
+  .lobby-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lobby-box {
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.lobby-box h2 {
+  margin-top: 0;
+}
+
+.lobby-error {
+  color: var(--bad);
+  font-weight: bold;
+}
+
+.room-code {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.1rem;
+}
+
+.room-code strong {
+  font-size: 1.8rem;
+  letter-spacing: 0.15em;
+  font-family: ui-monospace, monospace;
+}
+
+.member-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.member-list li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.stage-selected {
+  outline: 3px solid var(--focus);
+}

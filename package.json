@@ -10,6 +10,8 @@
     "build": "npm run build -w @deckbuild/client",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "sim": "npm run sim -w @deckbuild/sim --"
+    "sim": "npm run sim -w @deckbuild/sim --",
+    "dev:server": "npm run dev -w @deckbuild/server",
+    "start": "npm run build && npm run start -w @deckbuild/server"
   }
 }

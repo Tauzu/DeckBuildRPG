@@ -42,7 +42,35 @@ export function ActionBar() {
   } else if (legal.selection) {
     message = "選択してください";
   } else if (!myTurn) {
-    message = "処理中…";
+    const cur = view.players.find((p) => p.id === view.currentPlayerId);
+    if (view.pending?.kind === "discard") {
+      message = "ほかのプレイヤーが手札を捨てるのを待っています…";
+    } else if (cur && cur.id !== view.viewerId) {
+      const turn = view.turn;
+      const target = turn?.action === "battle" ? view.route.flat().find((c) => c.uid === turn.targetUid) : undefined;
+      const doing =
+        step === "village"
+          ? "集落を訪れています"
+          : step === "battle" && target
+            ? `「${reg.get(target.defId).name}」と戦っています`
+            : step === "afterBattle"
+              ? "敵を撃破しました"
+              : "行動を選んでいます";
+      message = `${cur.name}の手番：${doing}`;
+      const p = info.preview;
+      if (step === "battle" && p) {
+        detail = (
+          <div className="info-row">
+            <span>
+              ダメージ見込み {p.total}（生命力 {p.hp}
+              {p.prevDamage > 0 && `、これまでのダメージ ${p.prevDamage}`}）
+            </span>
+          </div>
+        );
+      }
+    } else {
+      message = "処理中…";
+    }
   } else if (step === "chooseAction") {
     const hasEnemy = view.route.some((sq) => sq.length > 0);
     message = hasEnemy
@@ -54,11 +82,14 @@ export function ActionBar() {
       </button>
     );
   } else if (step === "village") {
-    message = "集落：手札の食料→英雄で村効果を使う／在庫をクリックして購入／英雄のレベルアップ（手札の戦利品は訪問の終わりに売却）";
+    message =
+      "集落：手札の食料→英雄で村効果を使う／在庫をクリックして購入／英雄のレベルアップ（手札の戦利品は訪問の終わりに売却）";
     detail = (
       <div className="info-row">
         <span className="info-gold">所持金 {info.gold}</span>
-        <span>英雄の枠 {info.slots.used} / {info.slots.total}</span>
+        <span>
+          英雄の枠 {info.slots.used} / {info.slots.total}
+        </span>
       </div>
     );
     buttons = (
@@ -79,7 +110,10 @@ export function ActionBar() {
       : "戦闘：食料→英雄を出し、武器を選んで英雄に装備。場のカードをクリックすると手札に戻す";
     const confirm = findOption(legal.options, (a) => a.type === "confirmAttack");
     const resist = tdef
-      ? [resistText(tdef.resistPhysical) && `物理${resistText(tdef.resistPhysical)}`, resistText(tdef.resistMagic) && `魔法${resistText(tdef.resistMagic)}`]
+      ? [
+          resistText(tdef.resistPhysical) && `物理${resistText(tdef.resistPhysical)}`,
+          resistText(tdef.resistMagic) && `魔法${resistText(tdef.resistMagic)}`,
+        ]
           .filter(Boolean)
           .join("・")
       : "";
@@ -91,7 +125,9 @@ export function ActionBar() {
             {resist && `、${resist}`}）
           </span>
         )}
-        <span>英雄の枠 {info.slots.used} / {info.slots.total}</span>
+        <span>
+          英雄の枠 {info.slots.used} / {info.slots.total}
+        </span>
         {p && p.prevDamage > 0 && <span>これまでのダメージ {p.prevDamage}</span>}
         {p && (
           <span className={p.prevDamage + p.total >= p.hp ? "info-ok" : tdef?.isBoss && p.total > 0 ? "info-boss" : "info-ng"}>
@@ -143,7 +179,9 @@ export function ActionBar() {
       <div className="action-side">
         <div className="exp">
           経験値 <strong>{me.exp}</strong>
-          <span className="exp-total">（総獲得 {me.totalExp}・撃破 {me.kills}）</span>
+          <span className="exp-total">
+            （総獲得 {me.totalExp}・撃破 {me.kills}）
+          </span>
         </div>
         <div className="action-buttons">{buttons}</div>
       </div>

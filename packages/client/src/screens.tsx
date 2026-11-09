@@ -5,15 +5,17 @@ import { PendingDialog } from "./components/PendingDialog.js";
 import { PlayerArea } from "./components/PlayerArea.js";
 import { ResultOverlay } from "./components/ResultOverlay.js";
 import { RouteView } from "./components/RouteView.js";
+import { OthersPanel } from "./components/OthersPanel.js";
 import { TutorialHint } from "./components/TutorialHint.js";
 import { VillageStock } from "./components/VillageStock.js";
 import { isUnlocked, stageSelectUnlocked } from "./progress.js";
-import { reg, useStore } from "./store.js";
+import { isRemote, reg, useStore } from "./store.js";
 
 export function TitleScreen() {
   const startSolo = useStore((s) => s.startSolo);
   const go = useStore((s) => s.go);
   const hasGame = useStore((s) => !!s.update && !s.update.view.result);
+  const inRoom = useStore((s) => !!s.room);
   const progress = useStore((s) => s.progress);
   const unlocked = stageSelectUnlocked(reg.stages, progress);
   const tutorial = reg.stages.find((st) => st.tutorial);
@@ -43,8 +45,8 @@ export function TitleScreen() {
               </button>
             </>
           )}
-          <button type="button" disabled title="フェーズ4で対応予定">
-            ルームを作る（準備中）
+          <button type="button" className={inRoom && !hasGame ? "primary" : ""} onClick={() => go("lobby")}>
+            {inRoom ? "ルームに戻る" : "みんなで遊ぶ（ルームを作る・参加する）"}
           </button>
           <button type="button" onClick={() => go("rules")}>
             遊び方
@@ -162,6 +164,9 @@ export function GameScreen() {
   const toast = useStore((s) => s.toast);
   const clearToast = useStore((s) => s.clearToast);
   const go = useStore((s) => s.go);
+  const room = useStore((s) => s.room);
+  const online = useStore((s) => s.online);
+  const remote = isRemote(conn);
 
   useEffect(() => {
     if (!toast) return;
@@ -178,14 +183,22 @@ export function GameScreen() {
         </button>
         <span className="game-title">{reg.stage(update.view.config.stageId).name}</span>
         <span className="game-turn">手番 {update.view.turnCount}</span>
-        <span className="game-seed" title="不具合の報告に使います">
-          シード {conn ? conn.seed >>> 0 : "-"}
-        </span>
+        {remote ? (
+          <span className="game-seed">ルーム {room?.code}</span>
+        ) : (
+          <span className="game-seed" title="不具合の報告に使います">
+            シード {conn ? conn.seed >>> 0 : "-"}
+          </span>
+        )}
       </header>
+      {remote && !online && <div className="net-banner">サーバーとの接続が切れました。再接続しています…</div>}
       <RouteView />
       <div className="game-middle">
         <VillageStock />
-        <LogPanel />
+        <div className="side-column">
+          <OthersPanel />
+          <LogPanel />
+        </div>
       </div>
       <TutorialHint />
       <ActionBar />

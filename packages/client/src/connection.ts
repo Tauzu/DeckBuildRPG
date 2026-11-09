@@ -2,39 +2,18 @@
 import {
   type Action,
   applyAction,
-  battlePreview,
+  buildUpdate,
   type CardRegistry,
   createGame,
-  currentGold,
-  type DamageBreakdown,
   type GameEvent,
   type GameRecord,
   type GameState,
-  heroSlots,
+  type GameUpdate,
   isEngineError,
-  type LegalActions,
-  legalActions,
   newRecord,
-  type PlayerView,
-  viewEvents,
-  viewFor,
 } from "@deckbuild/core";
 
-/** 画面に必要な、手番中の計算結果 */
-export interface TurnInfo {
-  gold: number;
-  slots: { total: number; used: number; left: number };
-  preview: (DamageBreakdown & { hp: number; prevDamage: number }) | null;
-}
-
-export interface GameUpdate {
-  view: PlayerView;
-  events: GameEvent[];
-  legal: LegalActions;
-  info: TurnInfo;
-  /** 直前の操作が受け付けられなかった理由 */
-  error: string | null;
-}
+export type { GameUpdate, TurnInfo } from "@deckbuild/core";
 
 export interface GameConnection {
   readonly playerId: string;
@@ -97,14 +76,7 @@ export class LocalConnection implements GameConnection {
   }
 
   private makeUpdate(events: GameEvent[], error: string | null): GameUpdate {
-    const s = this.state;
-    return {
-      view: viewFor(s, this.playerId),
-      events: viewEvents(events, this.playerId),
-      legal: legalActions(s, this.playerId, this.reg),
-      info: { gold: currentGold(s, this.reg), slots: heroSlots(s), preview: battlePreview(s, this.reg) },
-      error,
-    };
+    return buildUpdate(this.state, events, this.playerId, this.reg, error);
   }
 }
 
@@ -112,4 +84,46 @@ export function randomSeed(): number {
   const a = new Uint32Array(1);
   crypto.getRandomValues(a);
   return a[0]! | 0;
+}
+
+/** マルチ：サーバーから届いた更新を画面に流す。操作はサーバーへ送る（設計書 4.1） */
+export class RemoteConnection implements GameConnection {
+  readonly seed = 0;
+  private last: GameUpdate;
+  private readonly listeners = new Set<(u: GameUpdate) => void>();
+
+  constructor(
+    readonly playerId: string,
+    first: GameUpdate,
+    private readonly sendAction: (action: Action) => void,
+  ) {
+    this.last = first;
+  }
+
+  send(action: Action): void {
+    this.sendAction(action);
+  }
+
+  /** サーバーから届いた更新（エラーは直前の画面のまま理由だけ付ける） */
+  push(u: GameUpdate): void {
+    this.last = u;
+    for (const l of this.listeners) l(u);
+  }
+
+  pushError(message: string): void {
+    this.push({ ...this.last, events: [], error: message });
+  }
+
+  subscribe(listener: (u: GameUpdate) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  current(): GameUpdate {
+    return this.last;
+  }
+
+  record(): null {
+    return null;
+  }
 }

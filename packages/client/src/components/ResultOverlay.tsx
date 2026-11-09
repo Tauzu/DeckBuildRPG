@@ -1,5 +1,5 @@
 import { nextStage } from "../progress.js";
-import { reg, useStore } from "../store.js";
+import { isRemote, reg, useStore } from "../store.js";
 import { resultReason } from "../text.js";
 
 export function ResultOverlay() {
@@ -8,6 +8,12 @@ export function ResultOverlay() {
   const startSolo = useStore((s) => s.startSolo);
   const go = useStore((s) => s.go);
   const newlyCleared = useStore((s) => s.newlyCleared);
+  const room = useStore((s) => s.room);
+  const myId = useStore((s) => s.myId);
+  const backToLobby = useStore((s) => s.backToLobby);
+  const leaveRoom = useStore((s) => s.leaveRoom);
+  const showToast = useStore((s) => s.showToast);
+  const remote = isRemote(conn);
   const result = update.view.result;
   if (!result) return null;
   const win = result.outcome === "win";
@@ -36,7 +42,11 @@ export function ResultOverlay() {
         </p>
         {newlyCleared === stage.id && (
           <p className="result-unlock">
-            {stage.tutorial ? "ステージ選択が解放されました！" : next ? `次のステージ「${next.name}」が解放されました！` : "すべてのステージをクリアしました！"}
+            {stage.tutorial
+              ? "ステージ選択が解放されました！"
+              : next
+                ? `次のステージ「${next.name}」が解放されました！`
+                : "すべてのステージをクリアしました！"}
           </p>
         )}
         <div className="result-rank">
@@ -68,22 +78,44 @@ export function ResultOverlay() {
             ))}
           </tbody>
         </table>
-        <div className="dialog-buttons">
-          <button type="button" className="ghost" onClick={download}>
-            記録を保存
-          </button>
-          <button type="button" className="ghost" onClick={() => go("title")}>
-            タイトルへ
-          </button>
-          <button type="button" className={next ? "ghost" : "primary"} onClick={() => startSolo(stage.id)}>
-            もう一度
-          </button>
-          {next && (
-            <button type="button" className="primary" onClick={() => startSolo(next.id)}>
-              次のステージへ
+        {remote ? (
+          <div className="dialog-buttons">
+            <button type="button" className="ghost" onClick={leaveRoom}>
+              ルームを出る
             </button>
-          )}
-        </div>
+            {room?.hostId === myId ? (
+              <button
+                type="button"
+                className="primary"
+                onClick={async () => {
+                  const err = await backToLobby();
+                  if (err) showToast(err);
+                }}
+              >
+                ルームに戻って次のゲームへ
+              </button>
+            ) : (
+              <span className="dialog-note">ホストがルームに戻すと、次のゲームを始められます</span>
+            )}
+          </div>
+        ) : (
+          <div className="dialog-buttons">
+            <button type="button" className="ghost" onClick={download}>
+              記録を保存
+            </button>
+            <button type="button" className="ghost" onClick={() => go("title")}>
+              タイトルへ
+            </button>
+            <button type="button" className={next ? "ghost" : "primary"} onClick={() => startSolo(stage.id)}>
+              もう一度
+            </button>
+            {next && (
+              <button type="button" className="primary" onClick={() => startSolo(next.id)}>
+                次のステージへ
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

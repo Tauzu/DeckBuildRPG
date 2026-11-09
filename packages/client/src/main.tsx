@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { LobbyScreen } from "./components/LobbyScreen.js";
 import { GameScreen, RulesScreen, StageSelectScreen, TitleScreen } from "./screens.js";
 import { useStore } from "./store.js";
 import "./styles.css";
@@ -9,6 +10,7 @@ function App() {
   if (screen === "game") return <GameScreen />;
   if (screen === "rules") return <RulesScreen />;
   if (screen === "stages") return <StageSelectScreen />;
+  if (screen === "lobby") return <LobbyScreen />;
   return <TitleScreen />;
 }
 
