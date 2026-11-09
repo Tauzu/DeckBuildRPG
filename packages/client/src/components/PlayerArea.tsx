@@ -36,7 +36,7 @@ export function PlayerArea() {
       </div>
       <div className="zone">
         <h2>
-          手札{" "}
+          手札 {me.hand?.length ?? 0}枚{" "}
           <span className="zone-sub">
             山札 {me.deckCount}枚 ／{" "}
             <span key={buys} className={buys > 0 ? "discard-pulse" : undefined}>
