@@ -7,6 +7,7 @@ import { type GameConnection, type GameUpdate, LocalConnection, RemoteConnection
 import { loadSession, Online, type RoomInfo } from "./online.js";
 import { addSeen, seedSeen, visibleDefIds } from "./codex.js";
 import { type AchievementDef, addToTally, emptyTally, type GameTally, recordGameEnd } from "./achievements.js";
+import { addToReview, emptyReview, type Review } from "./review.js";
 import { exportCode, importCode, loadProgress, markCleared, mergeProgress, type Progress, saveProgress } from "./progress.js";
 import { buildLookup, ERROR_TEXT, eventText } from "./text.js";
 
@@ -38,6 +39,8 @@ interface Store {
   newlyCleared: { stage: boolean; danger: boolean } | null;
   /** 今のゲームでの自分の行動の記録（実績の判定に使う） */
   tally: GameTally;
+  /** 今のゲームの流れの記録（結果画面の振り返りに使う） */
+  review: Review;
   /** 今のゲームで達成した実績 */
   unlockedNow: AchievementDef[];
   /** チュートリアルの案内を隠しているか */
@@ -162,6 +165,7 @@ export const useStore = create<Store>()((set, get) => {
       const ended = u.events.some((e) => e.type === "gameEnded");
       set((st) => ({
         tally: addToTally(st.tally, u.events, u.view.viewerId, reg),
+        review: addToReview(st.review, u),
         update: u,
         fx: fx.length ? [...st.fx, ...fx].slice(-6) : st.fx,
         villageHits: st.villageHits + hits,
@@ -218,6 +222,7 @@ export const useStore = create<Store>()((set, get) => {
       selection: [],
       newlyCleared: null,
       tally: emptyTally(),
+      review: addToReview(emptyReview(), first),
       unlockedNow: [],
       hideHints: false,
       seenHints: [],
@@ -297,6 +302,7 @@ export const useStore = create<Store>()((set, get) => {
     progress: initialProgress(),
     newlyCleared: null,
     tally: emptyTally(),
+    review: emptyReview(),
     unlockedNow: [],
     hideHints: false,
     seenHints: [],

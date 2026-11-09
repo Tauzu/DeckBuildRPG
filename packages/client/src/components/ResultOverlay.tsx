@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { nextStage } from "../progress.js";
 import { isRemote, reg, useStore } from "../store.js";
 import { resultReason } from "../text.js";
+import { ReviewPanel } from "./ReviewPanel.js";
 
 export function ResultOverlay() {
   const update = useStore((s) => s.update)!;
@@ -14,6 +16,8 @@ export function ResultOverlay() {
   const backToLobby = useStore((s) => s.backToLobby);
   const leaveRoom = useStore((s) => s.leaveRoom);
   const showToast = useStore((s) => s.showToast);
+  const review = useStore((s) => s.review);
+  const [reviewing, setReviewing] = useState(false);
   const remote = isRemote(conn);
   const result = update.view.result;
   if (!result) return null;
@@ -36,6 +40,22 @@ export function ResultOverlay() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  if (reviewing) {
+    return (
+      <div className="overlay">
+        <div className="dialog panel result result-review" role="dialog" aria-modal="true" aria-label="ゲームの振り返り">
+          <h2>ゲームの振り返り</h2>
+          <ReviewPanel review={review} />
+          <div className="dialog-buttons">
+            <button type="button" className="primary" onClick={() => setReviewing(false)}>
+              結果にもどる
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="overlay">
@@ -97,6 +117,11 @@ export function ResultOverlay() {
             ))}
           </tbody>
         </table>
+        <div className="dialog-buttons">
+          <button type="button" onClick={() => setReviewing(true)}>
+            ゲームを振り返る
+          </button>
+        </div>
         {remote ? (
           <div className="dialog-buttons">
             <button type="button" className="ghost" onClick={leaveRoom}>

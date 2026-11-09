@@ -26,6 +26,8 @@ export interface PlayerPublicView {
   hand?: CardInstance[];
   /** 本人のときだけ入る */
   discard?: CardInstance[];
+  /** ゲームが終わったあとだけ入る：持っていたカードすべて（デッキ・手札・場・捨て札。振り返り用） */
+  allCards?: CardInstance[];
 }
 
 export interface PlayerView {
@@ -77,6 +79,7 @@ export function viewFor(s: GameState, viewerId: string): PlayerView {
         pub.hand = p.hand;
         pub.discard = p.discard;
       }
+      if (s.result) pub.allCards = [...p.deck, ...p.hand, ...p.field, ...p.discard];
       return pub;
     }),
     village: { stacks, curseCount: s.village.curses.length },

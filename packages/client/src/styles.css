@@ -2547,3 +2547,92 @@ textarea {
 .nowrap {
   display: inline-block;
 }
+
+/* ゲーム後の振り返り */
+.result-review {
+  max-width: 760px;
+  text-align: left;
+}
+
+.review section {
+  margin: 14px 0;
+}
+
+.review h3 {
+  border-bottom: 1px solid var(--edge-dim);
+  padding-bottom: 2px;
+}
+
+.review h4 {
+  margin: 8px 0 4px;
+  color: var(--ink-soft);
+}
+
+.review-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.review-highlights,
+.review-buys {
+  margin: 6px 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.review-buys {
+  columns: 2;
+  font-size: 13px;
+}
+
+.review-turn {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.review-summary {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.review-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.review-chart {
+  margin: 8px 0;
+  max-width: 420px;
+}
+
+.review-chart figcaption {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.review-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.review-legend {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.review-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+}
+
+@media (max-width: 600px) {
+  .review-buys {
+    columns: 1;
+  }
+}
