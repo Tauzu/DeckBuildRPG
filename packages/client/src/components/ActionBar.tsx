@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { findOption, reasonText, reg, useStore } from "../store.js";
 import { resistText, touchText } from "../text.js";
 
@@ -7,6 +8,7 @@ export function ActionBar() {
   const send = useStore((s) => s.send);
   const selectedWeapon = useStore((s) => s.selectedWeapon);
   const selectWeapon = useStore((s) => s.selectWeapon);
+  const [missWarning, setMissWarning] = useState(false);
   const { view, legal, info } = update;
   const me = view.players.find((p) => p.id === view.viewerId)!;
   const step = view.step.kind;
@@ -155,10 +157,23 @@ export function ActionBar() {
           type="button"
           className="primary danger"
           disabled={!!reasonText(confirm)}
-          onClick={() => send({ type: "confirmAttack" })}
+          onClick={() => (p && p.prevDamage + p.total < p.hp ? setMissWarning(true) : send({ type: "confirmAttack" }))}
         >
           攻撃を確定
         </button>
+        {missWarning && p && p.prevDamage + p.total < p.hp && (
+          <MissWarning
+            boss={!!tdef?.isBoss}
+            name={tdef?.name ?? "敵"}
+            total={p.total}
+            remaining={p.hp - p.prevDamage - p.total}
+            onBack={() => setMissWarning(false)}
+            onGo={() => {
+              setMissWarning(false);
+              send({ type: "confirmAttack" });
+            }}
+          />
+        )}
       </>
     );
   } else if (step === "afterBattle") {
@@ -198,5 +213,36 @@ function splitHelp(message: string, split: boolean) {
       {message.slice(0, i)}
       <span className="action-help">{message.slice(i)}</span>
     </>
+  );
+}
+
+/** 倒せる見込みがないまま「攻撃を確定」を押したときの確認 */
+function MissWarning({ boss, name, total, remaining, onBack, onGo }: { boss: boolean; name: string; total: number; remaining: number; onBack(): void; onGo(): void }) {
+  return (
+    <div className="overlay" onClick={onBack}>
+      <div className="dialog panel tutorial-modal" role="alertdialog" aria-modal="true" aria-labelledby="miss-title" onClick={(e) => e.stopPropagation()}>
+        <h2 id="miss-title">このままでは倒せません</h2>
+        {total === 0 ? (
+          <p>ダメージが 0 です。{boss ? "このまま攻撃しても、ボスのダメージは増えません。" : `「${name}」は倒れず、手番が終わって敵が進軍します。`}</p>
+        ) : boss ? (
+          <p>
+            「{name}」はまだ倒れません（残り生命力 {remaining}）。与えたダメージ {total} は残り、次の手番に続きから削れます。
+          </p>
+        ) : (
+          <p>
+            「{name}」はあと {remaining} 足りず、倒れません。ダメージは残らず、手番が終わって敵が進軍します。
+          </p>
+        )}
+        <p className="dialog-note">武器や英雄を足せば、倒せるかもしれません。</p>
+        <div className="dialog-buttons">
+          <button type="button" className="ghost" onClick={onGo}>
+            それでも攻撃する
+          </button>
+          <button type="button" className="primary" autoFocus onClick={onBack}>
+            戻って見直す
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
