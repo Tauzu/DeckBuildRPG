@@ -15,7 +15,7 @@ const url = (path: string) => `http://localhost:${server.port}${path}`;
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), "deckbuild-static-"));
   mkdirSync(join(dir, "assets"));
-  writeFileSync(join(dir, "index.html"), "<!doctype html><title>test</title>");
+  writeFileSync(join(dir, "index.html"), "<!doctype html><html><head><!--ogp--><title>test</title></head><body></body></html>");
   writeFileSync(join(dir, "assets", "app-abc123.js"), "console.log(1)");
   server = await startServer({ port: 0, staticDir: dir, maxRooms: 1, log: () => {} });
 });
@@ -46,6 +46,25 @@ describe("配信", () => {
       expect(r.status).toBe(200);
       expect(r.headers.get("cache-control")).toBe("no-cache");
       expect(await r.text()).toContain("<title>test</title>");
+    }
+  });
+
+  it("招待リンクには、招待とわかるリンクカードの指定を入れる", async () => {
+    const r = await fetch(url("/?room=abc123"), { headers: { "x-forwarded-proto": "https", host: `localhost:${server.port}` } });
+    const html = await r.text();
+    expect(html).toContain('property="og:title" content="【招待】ルーム ABC123 に参加しよう！ – FOODIE QUEST"');
+    expect(html).toContain(`content="https://localhost:${server.port}/og-invite.png"`);
+    expect(html).toContain(`content="https://localhost:${server.port}/?room=ABC123"`);
+    expect(html).toContain("<title>【招待】ルーム ABC123 – FOODIE QUEST</title>");
+    expect(html).not.toContain("<!--ogp-->");
+  });
+
+  it("ふつうのアドレスには、ゲームの紹介のリンクカード。形が違うコードは招待にしない", async () => {
+    for (const path of ["/", "/?room=zzz", '/?room="><script>']) {
+      const html = await (await fetch(url(path))).text();
+      expect(html).toContain("/og-default.png");
+      expect(html).not.toContain("招待");
+      expect(html).not.toContain("<script>");
     }
   });
 
