@@ -1852,13 +1852,26 @@ h3 {
   align-items: center;
   gap: 14px;
   max-width: 320px;
+  /* 説明文が長いカードでも見切れないよう、はみ出したらスクロールできる */
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .card-detail-card {
-  transform: scale(1.5);
-  transform-origin: top center;
-  margin-bottom: 110px;
+  zoom: 1.5;
   pointer-events: none;
+}
+
+/* 拡大表示ではカードの高さを固定せず、説明文を最後まで見せる */
+.card-detail-card .card {
+  height: auto;
+  min-height: 214px;
+  overflow: visible;
+}
+
+.card-detail-card .card-body {
+  overflow: visible;
 }
 
 .card-detail-card .card-wrap {
