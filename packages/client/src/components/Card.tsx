@@ -88,6 +88,7 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, sm
       {tip && (
         <span className={`card-tip${onClick && disabledReason ? " card-tip-ng" : ""}`} role="tooltip">
           {tip}
+          <span className="card-tip-hint">右クリックで拡大</span>
         </span>
       )}
       {children && <div className="card-extra">{children}</div>}
