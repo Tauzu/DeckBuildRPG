@@ -2708,3 +2708,31 @@ textarea {
   color: var(--bad);
   font-weight: bold;
 }
+
+/* ---------- 進軍ルートの敵カードの幅をそろえる（スマートフォン） ---------- */
+/* 名前の長さでカードの幅が変わらないよう、マスの幅いっぱいに固定し、長い名前は2行に折り返す */
+@media (max-width: 700px) {
+  .route .card-wrap {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .route .card-small {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .route .card-small .card-name {
+    font-size: 8px;
+    line-height: 1.15;
+    height: 2.3em;
+    text-align: center;
+    white-space: normal;
+    word-break: break-all;
+    overflow: hidden;
+    text-overflow: clip;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}
