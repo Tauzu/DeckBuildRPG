@@ -8,7 +8,7 @@ export function CardDetail() {
   const close = useStore((s) => s.showDetail);
   if (!detail) return null;
   return (
-    <div className="overlay card-detail" role="dialog" aria-modal="true" aria-label="カードの詳細" onClick={() => close(null)}>
+    <div className="overlay card-detail" role="dialog" aria-modal="true" aria-label="カードの詳細" onClick={() => close(null)} onContextMenu={(e) => e.preventDefault()}>
       <div className="card-detail-body">
         <div className="card-detail-card">
           <Card defId={detail.defId} hp={detail.hp} damage={detail.damage} />

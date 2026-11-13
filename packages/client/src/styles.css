@@ -1897,10 +1897,18 @@ h3 {
 }
 
 /* タッチ操作：長押しのメニューや文字の選択を出さない。ダブルタップでの拡大もしない */
-.card {
+.card,
+.card-wrap,
+.card-detail,
+.card-detail * {
   -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* 長押しで拡大が開くと、押したままの指の下に拡大表示が出る。そこで文字が選択されないようにする */
+.card-detail {
+  touch-action: pan-y;
 }
 
 button {

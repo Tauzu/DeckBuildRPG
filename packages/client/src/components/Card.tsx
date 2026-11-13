@@ -51,7 +51,7 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, sm
   const openDetail = () => showDetail({ defId, hp, damage, tip });
   const press = useLongPress(openDetail);
   return (
-    <div className="card-wrap">
+    <div className="card-wrap" onContextMenu={(e) => e.preventDefault()}>
       <button
         type="button"
         className={classes}
