@@ -30,13 +30,13 @@ export function DangerPicker({
           －
         </button>
         <strong className={`danger-value${value > 0 ? " danger-on" : ""}`} aria-live="polite">
-          {value === 0 ? "通常" : value}
+          {value === 0 ? "通常" : `+${value}`}
         </strong>
         <button type="button" className="mini" aria-label="危険度を上げる" disabled={disabled || value >= max} onClick={() => onChange(value + 1)}>
           ＋
         </button>
         <span className="danger-note">
-          {best !== undefined ? `クリアした最高：${best === 0 ? "通常" : `危険度${best}`}` : "クリアすると危険度が解放されます"}
+          {best !== undefined ? `クリアした最高：${best === 0 ? "通常" : `危険度+${best}`}` : "クリアすると危険度が解放されます"}
         </span>
       </div>
       {texts.length > 0 && (

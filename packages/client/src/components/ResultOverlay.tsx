@@ -63,7 +63,7 @@ export function ResultOverlay() {
         <h2 className="result-title">{win ? "勝利" : "敗北"}</h2>
         <p>
           {stage.name}
-          {danger > 0 && `（危険度${danger}）`}：{resultReason(result.reason, reg.enemy(stage.bossId).name)}
+          {danger > 0 && `（危険度+${danger}）`}：{resultReason(result.reason, reg.enemy(stage.bossId).name)}
         </p>
         {newlyCleared?.stage && (
           <p className="result-unlock">
@@ -74,7 +74,7 @@ export function ResultOverlay() {
                 : "すべてのステージをクリアしました！"}
           </p>
         )}
-        {nextDanger !== null && <p className="result-unlock">このステージの危険度{nextDanger}が解放されました！</p>}
+        {nextDanger !== null && <p className="result-unlock">このステージの危険度+{nextDanger}が解放されました！</p>}
         {newlyCleared?.danger && !stage.tutorial && danger === reg.maxDanger && (
           <p className="result-unlock">このステージを最高の危険度で制覇しました！</p>
         )}
@@ -155,7 +155,7 @@ export function ResultOverlay() {
             </button>
             {nextDanger !== null && (
               <button type="button" className={next && newlyCleared?.stage ? "" : "primary"} onClick={() => startSolo(stage.id, undefined, nextDanger)}>
-                危険度{nextDanger}に挑む
+                危険度+{nextDanger}に挑む
               </button>
             )}
             {next && (

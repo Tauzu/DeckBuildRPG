@@ -89,7 +89,7 @@ export function StageSelectScreen() {
       <div className="rules panel stage-select">
         <h1>ステージを選ぶ</h1>
         <p className="stage-lead">
-          ステージをクリアすると、次のステージが解放されます。先へ進むほど、登場するカードと敵が増えます。クリアしたステージは、危険度を上げて挑めます（最高{reg.maxDanger}）。危険度を選んでから、ステージを押すと始まります。
+          ステージをクリアすると、次のステージが解放されます。先へ進むほど、登場するカードと敵が増えます。クリアしたステージは、危険度を上げて挑めます（最高+{reg.maxDanger}）。危険度を選んでから、ステージを押すと始まります。
         </p>
         <ol className="stage-list">
           {reg.stages.map((st, i) => {
@@ -112,7 +112,7 @@ export function StageSelectScreen() {
                   <span className="stage-label">{label}</span>
                   <span className="stage-name">{open ? st.name : "？？？"}</span>
                   {cleared && (
-                    <span className="stage-cleared">{!st.tutorial && best !== undefined && best > 0 ? `危険度${best} クリア` : "クリア"}</span>
+                    <span className="stage-cleared">{!st.tutorial && best !== undefined && best > 0 ? `危険度+${best} クリア` : "クリア"}</span>
                   )}
                   <span className="stage-desc">{open ? `${st.description}（ボス：${boss}）` : "前のステージをクリアすると解放されます"}</span>
                 </button>
@@ -177,7 +177,7 @@ export function RulesScreen() {
         <p>最初はチュートリアルで遊び方を覚えます。クリアするとステージ選択が解放され、ステージをクリアするたびに次のステージが遊べます。先へ進むほど、登場するカードと敵が増えます。</p>
         <h2>危険度と実績</h2>
         <p>
-          クリアしたステージは、危険度を上げて挑めます。危険度が1つ上がるごとに不利な条件が1つ増え、クリアすると次の危険度が解放されます（最高{reg.maxDanger}）。条件を満たすと実績が記録されます。タイトルの「実績と記録」で一覧を見られます。
+          クリアしたステージは、危険度を上げて挑めます。危険度が1つ上がるごとに不利な条件が増え、クリアすると次の危険度が解放されます（最高+{reg.maxDanger}）。条件を満たすと実績が記録されます。タイトルの「実績と記録」で一覧を見られます。
         </p>
         <p>
           記録はこのブラウザに保存されます。別の機器やブラウザで続けるときは、「実績と記録」の画面で引き継ぎコードを作り、移した先で読み込んでください。
@@ -223,7 +223,7 @@ export function GameScreen() {
           タイトル
         </button>
         <span className="game-title">{reg.stage(update.view.config.stageId).name}</span>
-        {update.view.config.danger > 0 && <span className="game-danger">危険度 {update.view.config.danger}</span>}
+        {update.view.config.danger > 0 && <span className="game-danger">危険度 +{update.view.config.danger}</span>}
         <span className="game-turn">手番 {update.view.turnCount}</span>
         <SoundControls compact />
         {remote ? (

@@ -65,7 +65,7 @@ export function RecordsScreen() {
                   <tr key={st.id}>
                     <td>{progress.cleared.includes(st.id) || best !== undefined ? st.name : "？？？"}</td>
                     <td className="records-danger">
-                      {best === undefined ? "未クリア" : best === 0 ? "クリア（通常）" : `危険度 ${best} / ${reg.maxDanger}`}
+                      {best === undefined ? "未クリア" : best === 0 ? "クリア（通常）" : `危険度 +${best} / +${reg.maxDanger}`}
                     </td>
                   </tr>
                 );

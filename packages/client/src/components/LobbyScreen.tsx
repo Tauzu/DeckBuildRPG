@@ -225,7 +225,7 @@ function RoomView() {
         <div>
           <p>
             {stage.tutorial ? "チュートリアル" : stage.name}
-            {room.danger > 0 && `（危険度${room.danger}）`}（ボス：{reg.enemy(stage.bossId).name}）
+            {room.danger > 0 && `（危険度+${room.danger}）`}（ボス：{reg.enemy(stage.bossId).name}）
           </p>
           {room.danger > 0 && (
             <ul className="danger-list">

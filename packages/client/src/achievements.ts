@@ -88,14 +88,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     text: "すべてのステージをクリアする",
     check: (c) => realStages(c.reg).every((s) => c.progress.cleared.includes(s.id)),
   },
-  { id: "danger1", group: "進行", name: "危険を恐れず", text: "危険度1以上で勝つ", check: (c) => win(c) && c.danger >= 1 },
-  { id: "danger5", group: "進行", name: "歴戦の勇士", text: "危険度3以上で勝つ", check: (c) => win(c) && c.danger >= 3 },
-  { id: "danger10", group: "進行", name: "伝説の英雄", text: "最高の危険度（5）で勝つ", check: (c) => win(c) && c.danger >= 5 },
+  { id: "danger1", group: "進行", name: "危険を恐れず", text: "危険度+1以上で勝つ", check: (c) => win(c) && c.danger >= 1 },
+  { id: "danger5", group: "進行", name: "歴戦の勇士", text: "危険度+3以上で勝つ", check: (c) => win(c) && c.danger >= 3 },
+  { id: "danger10", group: "進行", name: "伝説の英雄", text: "最高の危険度（+5）で勝つ", check: (c) => win(c) && c.danger >= 5 },
   {
     id: "all_danger10",
     group: "進行",
     name: "辺境の伝説",
-    text: "すべてのステージを最高の危険度（5）でクリアする",
+    text: "すべてのステージを最高の危険度（+5）でクリアする",
     check: (c) => realStages(c.reg).every((s) => (c.progress.bestDanger[s.id] ?? -1) >= c.reg.maxDanger),
   },
   // 戦い方
