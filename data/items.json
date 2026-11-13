@@ -11,10 +11,10 @@
   { "id": "weapon_bow", "name": "狩りの弓", "type": "weapon", "cost": 4, "gold": 1, "physical": 2, "magic": 0, "ability": { "kind": "defeatExp", "amount": 1 } },
   { "id": "weapon_hammer", "name": "破魔の槌", "type": "weapon", "cost": 5, "gold": 1, "physical": 3, "magic": 0, "ability": { "kind": "pierce" } },
   { "id": "weapon_sage", "name": "賢者の杖", "type": "weapon", "cost": 5, "gold": 1, "physical": 0, "magic": 2, "ability": { "kind": "perLevel", "physical": 0, "magic": 1 } },
-  { "id": "weapon_axe", "name": "戦斧", "type": "weapon", "cost": 6, "gold": 1, "physical": 6, "magic": 0, "ability": null },
-  { "id": "weapon_tome", "name": "魔導書", "type": "weapon", "cost": 6, "gold": 1, "physical": 0, "magic": 6, "ability": null },
-  { "id": "weapon_amulet", "name": "聖なる護符", "type": "weapon", "cost": 5, "gold": 1, "physical": 0, "magic": 3, "ability": { "kind": "pierce" } },
-  { "id": "weapon_mithril", "name": "聖銀の剣", "type": "weapon", "cost": 7, "gold": 2, "physical": 4, "magic": 4, "ability": null },
+  { "id": "weapon_axe", "name": "戦斧", "type": "weapon", "cost": 6, "gold": 1, "physical": 5, "magic": 0, "ability": null },
+  { "id": "weapon_tome", "name": "魔導書", "type": "weapon", "cost": 6, "gold": 1, "physical": 0, "magic": 5, "ability": null },
+  { "id": "weapon_amulet", "name": "聖なる護符", "type": "weapon", "cost": 7, "gold": 1, "physical": 0, "magic": 3, "ability": { "kind": "pierce" } },
+  { "id": "weapon_mithril", "name": "聖銀の剣", "type": "weapon", "cost": 8, "gold": 2, "physical": 4, "magic": 4, "ability": null },
 
   { "id": "curse", "name": "呪い", "type": "curse", "cost": null, "gold": 0 }
 ]

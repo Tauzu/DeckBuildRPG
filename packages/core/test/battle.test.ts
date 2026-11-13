@@ -107,7 +107,9 @@ describe("敵を倒す（仕様書 5.3）", () => {
   });
 
   it("撃破した直後に、戦った英雄（場）をレベルアップできる。終えると手番が終わる", () => {
-    const { s: s0, h } = battle(["hero_knight_1", "hero_mage_1"], "enemy_goblin");
+    const { s: b0, h } = battle(["hero_knight_1", "hero_mage_1"], "enemy_goblin");
+    // 他にも敵がいるので、進軍は飛ばされる
+    const s0 = placeEnemy(b0, 4, "enemy_wolf").state;
     let s = mutate(s0, (d) => {
       d.players[0]!.exp = 1;
     });
@@ -135,11 +137,30 @@ describe("敵を倒す（仕様書 5.3）", () => {
     expect(s.step.kind).toBe("chooseAction");
   });
 
-  it("村効果は戦闘では発動しない", () => {
+  it("敵を倒して魔物が1体もいなくなったときは、進軍を飛ばさず必ず1体補充する", () => {
+    const { s: s0, h } = battle(["hero_knight_1"], "enemy_goblin");
+    const emptied = mutate(s0, (d) => {
+      d.route.forEach((sq, i) => {
+        d.route[i] = sq.filter((c) => c.defId === "enemy_goblin");
+      });
+    });
+    let s = act(emptied, "p1", { type: "playHero", uid: uidOf(h, "hero_knight_1") }).state;
+    s = act(s, "p1", { type: "confirmAttack" }).state;
+    const r = act(s, "p1", { type: "finishBattle" });
+    expect(r.events.some((e) => e.type === "marchSkipped")).toBe(false);
+    expect(r.events.some((e) => e.type === "enemyRevealed")).toBe(true);
+    expect(r.state.route.flat()).toHaveLength(1);
+  });
+
+  it("村効果は戦闘では発動しない（カードを引く効果だけは働く）", () => {
     const { s: s0, h } = battle(["food_bread", "hero_bard_1"], "enemy_goblin");
     let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
     s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_bard_1") }).state;
-    expect(hand(s)).toHaveLength(0);
+    expect(hand(s)).toHaveLength(2);
+    // 金や経験値などは戦闘では働かない
+    const thief = battle(["food_bread", "hero_thief_1"], "enemy_goblin");
+    const t = act(act(thief.s, "p1", { type: "playFood", uid: uidOf(thief.h, "food_bread") }).state, "p1", { type: "playHero", uid: uidOf(thief.h, "hero_thief_1") }).state;
+    expect(hand(t)).toHaveLength(0);
   });
 
   it("進軍ルートに敵がいなければ戦闘は選べない", () => {

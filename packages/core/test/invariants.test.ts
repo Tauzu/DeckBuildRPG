@@ -11,7 +11,7 @@ import {
   viewFor,
 } from "../src/index.js";
 import { rngStep } from "../src/rng.js";
-import { act, allCards, players, reg } from "./helpers.js";
+import { act, allCards, errorOf, players, reg } from "./helpers.js";
 
 /** テスト用の小さな乱数 */
 function makeRandom(seed: number) {
@@ -39,7 +39,9 @@ function randomAction(s: GameState, playerId: string, rand: (n: number) => numbe
     const n = rand(Math.min(legal.selection.max, pool.length) + 1);
     const uids: string[] = [];
     for (let i = 0; i < n; i++) uids.push(...pool.splice(rand(pool.length), 1));
-    return { type: "resolveTrash", uids };
+    const action: Action = { type: "resolveTrash", uids };
+    // 使った金が足りなくなる選び方は拒否されるので、そのときは何も廃棄しない
+    return errorOf(s, playerId, action) ? { type: "resolveTrash", uids: [] } : action;
   }
   const ok = legal.options.filter((o) => o.reason === null).map((o) => o.action);
   const finishing = ok.filter((a) => a.type === "endVisit" || a.type === "confirmAttack" || a.type === "finishBattle");

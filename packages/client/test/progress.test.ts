@@ -164,7 +164,7 @@ describe("実績", () => {
   });
 
   it("危険度の実績", () => {
-    const r = recordGameEnd({ ...base, danger: 5, villageHp: 3, tally: { ...emptyTally(), bought: Array(9).fill("weapon_sword") } });
+    const r = recordGameEnd({ ...base, danger: 3, villageHp: 3, tally: { ...emptyTally(), bought: Array(9).fill("weapon_sword") } });
     expect(ids(r.unlocked)).toEqual(["danger1", "danger5", "first_win"]);
   });
 

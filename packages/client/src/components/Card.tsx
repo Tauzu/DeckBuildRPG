@@ -4,7 +4,7 @@ import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
 import { useLongPress } from "../hooks.js";
 import { reg, useStore } from "../store.js";
-import { cardTitle, describeEffect, describeWeaponAbility, resistText } from "../text.js";
+import { battleEffectText, cardTitle, describeEffect, describeWeaponAbility, resistText } from "../text.js";
 
 interface Props {
   defId: string;
@@ -105,6 +105,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
             <span className="stat-mag" title="魔法攻撃力">魔 {def.magic}</span>
           </div>
           {def.villageEffect && <div className="card-text">村：{describeEffect(def.villageEffect)}</div>}
+          {def.villageEffect && battleEffectText(def.villageEffect) && <div className="card-text">戦闘中も：{battleEffectText(def.villageEffect)}</div>}
           {def.nextLevelExp !== null && <div className="card-note">次のLvまで 経験値{def.nextLevelExp}</div>}
           {def.level === 0 && <div className="card-note">経験値2で転職できる</div>}
         </div>

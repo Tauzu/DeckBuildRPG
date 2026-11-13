@@ -14,14 +14,14 @@
   { "id": "hero_hunter_3", "name": "狩人", "type": "hero", "cost": 10, "gold": 1, "heroId": "hunter", "level": 3, "physical": 5, "magic": 3, "villageEffect": { "kind": "exp", "amount": 1 }, "nextLevelExp": null },
 
   { "id": "hero_priest_1", "name": "僧侶", "type": "hero", "cost": 4, "gold": 1, "heroId": "priest", "level": 1, "physical": 1, "magic": 1, "villageEffect": { "kind": "trash", "count": 1 }, "nextLevelExp": 2 },
-  { "id": "hero_priest_2", "name": "僧侶", "type": "hero", "cost": 7, "gold": 1, "heroId": "priest", "level": 2, "physical": 1, "magic": 2, "villageEffect": { "kind": "trash", "count": 1 }, "nextLevelExp": 4 },
-  { "id": "hero_priest_3", "name": "僧侶", "type": "hero", "cost": 10, "gold": 1, "heroId": "priest", "level": 3, "physical": 2, "magic": 3, "villageEffect": { "kind": "trash", "count": 2 }, "nextLevelExp": null },
+  { "id": "hero_priest_2", "name": "僧侶", "type": "hero", "cost": 7, "gold": 1, "heroId": "priest", "level": 2, "physical": 1, "magic": 3, "villageEffect": { "kind": "trash", "count": 1 }, "nextLevelExp": 4 },
+  { "id": "hero_priest_3", "name": "僧侶", "type": "hero", "cost": 10, "gold": 1, "heroId": "priest", "level": 3, "physical": 2, "magic": 4, "villageEffect": { "kind": "trash", "count": 2 }, "nextLevelExp": null },
 
   { "id": "hero_thief_1", "name": "盗賊", "type": "hero", "cost": 4, "gold": 1, "heroId": "thief", "level": 1, "physical": 2, "magic": 0, "villageEffect": { "kind": "gold", "amount": 1 }, "nextLevelExp": 2 },
-  { "id": "hero_thief_2", "name": "盗賊", "type": "hero", "cost": 7, "gold": 2, "heroId": "thief", "level": 2, "physical": 3, "magic": 0, "villageEffect": { "kind": "gold", "amount": 2 }, "nextLevelExp": 4 },
-  { "id": "hero_thief_3", "name": "盗賊", "type": "hero", "cost": 10, "gold": 2, "heroId": "thief", "level": 3, "physical": 4, "magic": 1, "villageEffect": { "kind": "gold", "amount": 3 }, "nextLevelExp": null },
+  { "id": "hero_thief_2", "name": "盗賊", "type": "hero", "cost": 7, "gold": 2, "heroId": "thief", "level": 2, "physical": 4, "magic": 0, "villageEffect": { "kind": "gold", "amount": 2 }, "nextLevelExp": 4 },
+  { "id": "hero_thief_3", "name": "盗賊", "type": "hero", "cost": 10, "gold": 2, "heroId": "thief", "level": 3, "physical": 6, "magic": 0, "villageEffect": { "kind": "gold", "amount": 3 }, "nextLevelExp": null },
 
   { "id": "hero_bard_1", "name": "吟遊詩人", "type": "hero", "cost": 4, "gold": 1, "heroId": "bard", "level": 1, "physical": 0, "magic": 1, "villageEffect": { "kind": "draw", "count": 2 }, "nextLevelExp": 2 },
-  { "id": "hero_bard_2", "name": "吟遊詩人", "type": "hero", "cost": 7, "gold": 1, "heroId": "bard", "level": 2, "physical": 1, "magic": 1, "villageEffect": { "kind": "draw", "count": 2 }, "nextLevelExp": 4 },
-  { "id": "hero_bard_3", "name": "吟遊詩人", "type": "hero", "cost": 10, "gold": 1, "heroId": "bard", "level": 3, "physical": 1, "magic": 2, "villageEffect": { "kind": "multi", "effects": [ { "kind": "draw", "count": 2 }, { "kind": "gold", "amount": 1 } ] }, "nextLevelExp": null }
+  { "id": "hero_bard_2", "name": "吟遊詩人", "type": "hero", "cost": 7, "gold": 1, "heroId": "bard", "level": 2, "physical": 1, "magic": 2, "villageEffect": { "kind": "draw", "count": 2 }, "nextLevelExp": 4 },
+  { "id": "hero_bard_3", "name": "吟遊詩人", "type": "hero", "cost": 10, "gold": 1, "heroId": "bard", "level": 3, "physical": 2, "magic": 3, "villageEffect": { "kind": "multi", "effects": [ { "kind": "draw", "count": 2 }, { "kind": "gold", "amount": 1 } ] }, "nextLevelExp": null }
 ]

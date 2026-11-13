@@ -38,7 +38,8 @@ export function advance(ctx: Ctx): void {
         const turns = perTurn ? 1 : s.players.length;
         const skip = s.config.marchSkip === "any" ? s.roundDefeats > 0 : s.config.marchSkip === "all" ? s.roundDefeats >= turns : false;
         s.roundDefeats = 0;
-        if (skip) {
+        // 魔物が1体もいないときは、倒した直後でも必ず補充する（選べる行動がなくなるため）
+        if (skip && s.route.some((r) => r.length > 0)) {
           // 敵を撃破したので進軍しない
           ctx.events.push({ type: "marchSkipped", playerId: currentPlayer(s).id });
           s.step = { kind: "nextTurn" };

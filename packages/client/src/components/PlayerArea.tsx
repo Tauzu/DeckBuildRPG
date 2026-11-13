@@ -1,6 +1,6 @@
 import type { Action, CardInstance } from "@deckbuild/core";
 import { findOption, reasonText, reg, useStore } from "../store.js";
-import { describeEffect, HERO_NAMES } from "../text.js";
+import { battleEffectText, describeEffect, HERO_NAMES } from "../text.js";
 import { Card } from "./Card.js";
 
 /** 場と手札 */
@@ -78,7 +78,7 @@ function HandCard({ card }: { card: CardInstance }) {
     } else if (def.type === "hero") {
       hint =
         step === "battle"
-          ? "クリックで場に出して戦わせる"
+          ? `クリックで場に出して戦わせる${def.villageEffect && battleEffectText(def.villageEffect) ? `（${battleEffectText(def.villageEffect)}）` : ""}`
           : def.villageEffect
             ? `クリックで場に出す（村効果：${describeEffect(def.villageEffect)}）`
             : "クリックで場に出す（村効果はない。集落では金価値として使う）";

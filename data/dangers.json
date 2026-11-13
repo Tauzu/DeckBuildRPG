@@ -1,12 +1,7 @@
 [
-  { "level": 1, "text": "ボスの生命力 +5%", "add": { "bossHpPct": 5 } },
-  { "level": 2, "text": "集落の耐久値 −3、ボスの生命力 さらに +5%", "add": { "villageHp": -3, "bossHpPct": 5 } },
-  { "level": 3, "text": "ボスが早く現れる（魔物の山札 −1枚）", "add": { "enemyDeckTrim": 1 } },
-  { "level": 4, "text": "魔物（ボス以外）の生命力 +1", "add": { "enemyHp": 1 } },
-  { "level": 5, "text": "ボスの生命力 さらに +5%", "add": { "bossHpPct": 5 } },
-  { "level": 6, "text": "最初の山札に呪いが1枚入る", "add": { "startCurses": 1 } },
-  { "level": 7, "text": "ボスがさらに早く現れる（魔物の山札 さらに −1枚）", "add": { "enemyDeckTrim": 1 } },
-  { "level": 8, "text": "ボスの生命力 さらに +5%", "add": { "bossHpPct": 5 } },
-  { "level": 9, "text": "集落の耐久値 さらに −3、魔物（ボス以外）の生命力 さらに +1", "add": { "villageHp": -3, "enemyHp": 1 } },
-  { "level": 10, "text": "ボスの生命力 さらに +10%", "add": { "bossHpPct": 10 } }
+  { "level": 1, "text": "ボスの生命力 +10%、集落の耐久値 −3", "add": { "bossHpPct": 10, "villageHp": -3 } },
+  { "level": 2, "text": "魔物（ボス以外）の生命力 +1、ボスの生命力 さらに +5%、ボスが早く現れる（魔物の山札 −1枚）", "add": { "bossHpPct": 5, "enemyHp": 1, "enemyDeckTrim": 1 } },
+  { "level": 3, "text": "最初の山札に呪いが1枚入る、ボスがさらに早く現れる（魔物の山札 さらに −1枚）", "add": { "startCurses": 1, "enemyDeckTrim": 1 } },
+  { "level": 4, "text": "集落の耐久値 さらに −3、魔物（ボス以外）の生命力 さらに +1、ボスの生命力 さらに +5%", "add": { "villageHp": -3, "enemyHp": 1, "bossHpPct": 5 } },
+  { "level": 5, "text": "ボスの生命力 さらに +10%、最初の山札に呪いがさらに1枚入る", "add": { "bossHpPct": 10, "startCurses": 1 } }
 ]

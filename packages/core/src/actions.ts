@@ -12,7 +12,7 @@ import {
 import { enqueueEffect } from "./effects.js";
 import { endGame } from "./flow.js";
 import { battleAttackers, bonusExpOnDefeat, calcDamage, cardsGold, enemyHp } from "./rules.js";
-import type { Action, CardInstance, PlayerState } from "./types.js";
+import type { Action, CardInstance, Effect, PlayerState } from "./types.js";
 
 export function dispatch(ctx: Ctx, playerId: string, action: Action): void {
   const s = ctx.s;
@@ -152,7 +152,19 @@ function playHero(ctx: Ctx, uid: string): void {
   turn.usedSlots += 1;
   markActed(ctx);
   ctx.events.push({ type: "cardPlayed", playerId: p.id, uid, defId: card.defId });
-  if (turn.action === "village" && def.villageEffect) enqueueEffect(ctx, def.villageEffect, uid, p.id);
+  if (def.villageEffect) {
+    if (turn.action === "village") enqueueEffect(ctx, def.villageEffect, uid, p.id);
+    else if (turn.action === "battle") {
+      // 戦闘中に出しても、カードを引く効果だけは働く（吟遊詩人）
+      const draws = drawEffects(def.villageEffect);
+      for (const e of draws) enqueueEffect(ctx, e, uid, p.id);
+    }
+  }
+}
+
+function drawEffects(e: Effect): Effect[] {
+  if (e.kind === "draw") return [e];
+  return e.kind === "multi" ? e.effects.flatMap(drawEffects) : [];
 }
 
 // ---------------------------------------------------------------------------

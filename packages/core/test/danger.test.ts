@@ -70,8 +70,8 @@ describe("危険度", () => {
     expect(replay(record, testReg)).toEqual(game(3));
   });
 
-  it("標準データの危険度は1から順に並び、最高は10", () => {
-    expect(reg.maxDanger).toBe(10);
+  it("標準データの危険度は1から順に並び、最高は5", () => {
+    expect(reg.maxDanger).toBe(5);
     reg.dangers.forEach((d, i) => expect(d.level).toBe(i + 1));
   });
 

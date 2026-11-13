@@ -190,3 +190,9 @@ export function touchText(s: string): string {
   const touch = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
   return touch ? s.replaceAll("クリック", "タップ") : s;
 }
+
+/** 英雄の村効果のうち、戦闘中に出しても働くもの（カードを引く効果だけ） */
+export function battleEffectText(e: Effect): string | null {
+  const draws = e.kind === "draw" ? [e] : e.kind === "multi" ? e.effects.filter((x) => x.kind === "draw") : [];
+  return draws.length > 0 ? draws.map(describeEffect).join("、") : null;
+}
