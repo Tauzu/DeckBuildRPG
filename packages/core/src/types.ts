@@ -290,8 +290,6 @@ export interface GameState {
   config: GameConfig;
   players: PlayerState[];
   currentPlayer: number;
-  /** このラウンドでこれから手番が回ってくるプレイヤー（players の添字）。空になったらラウンドの終わりで、次のラウンドの順番をランダムに決め直す */
-  turnQueue: number[];
   turnCount: number;
   step: Step;
   turn: TurnState | null;

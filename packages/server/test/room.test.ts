@@ -48,8 +48,8 @@ describe("ルーム（仕様書 9.2）", () => {
     room.setStage("p1", "tutorial");
     expect(() => room.start("p1")).toThrow("1人で遊ぶステージ");
     room.setStage("p1", "stage1");
-    room.start("p1", 5);
-    expect(room.state?.players.map((p) => p.id)).toEqual(["p1", "p2"]);
+    room.start("p1", 1);
+    expect(room.state?.players.map((p) => p.id).sort()).toEqual(["p1", "p2"]);
     expect(room.state?.config.stageId).toBe("stage1");
   });
 
@@ -62,7 +62,7 @@ describe("ルーム（仕様書 9.2）", () => {
     expect(() => room.setStage("p1", "stage1", reg.maxDanger + 1)).toThrow("危険度は");
     expect(() => room.setStage("p1", "tutorial", 1)).toThrow("チュートリアル");
     expect(room.danger).toBe(3);
-    room.start("p1", 5);
+    room.start("p1", 1);
     expect(room.state?.config.danger).toBe(3);
     expect(room.record?.danger).toBe(3);
   });
@@ -71,7 +71,7 @@ describe("ルーム（仕様書 9.2）", () => {
     const { room, sent } = setup();
     room.join("あ", "s1");
     room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     const u1 = sent.states.get("s1")!;
     const u2 = sent.states.get("s2")!;
     expect(u1.view.viewerId).toBe("p1");
@@ -85,7 +85,7 @@ describe("ルーム（仕様書 9.2）", () => {
     const { room, sent } = setup();
     room.join("あ", "s1");
     room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     room.handleAction("p2", { type: "chooseVillage" });
     expect(sent.errors).toHaveLength(1);
     room.handleAction("p1", { type: "chooseVillage" });
@@ -98,7 +98,7 @@ describe("ルーム（仕様書 9.2）", () => {
     const { room } = setup();
     room.join("あ", "s1");
     room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     room.handleAction("p1", { type: "chooseVillage" });
     room.handleAction("p1", { type: "endVisit" });
     room.disconnect("s2");
@@ -113,7 +113,7 @@ describe("ルーム（仕様書 9.2）", () => {
     const { room, sent } = setup();
     const a = room.join("あ", "s1");
     const b = room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     room.handleAction("p1", { type: "chooseVillage" });
     room.handleAction("p1", { type: "endVisit" });
     room.disconnect("s2");
@@ -131,7 +131,7 @@ describe("ルーム（仕様書 9.2）", () => {
     const { room } = setup();
     room.join("あ", "s1");
     room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     room.disconnect("s2");
     vi.advanceTimersByTime(T.seatMs);
     expect(room.member("p2")?.auto).toBe(true);
@@ -148,7 +148,7 @@ describe("ルーム（仕様書 9.2）", () => {
     expect(a.sent.disposed).toBe(true);
     const b = setup();
     b.room.join("あ", "s1");
-    b.room.start("p1", 5);
+    b.room.start("p1", 1);
     b.room.disconnect("s1");
     expect(b.sent.disposed).toBe(false);
     vi.advanceTimersByTime(T.emptyRoomMs);
@@ -159,7 +159,7 @@ describe("ルーム（仕様書 9.2）", () => {
     const { room } = setup();
     room.join("あ", "s1");
     room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     room.leave("s1");
     room.leave("s2");
     expect(room.state?.result).not.toBeNull();
@@ -169,7 +169,7 @@ describe("ルーム（仕様書 9.2）", () => {
     const { room } = setup();
     room.join("あ", "s1");
     room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     expect(() => room.backToLobby("p1")).toThrow("終わってから");
     room.state = { ...room.state!, result: { outcome: "lose", reason: "bossArrived", rank: "C", villageHp: 0, mvp: [], titles: {} } };
     room.backToLobby("p1");
@@ -184,7 +184,7 @@ describe("つながっているのに操作しない人（放置）", () => {
     const x = setup();
     x.room.join("あ", "s1");
     x.room.join("い", "s2");
-    x.room.start("p1", 5);
+    x.room.start("p1", 1);
     return x;
   };
 
@@ -243,7 +243,7 @@ describe("残り時間を更新に載せる", () => {
     const { room, sent } = setup();
     room.join("あ", "s1");
     room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     expect(sent.states.get("s1")?.timeLeftMs).toBe(T.idleTurnMs);
     expect(sent.states.get("s2")?.timeLeftMs).toBe(T.idleTurnMs);
     vi.advanceTimersByTime(2000);
@@ -255,7 +255,7 @@ describe("残り時間を更新に載せる", () => {
     const { room, sent } = setup();
     room.join("あ", "s1");
     room.join("い", "s2");
-    room.start("p1", 5);
+    room.start("p1", 1);
     room.disconnect("s1");
     room.handleAction("p1", { type: "chooseVillage" });
     room.resume(room.member("p1")!.token, "s9");

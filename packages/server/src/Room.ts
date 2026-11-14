@@ -248,9 +248,9 @@ export class Room {
       throw new RoomError(`「${stage.name}」は${ok}人で遊ぶステージです（今は${n}人）`);
     }
     const players = this.members.map((m) => ({ id: m.playerId, name: m.name }));
-    const created = createGame({ seed, players, stageId: this.stageId, danger: this.danger }, this.reg);
+    const created = createGame({ seed, players, stageId: this.stageId, danger: this.danger, shuffleOrder: true }, this.reg);
     this.state = created.state;
-    this.record = newRecord(seed, players, this.reg, this.stageId, this.danger);
+    this.record = newRecord(seed, players, this.reg, this.stageId, this.danger, true);
     this.hooks.log("ゲーム開始", { room: this.code, stage: this.stageId, danger: this.danger, players: n, seed });
     this.broadcastRoom();
     this.afterChange(created.events);

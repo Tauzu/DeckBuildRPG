@@ -41,9 +41,9 @@ export class LocalConnection implements GameConnection {
     danger = 0,
   ) {
     const players = [{ id: this.playerId, name: playerName }];
-    const created = createGame({ seed, players, stageId, danger }, reg);
+    const created = createGame({ seed, players, stageId, danger, shuffleOrder: true }, reg);
     this.state = created.state;
-    this.rec = newRecord(seed, players, reg, stageId, danger);
+    this.rec = newRecord(seed, players, reg, stageId, danger, true);
     this.last = this.makeUpdate(created.events, null);
   }
 

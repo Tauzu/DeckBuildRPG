@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, isEngineError, timeoutAction } from "../src/index.js";
+import { createGame, applyAction, isEngineError, timeoutAction } from "../src/index.js";
 import { act, cards, confirmAndFinish, errorOf, mutate, placeEnemy, reg, setHand, start } from "./helpers.js";
 
 /** 集落を訪れて何もせずに手番を終える */
@@ -94,14 +94,14 @@ describe("敵の進軍（仕様書 5.4）", () => {
     s = act(s, "p1", timeoutAction(s, "p1")!).state;
     s = act(s, "p2", timeoutAction(s, "p2")!).state;
 
-    // 2ラウンド目（順番はランダム）の終わり → 進軍時：次のラウンドの最初の手番のプレイヤーだけ
-    const first = s.players[s.currentPlayer]!.id;
-    const second = s.players[s.turnQueue[0]!]!.id;
-    s = pass(s, first).state;
+    expect(s.currentPlayer).toBe(0);
+
+    // 2ラウンド目の終わり → 進軍時：次の手番の p1 だけ
+    s = pass(s, "p1").state;
     expect(s.pending).toBeNull();
-    s = pass(s, second).state;
+    s = pass(s, "p2").state;
     if (s.pending?.kind !== "discard") throw new Error("入力待ちになっていません");
-    expect(s.pending.requests.map((r) => r.playerId)).toEqual([s.players[s.currentPlayer]!.id]);
+    expect(s.pending.requests.map((r) => r.playerId)).toEqual(["p1"]);
   });
 
   it("2人以上では、敵は全員の手番が終わるごと（1ラウンドに1回）に進む", () => {
@@ -113,8 +113,19 @@ describe("敵の進軍（仕様書 5.4）", () => {
     r = pass(r.state, "p2");
     expect(r.state.route[2]!.map((c) => c.uid)).toEqual([uid]);
     expect(r.state.enemyDeck).toHaveLength(deck - 1);
-    // 次のラウンドも全員が1回ずつ手番を持つ（順番はランダム）
-    expect([r.state.currentPlayer, ...r.state.turnQueue].sort()).toEqual([0, 1]);
+    expect(r.state.currentPlayer).toBe(0);
+  });
+
+  it("手番順は、shuffleOrder を指定するとゲーム開始時にランダムに決まり、その後は固定", () => {
+    const players = [1, 2, 3, 4].map((i) => ({ id: `p${i}`, name: `p${i}` }));
+    const orders = new Set<string>();
+    for (let seed = 1; seed <= 20; seed++) {
+      const s = createGame({ seed, players, shuffleOrder: true }, reg).state;
+      orders.add(s.players.map((p) => p.id).join());
+      expect(s.players.map((p) => p.id).sort()).toEqual(["p1", "p2", "p3", "p4"]);
+    }
+    expect(orders.size).toBeGreaterThan(1);
+    expect(createGame({ seed: 1, players }, reg).state.players.map((p) => p.id)).toEqual(["p1", "p2", "p3", "p4"]);
   });
 
   it("手番の冒頭に進軍ルートが空なら、1体補充する", () => {

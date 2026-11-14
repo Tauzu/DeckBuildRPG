@@ -54,7 +54,7 @@ const handlers: { [K in Effect["kind"]]: Handler<K> } = {
   discardHand(ctx, e) {
     const s = ctx.s;
     const targets =
-      e.target === "all" ? s.players : [s.players[s.turnQueue[0] ?? (s.currentPlayer + 1) % s.players.length]].filter((p) => p !== undefined);
+      e.target === "all" ? s.players : [s.players[(s.currentPlayer + 1) % s.players.length]].filter((p) => p !== undefined);
     const requests = targets
       .filter((p) => p.hand.length > 0)
       .map((p) => ({ playerId: p.id, count: Math.min(e.count, p.hand.length), done: false }));

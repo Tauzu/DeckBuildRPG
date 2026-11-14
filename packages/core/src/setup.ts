@@ -12,13 +12,15 @@ export interface CreateGameParams {
   stageId?: string;
   /** 危険度（省略すると 0＝通常） */
   danger?: number;
+  /** 手番の順番をランダムに決める（ゲーム中は固定）。省略すると渡した順のまま */
+  shuffleOrder?: boolean;
 }
 
 /** 危険度で敵を減らしても、ボスの束より前に残す敵の数 */
 const MIN_ENEMIES_BEFORE_BOSS = 3;
 
 export function createGame(params: CreateGameParams, reg: CardRegistry): EngineResult {
-  const { players } = params;
+  const players = [...params.players];
   if (players.length < 1 || players.length > 4) throw new Error("プレイ人数は1～4人です");
   if (new Set(players.map((p) => p.id)).size !== players.length) throw new Error("プレイヤーIDが重複しています");
 
@@ -59,8 +61,6 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     },
     players: [],
     currentPlayer: 0,
-    // 最初のラウンドは席順。2ラウンド目からランダム
-    turnQueue: players.slice(1).map((_, i) => i + 1),
     turnCount: 1,
     step: { kind: "chooseAction" },
     turn: null,
@@ -111,6 +111,9 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
   const before = [...early, ...late];
   before.splice(before.length - Math.min(mod.enemyDeckTrim, Math.max(0, before.length - MIN_ENEMIES_BEFORE_BOSS)));
   s.enemyDeck = [...before, ...bossGroup];
+
+  // 手番の順番（ゲーム中は固定）
+  if (params.shuffleOrder) shuffleInPlace(s, players);
 
   // プレイヤー
   for (const info of players) {

@@ -57,25 +57,29 @@ describe("Socket.IO でのやりとり", () => {
     expect(await ask<Reply>(b.s, "room:start")).toEqual({ ok: false, error: "ルームを作った人だけができる操作です" });
     expect(await ask<Reply>(a.s, "room:start")).toEqual({ ok: true });
     await until(() => !!a.box.state && !!b.box.state);
-    expect(a.box.state?.legal.waitingForMe).toBe(true);
-    expect(a.box.state?.view.config.stageId).toBe("stage1");
+    // 手番の順番は開始時にランダムに決まるので、先に手番が回ってくる人を調べる
+    const first = a.box.state?.legal.waitingForMe ? a : b;
+    const second = first === a ? b : a;
+    const secondIndex = second === a ? 0 : 1;
+    expect(first.box.state?.legal.waitingForMe).toBe(true);
+    expect(first.box.state?.view.config.stageId).toBe("stage1");
 
     // 不正な形の操作は弾く
-    a.s.emit("game:action", { action: { type: "buy" } });
-    await until(() => a.box.errors.length === 1);
+    first.s.emit("game:action", { action: { type: "buy" } });
+    await until(() => first.box.errors.length === 1);
 
-    a.s.emit("game:action", { action: { type: "chooseVillage" } });
-    a.s.emit("game:action", { action: { type: "endVisit" } });
-    await until(() => b.box.state?.legal.waitingForMe === true);
+    first.s.emit("game:action", { action: { type: "chooseVillage" } });
+    first.s.emit("game:action", { action: { type: "endVisit" } });
+    await until(() => second.box.state?.legal.waitingForMe === true);
 
-    // ボブが切断 → 新しい接続で戻る
+    // 2人目が切断 → 新しい接続で戻る
     if (!joined.ok) return;
-    b.s.disconnect();
-    await until(() => a.box.room?.members[1]?.connected === false);
+    second.s.disconnect();
+    await until(() => first.box.room?.members[secondIndex]?.connected === false);
     const b2 = client();
-    const resumed = await ask<JoinReply>(b2.s, "room:resume", { code: joined.code, token: joined.token });
-    expect(resumed).toMatchObject({ ok: true, playerId: joined.playerId });
+    const resumed = await ask<JoinReply>(b2.s, "room:resume", { code: second === b ? joined.code : created.code, token: second === b ? joined.token : created.token });
+    expect(resumed).toMatchObject({ ok: true });
     await until(() => b2.box.state?.legal.waitingForMe === true);
-    await until(() => a.box.room?.members[1]?.connected === true);
+    await until(() => first.box.room?.members[secondIndex]?.connected === true);
   });
 });

@@ -1,6 +1,5 @@
 // 自動進行：手番の終了、敵の進軍、次の手番、勝敗（設計書 2.4、仕様書 5.1・5.4・7章）
 import { type Ctx, currentPlayer, drawCards } from "./context.js";
-import { shuffleInPlace } from "./rng.js";
 import { enqueueEffect, processNextEffect } from "./effects.js";
 import type { GameResult, GameState, Rank } from "./types.js";
 
@@ -32,14 +31,9 @@ export function advance(ctx: Ctx): void {
         if (step.defeated) s.roundDefeats += 1;
         // 進軍の時機：手番ごと、またはラウンドの最後の手番の後（仕様書 5.4）
         const perTurn = s.config.marchTiming === "turn";
-        if (!perTurn && s.turnQueue.length > 0) {
+        if (!perTurn && s.currentPlayer < s.players.length - 1) {
           s.step = { kind: "nextTurn" };
           break;
-        }
-        if (!perTurn && s.turnQueue.length === 0) {
-          // ラウンドの終わり：次のラウンドの手番の順番をランダムに決める（進軍時の「次の手番」もこの順）
-          s.turnQueue = s.players.map((_, i) => i);
-          shuffleInPlace(s, s.turnQueue);
         }
         const turns = perTurn ? 1 : s.players.length;
         const skip = s.config.marchSkip === "any" ? s.roundDefeats > 0 : s.config.marchSkip === "all" ? s.roundDefeats >= turns : false;
@@ -67,11 +61,7 @@ export function advance(ctx: Ctx): void {
         }
         break;
       case "nextTurn":
-        if (s.turnQueue.length === 0) {
-          s.turnQueue = s.players.map((_, i) => i);
-          shuffleInPlace(s, s.turnQueue);
-        }
-        s.currentPlayer = s.turnQueue.shift()!;
+        s.currentPlayer = (s.currentPlayer + 1) % s.players.length;
         s.turnCount += 1;
         s.step = { kind: "chooseAction" };
         ctx.events.push({ type: "turnStarted", playerId: currentPlayer(s).id, turnCount: s.turnCount });

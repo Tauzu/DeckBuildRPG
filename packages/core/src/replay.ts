@@ -11,6 +11,8 @@ export interface GameRecord {
   stageId: string;
   /** 危険度（古い記録にはない＝0） */
   danger?: number;
+  /** 手番順をランダムに決めて始めたか（古い記録にはない＝席順のまま） */
+  shuffleOrder?: boolean;
   dataHash: string;
   actions: { playerId: string; action: Action }[];
 }
@@ -21,13 +23,14 @@ export function newRecord(
   reg: CardRegistry,
   stageId: string = reg.defaultStageId,
   danger = 0,
+  shuffleOrder = false,
 ): GameRecord {
-  return { version: 1, seed, players, stageId, danger, dataHash: reg.hash, actions: [] };
+  return { version: 1, seed, players, stageId, danger, shuffleOrder, dataHash: reg.hash, actions: [] };
 }
 
 export function replay(record: GameRecord, reg: CardRegistry): GameState {
   if (record.dataHash !== reg.hash) throw new Error("カードデータが記録と異なるため再現できません");
-  let state = createGame({ seed: record.seed, players: record.players, stageId: record.stageId, danger: record.danger ?? 0 }, reg).state;
+  let state = createGame({ seed: record.seed, players: record.players, stageId: record.stageId, danger: record.danger ?? 0, shuffleOrder: record.shuffleOrder ?? false }, reg).state;
   record.actions.forEach(({ playerId, action }, i) => {
     const r = applyAction(state, playerId, action, reg);
     if (isEngineError(r)) throw new Error(`記録の ${i} 番目の操作が失敗しました: ${r.error} ${r.message}`);
