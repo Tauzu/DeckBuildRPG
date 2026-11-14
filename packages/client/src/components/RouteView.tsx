@@ -1,5 +1,5 @@
 import { findOption, reasonText, reg, useStore } from "../store.js";
-import { enemyHp } from "@deckbuild/core";
+import { enemyHp, guardedUids } from "@deckbuild/core";
 import { PixelArt } from "../art/PixelArt.js";
 import { fortSprite, villageSprite } from "../art/sprites.js";
 import { StageBackdrop } from "../art/StageBackdrop.js";
@@ -11,6 +11,9 @@ export function RouteView() {
   const { view, legal } = update;
   const choosing = view.step.kind === "chooseAction" && legal.waitingForMe;
   const target = view.turn?.action === "battle" ? view.turn.targetUid : null;
+  // 凍結・後退の対象を、進軍ルートの敵から選ぶ
+  const picking = legal.waitingForMe && legal.selection?.kind === "target" ? legal.selection : null;
+  const guarded = guardedUids(view, reg);
   const villageHits = useStore((s) => s.villageHits);
   const marches = useStore((s) => s.marches);
 
@@ -37,18 +40,34 @@ export function RouteView() {
                     small
                     hp={enemyHp(view, def)}
                     damage={view.enemyDamage[c.uid]}
-                    highlight={target === c.uid ? "target" : undefined}
-                    onClick={choosing ? () => send({ type: "chooseBattle", targetUid: c.uid }) : undefined}
+                    frozen={view.frozen.includes(c.uid)}
+                    guarded={guarded.has(c.uid)}
+                    highlight={target === c.uid ? "target" : picking?.uids.includes(c.uid) ? "selected" : undefined}
+                    onClick={
+                      picking
+                        ? picking.uids.includes(c.uid)
+                          ? () => send({ type: "chooseTarget", targetUid: c.uid })
+                          : undefined
+                        : choosing
+                          ? () => send({ type: "chooseBattle", targetUid: c.uid })
+                          : undefined
+                    }
                     hint={
                       target === c.uid
                         ? "戦闘中の相手"
-                        : choosing
+                        : picking
+                          ? picking.uids.includes(c.uid)
+                            ? picking.mode === "freeze"
+                              ? "クリックで凍結する（次の進軍で動かない）"
+                              : "クリックで1マス戻す"
+                            : "この敵は選べません"
+                          : choosing
                           ? def.isBoss
                             ? "クリックでこのボスと戦う（与えたダメージは次の手番も残る）"
                             : "クリックでこの魔物と戦う"
                           : null
                     }
-                    disabledReason={choosing ? reasonText(opt) : null}
+                    disabledReason={picking ? (picking.uids.includes(c.uid) ? null : "この敵は選べません") : choosing ? reasonText(opt) : null}
                   />
                 );
               })}

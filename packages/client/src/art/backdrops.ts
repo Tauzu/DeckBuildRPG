@@ -183,6 +183,22 @@ const SCENES: Record<string, Scene> = {
     c.speckle(31, 33, 0.15, "#ffd23c");
     c.rect(0, 33, BACKDROP_W, 3, "#160a0a");
   },
+  /** 凍てつく峠：夜明け前の雪の峠 */
+  snowpass: (c) => {
+    c.sky(["#0e1a38", "#1c3058", "#3a5a88", "#8aa8c8"]);
+    c.stars(30, 14, "#e8f0ff");
+    c.peak(30, 9, 1.5, "#6a7a9c", "#f2f6ff");
+    c.peak(88, 6, 1.4, "#74849e", "#ffffff");
+    c.peak(138, 10, 1.6, "#6a7a9c", "#f2f6ff");
+    c.ridge(23, 2, "#8a9ab8", 0.5);
+    for (let x = 4; x < BACKDROP_W; x += 8 + Math.floor(c.r() * 6)) c.pine(x, 29, 7 + Math.floor(c.r() * 5), "#2a4a5a", "#1a2a34");
+    c.rect(0, 28, BACKDROP_W, 8, "#dce8f4");
+    c.speckle(28, 36, 0.08, "#ffffff");
+    c.speckle(30, 36, 0.05, "#b4cce0");
+    // 凍った道
+    c.rect(0, 31, BACKDROP_W, 3, "#b8d4ea");
+    c.speckle(31, 34, 0.1, "#e8f6ff");
+  },
   /** どれにも当てはまらないとき：草原 */
   plains: (c) => {
     c.sky(["#2a3a5a", "#3a5078", "#506a90"]);

@@ -47,6 +47,8 @@ export interface PlayerView {
   enemyDamage: Record<string, number>;
   /** 今のラウンドで敵を撃破した手番の数 */
   roundDefeats: number;
+  /** 凍結中の敵の uid（次の進軍で動かない） */
+  frozen: string[];
   trashCount: number;
   result: GameResult | null;
 }
@@ -88,6 +90,7 @@ export function viewFor(s: GameState, viewerId: string): PlayerView {
     villageHp: s.villageHp,
     enemyDamage: s.enemyDamage,
     roundDefeats: s.roundDefeats,
+    frozen: s.frozen,
     trashCount: s.trash.length,
     result: s.result,
   };

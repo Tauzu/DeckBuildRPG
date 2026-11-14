@@ -73,6 +73,8 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     trash: [],
     enemyDamage: {},
     roundDefeats: 0,
+    frozen: [],
+    split: [],
     result: null,
   };
   const ctx: Ctx = { s, reg, events: [] };

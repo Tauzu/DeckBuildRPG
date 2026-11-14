@@ -4,7 +4,7 @@ import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
 import { useLongPress } from "../hooks.js";
 import { reg, useStore } from "../store.js";
-import { battleEffectText, cardTitle, describeEffect, describeWeaponAbility, resistText } from "../text.js";
+import { battleEffectText, cardTitle, describeEffect, describeTrait, describeWeaponAbility, resistText } from "../text.js";
 
 interface Props {
   defId: string;
@@ -16,6 +16,10 @@ interface Props {
   hp?: number | undefined;
   /** 敵に残っているダメージ */
   damage?: number | undefined;
+  /** 凍結中の敵（次の進軍で動かない） */
+  frozen?: boolean | undefined;
+  /** 護衛に守られていて選べない敵 */
+  guarded?: boolean | undefined;
   small?: boolean;
   /** マウスを乗せたときの説明（クリックすると何が起きるか）。押せないときは disabledReason を出す */
   hint?: string | null | undefined;
@@ -31,7 +35,7 @@ const TYPE_LABEL: Record<CardDef["type"], string> = {
   curse: "呪い",
 };
 
-export function Card({ defId, onClick, disabledReason, highlight, hp, damage, small, hint, badge, children }: Props) {
+export function Card({ defId, onClick, disabledReason, highlight, hp, damage, frozen, guarded, small, hint, badge, children }: Props) {
   const def = reg.get(defId);
   const clickable = !!onClick && !disabledReason;
   const classes = [
@@ -42,6 +46,8 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, sm
     clickable ? "card-clickable" : "",
     onClick && disabledReason ? "card-disabled" : "",
     highlight ? `card-${highlight}` : "",
+    frozen ? "card-frozen" : "",
+    guarded ? "card-guarded" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -82,6 +88,8 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, sm
           <span className="card-gold" title="金価値">
             金 {def.gold}
           </span>
+          {frozen && <span className="card-state card-state-frozen" title="次の進軍で動かない">❄凍結</span>}
+          {guarded && <span className="card-state card-state-guarded" title="護衛を倒すまで選べない">🛡守られ</span>}
           {badge}
         </div>
       </button>
@@ -149,6 +157,9 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
               {rm && <span>魔法{rm}</span>}
             </div>
           )}
+          {def.traits.map((t) => (
+            <div key={t} className="card-text">{describeTrait(t)}</div>
+          ))}
           {def.onReveal && <div className="card-text">出現：{describeEffect(def.onReveal)}</div>}
           {def.onMarch && <div className="card-text">進軍：{describeEffect(def.onMarch)}</div>}
           {def.isBoss && hp !== undefined && (

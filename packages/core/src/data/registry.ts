@@ -79,9 +79,10 @@ export class CardRegistry {
     return st;
   }
 
-  /** ステージを指定しないときに使うステージ（最後のステージ＝すべてのカードが登場する） */
+  /** ステージを指定しないときに使うステージ（追加ステージ以外の最後のステージ＝本編の最後） */
   get defaultStageId(): string {
-    return this.stages[this.stages.length - 1]!.id;
+    const main = this.stages.filter((st) => !st.extra);
+    return (main[main.length - 1] ?? this.stages[this.stages.length - 1]!).id;
   }
 
   has(id: CardId): boolean {
@@ -196,6 +197,10 @@ function checkConsistency(defs: CardDef[], setup: SetupData, stages: StageDef[])
 
   for (const d of defs) {
     if (d.type !== "enemy") continue;
+    if (d.traits.includes("split")) {
+      const child = d.splitInto ? byId.get(d.splitInto) : undefined;
+      if (!child || child.type !== "enemy" || child.isBoss) problems.push(`分裂する敵の splitInto がボス以外の敵ではありません: ${d.id}`);
+    }
     if (!d.isBoss && (d.hp === null || d.invasion === null)) problems.push(`ボス以外の敵には hp と invasion が必要です: ${d.id}`);
   }
 

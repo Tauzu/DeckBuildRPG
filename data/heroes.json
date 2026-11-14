@@ -23,5 +23,9 @@
 
   { "id": "hero_bard_1", "name": "吟遊詩人", "type": "hero", "cost": 4, "gold": 1, "heroId": "bard", "level": 1, "physical": 0, "magic": 1, "villageEffect": { "kind": "draw", "count": 2 }, "nextLevelExp": 2 },
   { "id": "hero_bard_2", "name": "吟遊詩人", "type": "hero", "cost": 7, "gold": 1, "heroId": "bard", "level": 2, "physical": 1, "magic": 1, "villageEffect": { "kind": "draw", "count": 2 }, "nextLevelExp": 4 },
-  { "id": "hero_bard_3", "name": "吟遊詩人", "type": "hero", "cost": 10, "gold": 1, "heroId": "bard", "level": 3, "physical": 2, "magic": 3, "villageEffect": { "kind": "multi", "effects": [ { "kind": "draw", "count": 2 }, { "kind": "gold", "amount": 1 } ] }, "nextLevelExp": null }
+  { "id": "hero_bard_3", "name": "吟遊詩人", "type": "hero", "cost": 10, "gold": 1, "heroId": "bard", "level": 3, "physical": 2, "magic": 3, "villageEffect": { "kind": "multi", "effects": [ { "kind": "draw", "count": 2 }, { "kind": "gold", "amount": 1 } ] }, "nextLevelExp": null },
+
+  { "id": "hero_frost_1", "name": "氷術師", "type": "hero", "cost": 4, "gold": 1, "heroId": "frost", "level": 1, "physical": 0, "magic": 2, "villageEffect": { "kind": "push", "count": 1 }, "nextLevelExp": 2 },
+  { "id": "hero_frost_2", "name": "氷術師", "type": "hero", "cost": 7, "gold": 1, "heroId": "frost", "level": 2, "physical": 0, "magic": 4, "villageEffect": { "kind": "freeze", "count": 1 }, "nextLevelExp": 4 },
+  { "id": "hero_frost_3", "name": "氷術師", "type": "hero", "cost": 10, "gold": 2, "heroId": "frost", "level": 3, "physical": 0, "magic": 6, "villageEffect": { "kind": "multi", "effects": [ { "kind": "push", "count": 1 }, { "kind": "freeze", "count": 1 } ] }, "nextLevelExp": null }
 ]

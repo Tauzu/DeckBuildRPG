@@ -17,7 +17,13 @@ export type Effect =
   | { kind: "trash"; count: number }
   | { kind: "multi"; effects: Effect[] }
   | { kind: "discardHand"; count: number; target: "all" | "next" }
-  | { kind: "addCurse"; count: number };
+  | { kind: "addCurse"; count: number }
+  /** 手番プレイヤーが敵を選んで凍結する（次の進軍で動かさない。ボス以外） */
+  | { kind: "freeze"; count: number }
+  /** 手番プレイヤーが敵を選んで1マス戻す（ボス以外） */
+  | { kind: "push"; count: number }
+  /** ルート上の他の敵すべてを1マス進め、凍結を解く（5マス目の敵は動かない） */
+  | { kind: "rally" };
 
 // ---------------------------------------------------------------------------
 // カード定義（仕様書 2章）
@@ -48,7 +54,9 @@ export type WeaponAbility =
   /** この武器で戦って撃破すると経験値が増える */
   | { kind: "defeatExp"; amount: number }
   /** 英雄がいなくても、武器だけで攻撃に加われる */
-  | { kind: "solo" };
+  | { kind: "solo" }
+  /** この武器を使った攻撃が撃破に失敗したとき、その敵を凍結する */
+  | { kind: "chill" };
 
 export interface WeaponDef extends BaseDef {
   type: "weapon";
@@ -62,6 +70,9 @@ export interface FoodDef extends BaseDef {
   food: number;
 }
 
+/** 敵の特性（仕様書 2.5）。guard：護衛、split：分裂、sprint：疾走 */
+export type EnemyTrait = "guard" | "split" | "sprint";
+
 export interface EnemyDef extends BaseDef {
   type: "enemy";
   /** ボスは null（人数で決まる。GameConfig.bossHp） */
@@ -74,6 +85,10 @@ export interface EnemyDef extends BaseDef {
   isBoss: boolean;
   onReveal: Effect | null;
   onMarch: Effect | null;
+  /** 常に働く特性。なければ空 */
+  traits: EnemyTrait[];
+  /** 分裂（split）で出る敵のID */
+  splitInto: CardId | null;
 }
 
 export interface CurseDef extends BaseDef {
@@ -135,6 +150,8 @@ export interface StageDef {
   tutorial?: boolean;
   /** 毎回同じ展開にするときのシード値（チュートリアル） */
   fixedSeed?: number;
+  /** 追加の挑戦ステージ（ステージを指定しないときの既定には選ばない） */
+  extra?: boolean;
   /** 進軍ルートの背景の種類（画面の art/backdrops.ts） */
   backdrop?: string;
   /** 登場する英雄 */
@@ -254,7 +271,9 @@ export type TurnState =
 
 export type Pending =
   | { kind: "trash"; playerId: string; max: number }
-  | { kind: "discard"; requests: { playerId: string; count: number; done: boolean }[] };
+  | { kind: "discard"; requests: { playerId: string; count: number; done: boolean }[] }
+  /** 凍結・後退の対象の敵を選ぶ（仕様書 5.5） */
+  | { kind: "target"; playerId: string; mode: "freeze" | "push"; uids: string[] };
 
 export interface QueuedEffect {
   effect: Effect;
@@ -307,6 +326,10 @@ export interface GameState {
   enemyDamage: Record<string, number>;
   /** 今の進軍の回（ラウンド）で、敵を撃破した手番の数 */
   roundDefeats: number;
+  /** 凍結中の敵の uid（次の進軍で動かない。仕様書 5.4） */
+  frozen: string[];
+  /** すでに分裂した敵の uid（1体1回まで。仕様書 5.3.3） */
+  split: string[];
   result: GameResult | null;
 }
 
@@ -330,7 +353,8 @@ export type Action =
   | { type: "endVisit" }
   | { type: "finishBattle" }
   | { type: "resolveTrash"; uids: string[] }
-  | { type: "discardForEffect"; uids: string[] };
+  | { type: "discardForEffect"; uids: string[] }
+  | { type: "chooseTarget"; targetUid: string };
 
 export type ErrorCode =
   | "GAME_OVER"
@@ -351,7 +375,8 @@ export type ErrorCode =
   | "NO_ENEMY"
   | "CANNOT_UNDO"
   | "CANNOT_CANCEL"
-  | "INVALID_SELECTION";
+  | "INVALID_SELECTION"
+  | "GUARDED";
 
 // ---------------------------------------------------------------------------
 // イベント（設計書 2.7）
@@ -386,6 +411,9 @@ export type GameEvent =
   | { type: "enemyMoved"; moves: { uid: string; from: number; to: number }[] }
   | { type: "enemyArrived"; uid: string; defId: CardId; damage: number; villageHp: number }
   | { type: "enemyRevealed"; uid: string; defId: CardId }
+  | { type: "enemyFrozen"; uid: string; defId: CardId }
+  | { type: "enemyPushed"; uid: string; defId: CardId; from: number; to: number }
+  | { type: "enemySplit"; parentUid: string; uid: string; defId: CardId }
   | { type: "cardsDiscarded"; playerId: string; uids: string[]; defIds: CardId[] }
   | { type: "curseAdded"; playerId: string; uid: string }
   | { type: "turnEnded"; playerId: string }

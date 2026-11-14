@@ -9,7 +9,8 @@ export function PendingDialog() {
   const selection = useStore((s) => s.selection);
   const toggle = useStore((s) => s.toggleSelect);
   const sel = update.legal.selection;
-  if (!sel) return null;
+  // 凍結・後退は、進軍ルートの敵をクリックして選ぶ（RouteView）
+  if (!sel || sel.kind === "target") return null;
   const me = update.view.players.find((p) => p.id === update.view.viewerId)!;
 
   if (sel.kind === "trash") {

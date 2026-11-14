@@ -1,5 +1,6 @@
 // 村効果・敵の能力の処理（設計書 2.6、仕様書 5.5）
 import { type Ctx, drawCards, playerById } from "./context.js";
+import { targetCandidates } from "./rules.js";
 import type { Effect, QueuedEffect } from "./types.js";
 
 type Result = "done" | "waiting";
@@ -63,6 +64,32 @@ const handlers: { [K in Effect["kind"]]: Handler<K> } = {
     return "waiting";
   },
 
+  freeze(ctx, e, q) {
+    return askTarget(ctx, e, q, "freeze");
+  },
+
+  push(ctx, e, q) {
+    return askTarget(ctx, e, q, "push");
+  },
+
+  rally(ctx, _e, q) {
+    const s = ctx.s;
+    const last = s.route.length - 1;
+    const moves: { uid: string; from: number; to: number }[] = [];
+    // 集落に近いマスから順に1マス進める。公開された本人と、5マス目の敵は動かない
+    for (let i = last - 1; i >= 0; i--) {
+      const square = s.route[i]!;
+      const stay = square.filter((c) => c.uid === q.sourceUid);
+      const go = square.filter((c) => c.uid !== q.sourceUid);
+      for (const c of go) moves.push({ uid: c.uid, from: i, to: i + 1 });
+      s.route[i] = stay;
+      s.route[i + 1]!.push(...go);
+    }
+    s.frozen = [];
+    if (moves.length > 0) ctx.events.push({ type: "enemyMoved", moves });
+    return "done";
+  },
+
   addCurse(ctx, e) {
     const s = ctx.s;
     for (let i = 0; i < e.count; i++) {
@@ -76,6 +103,16 @@ const handlers: { [K in Effect["kind"]]: Handler<K> } = {
     return "done";
   },
 };
+
+/** 凍結・後退の対象を選ばせる。count が2以上なら、残りの分をキューの先頭に積む */
+function askTarget(ctx: Ctx, e: { count: number }, q: QueuedEffect, mode: "freeze" | "push"): Result {
+  const p = owner(ctx, q);
+  const uids = targetCandidates(ctx.s, ctx.reg, mode);
+  if (uids.length === 0) return "done";
+  for (let i = 1; i < e.count; i++) ctx.s.effectQueue.unshift({ ...q, effect: { kind: mode, count: 1 } });
+  ctx.s.pending = { kind: "target", playerId: p.id, mode, uids };
+  return "waiting";
+}
 
 /** キューの先頭の効果を1つ処理する。入力待ちになったら "waiting" */
 export function processNextEffect(ctx: Ctx): Result {

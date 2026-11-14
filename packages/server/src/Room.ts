@@ -325,7 +325,7 @@ export class Room {
     if (!s || s.result) return [];
     const p = s.pending;
     if (p?.kind === "discard") return p.requests.filter((r) => !r.done).map((r) => r.playerId);
-    if (p?.kind === "trash") return [p.playerId];
+    if (p?.kind === "trash" || p?.kind === "target") return [p.playerId];
     const cur = s.players[s.currentPlayer];
     return cur ? [cur.id] : [];
   }

@@ -1,5 +1,5 @@
 // 画面の文言（設計書 4.3：文言は1か所にまとめる）
-import type { CardDef, CardRegistry, Effect, ErrorCode, GameEvent, PlayerView, Resist, WeaponAbility } from "@deckbuild/core";
+import type { CardDef, CardRegistry, Effect, EnemyTrait, ErrorCode, GameEvent, PlayerView, Resist, WeaponAbility } from "@deckbuild/core";
 
 export const ERROR_TEXT: Record<ErrorCode, string> = {
   GAME_OVER: "ゲームは終了しています",
@@ -21,6 +21,7 @@ export const ERROR_TEXT: Record<ErrorCode, string> = {
   CANNOT_UNDO: "先に英雄を戻してください",
   CANNOT_CANCEL: "すでに集落で行動したため選び直せません",
   INVALID_SELECTION: "選び方が正しくありません",
+  GUARDED: "護衛に守られています。先に護衛（氷の盾兵）を倒しましょう",
 };
 
 export const HERO_NAMES: Record<string, string> = {
@@ -30,6 +31,7 @@ export const HERO_NAMES: Record<string, string> = {
   priest: "僧侶",
   thief: "盗賊",
   bard: "吟遊詩人",
+  frost: "氷術師",
   youth: "村の若者",
 };
 
@@ -46,6 +48,20 @@ export function describeWeaponAbility(a: WeaponAbility): string {
       return `撃破すると経験値+${a.amount}`;
     case "solo":
       return "英雄がいなくても使える";
+    case "chill":
+      return "倒せなかった敵を凍結する（ボス以外）";
+  }
+}
+
+/** 敵の特性の説明 */
+export function describeTrait(t: EnemyTrait): string {
+  switch (t) {
+    case "guard":
+      return "護衛：同じマスと1つ後ろのマスの敵を守る。倒すまで守られた敵は選べない";
+    case "split":
+      return "分裂：倒せなかったとき、1マス目に小スライムを1体出す（1回だけ）";
+    case "sprint":
+      return "疾走：進軍で2マス進む";
   }
 }
 
@@ -65,6 +81,12 @@ export function describeEffect(e: Effect): string {
       return e.target === "all" ? `全員が手札を${e.count}枚捨てる` : `次の手番のプレイヤーが手札を${e.count}枚捨てる`;
     case "addCurse":
       return `全員の捨て札に呪いを${e.count}枚加える`;
+    case "freeze":
+      return `敵${e.count}体を凍結（次の進軍で動かない）`;
+    case "push":
+      return `敵${e.count}体を1マス戻す`;
+    case "rally":
+      return "他の敵が全員1マス進み、凍結が解ける";
   }
 }
 
@@ -146,6 +168,12 @@ export function eventText(
       const d = reg.enemy(e.defId);
       return d.isBoss ? `${d.name}が集落に到達した……` : `${d.name}が集落を襲った（耐久値-${e.damage} → ${e.villageHp}）`;
     }
+    case "enemyFrozen":
+      return `${name(e.defId)}を凍結した（次の進軍で動かない）`;
+    case "enemyPushed":
+      return `${name(e.defId)}を${e.from + 1}マス目から${e.to + 1}マス目に押し戻した`;
+    case "enemySplit":
+      return `${byUid(e.parentUid)}が分裂して、${name(e.defId)}が現れた`;
     case "cardsDiscarded":
       return `${playerName(e.playerId)}が手札を捨てた：${e.defIds.map(name).join("、")}`;
     case "curseAdded":
@@ -162,6 +190,7 @@ export function eventText(
       if (d.type === "enemy" && d.isBoss && e.effect.kind === "discardHand" && e.effect.target === "next") {
         return `${d.name}の威圧：${describeEffect(e.effect)}`;
       }
+      if (d.type === "enemy" && e.effect.kind === "rally") return `${d.name}の号令：${describeEffect(e.effect)}`;
       return null;
     }
     case "cardsDrawn":

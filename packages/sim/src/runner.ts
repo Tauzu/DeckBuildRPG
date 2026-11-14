@@ -66,7 +66,7 @@ export function playGame(
     if (guard > 20000) throw new Error(`seed ${seed}: ゲームが終わりません`);
     // 入力を待っているプレイヤー（入力待ちが優先）
     let actor = s.players[s.currentPlayer]!.id;
-    if (s.pending?.kind === "trash") actor = s.pending.playerId;
+    if (s.pending?.kind === "trash" || s.pending?.kind === "target") actor = s.pending.playerId;
     if (s.pending?.kind === "discard") actor = s.pending.requests.find((r) => !r.done)!.playerId;
 
     const action = bot.choose(s, actor, reg);

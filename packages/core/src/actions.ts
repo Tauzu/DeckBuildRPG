@@ -5,13 +5,15 @@ import {
   currentPlayer,
   fail,
   findCard,
+  forgetEnemy,
   heroStackId,
+  newCard,
   playerById,
   takeCard,
 } from "./context.js";
 import { enqueueEffect } from "./effects.js";
 import { endGame } from "./flow.js";
-import { battleAttackers, bonusExpOnDefeat, calcDamage, cardsGold, enemyHp } from "./rules.js";
+import { battleAttackers, bonusExpOnDefeat, calcDamage, cardsGold, enemyHp, guardedUids, hasChill } from "./rules.js";
 import type { Action, CardInstance, Effect, PlayerState } from "./types.js";
 
 export function dispatch(ctx: Ctx, playerId: string, action: Action): void {
@@ -21,6 +23,7 @@ export function dispatch(ctx: Ctx, playerId: string, action: Action): void {
   // 入力待ちへの回答
   if (action.type === "resolveTrash") return resolveTrash(ctx, playerId, action.uids);
   if (action.type === "discardForEffect") return discardForEffect(ctx, playerId, action.uids);
+  if (action.type === "chooseTarget") return chooseTarget(ctx, playerId, action.targetUid);
   if (s.pending) fail("PENDING_INPUT", "入力待ちの選択があります");
 
   if (currentPlayer(s).id !== playerId) fail("NOT_YOUR_TURN", "手番ではありません");
@@ -95,6 +98,7 @@ function chooseBattle(ctx: Ctx, targetUid: string): void {
   const s = ctx.s;
   if (s.route.every((sq) => sq.length === 0)) fail("NO_ENEMY", "進軍ルートに敵がいません");
   if (!s.route.some((sq) => sq.some((c) => c.uid === targetUid))) fail("CARD_NOT_FOUND", "その敵は進軍ルートにいません");
+  if (guardedUids(s, ctx.reg).has(targetUid)) fail("GUARDED", "護衛に守られているため、先に護衛を倒す必要があります");
   s.turn = { action: "battle", targetUid, foodSlots: 0, usedSlots: 0, equips: {} };
   s.step = { kind: "battle" };
   ctx.events.push({ type: "actionChosen", playerId: currentPlayer(s).id, action: "battle", targetUid });
@@ -273,8 +277,24 @@ function confirmAttack(ctx: Ctx): void {
     defeated,
   });
   const keep = s.config.persistentDamage === "all" || (s.config.persistentDamage === "boss" && def.isBoss);
-  if (defeated) delete s.enemyDamage[target.uid];
-  else if (keep && total > 0) s.enemyDamage[target.uid] = prevDamage + total;
+  if (defeated) {
+    delete s.enemyDamage[target.uid];
+    forgetEnemy(s, target.uid);
+  } else if (keep && total > 0) s.enemyDamage[target.uid] = prevDamage + total;
+
+  if (!defeated) {
+    // 撃破に失敗したときの効果：chill の武器で凍結、split の敵は分身を出す（仕様書 5.3.3）
+    if (!def.isBoss && hasChill(s, ctx.reg) && !s.frozen.includes(target.uid)) {
+      s.frozen.push(target.uid);
+      ctx.events.push({ type: "enemyFrozen", uid: target.uid, defId: target.defId });
+    }
+    if (def.traits.includes("split") && def.splitInto && !s.split.includes(target.uid)) {
+      const child = newCard(s, def.splitInto);
+      s.route[0]!.push(child);
+      s.split.push(target.uid);
+      ctx.events.push({ type: "enemySplit", parentUid: target.uid, uid: child.uid, defId: child.defId });
+    }
+  }
 
   if (defeated) {
     takeCard(square, target.uid);
@@ -423,6 +443,24 @@ function resolveTrash(ctx: Ctx, playerId: string, uids: string[]): void {
     if (!c) continue;
     s.trash.push(c);
     ctx.events.push({ type: "cardTrashed", playerId, uid, defId: c.defId });
+  }
+  s.pending = null;
+}
+
+function chooseTarget(ctx: Ctx, playerId: string, targetUid: string): void {
+  const s = ctx.s;
+  const pending = s.pending;
+  if (pending?.kind !== "target" || pending.playerId !== playerId) fail("NOT_PENDING", "対象の選択を求められていません");
+  if (!pending.uids.includes(targetUid)) fail("INVALID_SELECTION", "その敵は選べません");
+  const index = s.route.findIndex((sq) => sq.some((c) => c.uid === targetUid));
+  const card = findCard(s.route[index]!, targetUid)!;
+  if (pending.mode === "freeze") {
+    s.frozen.push(targetUid);
+    ctx.events.push({ type: "enemyFrozen", uid: targetUid, defId: card.defId });
+  } else {
+    takeCard(s.route[index]!, targetUid);
+    s.route[index - 1]!.push(card);
+    ctx.events.push({ type: "enemyPushed", uid: targetUid, defId: card.defId, from: index, to: index - 1 });
   }
   s.pending = null;
 }

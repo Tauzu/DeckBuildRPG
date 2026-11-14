@@ -41,12 +41,19 @@ export function ActionBar() {
 
   if (view.result) {
     message = "ゲーム終了";
+  } else if (legal.selection?.kind === "target") {
+    message =
+      legal.selection.mode === "freeze"
+        ? "凍結する敵を、進軍ルートからクリックして選んでください（次の進軍で動かなくなります）"
+        : "1マス戻す敵を、進軍ルートからクリックして選んでください";
   } else if (legal.selection) {
     message = "選択してください";
   } else if (!myTurn) {
     const cur = view.players.find((p) => p.id === view.currentPlayerId);
     if (view.pending?.kind === "discard") {
       message = "ほかのプレイヤーが手札を捨てるのを待っています…";
+    } else if (view.pending?.kind === "target") {
+      message = "ほかのプレイヤーが、凍結・後退する敵を選ぶのを待っています…";
     } else if (cur && cur.id !== view.viewerId) {
       const turn = view.turn;
       const target = turn?.action === "battle" ? view.route.flat().find((c) => c.uid === turn.targetUid) : undefined;

@@ -80,6 +80,43 @@ const knight: Sprite = [
   "...kkk..kkk.....",
 ];
 
+const frost: Sprite = [
+  ".....ccc......c.",
+  "....ccwcc....ccc",
+  "...ccbbbbcc...c.",
+  "...cbbbbbbc...n.",
+  "....bokokb....n.",
+  "....booooB....n.",
+  ".....bbbb.....n.",
+  "...wwwwwwww...n.",
+  "..wwwwwwwwww.on.",
+  "..wwwcwwcwww.wn.",
+  "..wwwwwwwwww..n.",
+  "..wwwwwwwwww..n.",
+  "..cwwwwwwwwc..n.",
+  "..bbbbbbbbbb....",
+  "....kk..kk......",
+  "................",
+];
+
+const frostStaff: Sprite = [
+  "............cc..",
+  "...........cwwc.",
+  "...........cwcc.",
+  "............cc..",
+  "...........n....",
+  "..........nn....",
+  ".........nn.....",
+  "........nn......",
+  ".......nn.......",
+  "......nn........",
+  ".....nn.........",
+  "....nn..........",
+  "...nn...........",
+  "..nn............",
+  ".nn.............",
+];
+
 const mage: Sprite = [
   ".......B......c.",
   "......BB.....ccc",
@@ -668,6 +705,75 @@ export const fortSprite: Sprite = [
   "TTTTTTTTTTTTTTTT",
 ];
 
+const snowWolf: Sprite = wolf.map((r) => r.replaceAll("S", "c").replaceAll("e", "w"));
+
+const frostGuard: Sprite = [
+  "................",
+  ".....SSSSS......",
+  "....SsssssS.....",
+  "....SsxsxsS.....",
+  "....SsssssS.....",
+  ".....SSSSS......",
+  "..ccccccccccc...",
+  ".cwwwwwwwwwwwc..",
+  ".cwbbbbbbbbbwc..",
+  ".cwbbbwwbbbbwc..",
+  ".cwbbwwwwbbbwc..",
+  ".cwbbbwwbbbbwc..",
+  ".cwbbbbbbbbbwc..",
+  "..cwwwwwwwwwc...",
+  "...ccc....ccc...",
+  "..SSSS....SSSS..",
+];
+
+const slime: Sprite = [
+  "................",
+  "................",
+  "................",
+  ".......gg.......",
+  "....gggggggg....",
+  "...gglgggggGg...",
+  "..gglggggggggG..",
+  "..gggkggggkggG..",
+  "..ggggggggggGG..",
+  "..gggggkkgggGG..",
+  "..GggggggggggG..",
+  "...GGGGGGGGGG...",
+];
+
+const slimeling: Sprite = [
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  ".......gggg.....",
+  "......gglggG....",
+  ".....gggggggG...",
+  ".....gkggkggG...",
+  ".....ggggggGG...",
+  "......GGGGGG....",
+];
+
+const snowQueen: Sprite = [
+  ".....c.cc.c.....",
+  "....cwcwwcwc....",
+  ".....cccccc.....",
+  "....wwooooww....",
+  "...wwokookwww...",
+  "...wwooooowww...",
+  "....wwwwwww.....",
+  "...ccwwwwwcc....",
+  "..cwwwcwwcwwc...",
+  "..cwwwwwwwwwc...",
+  ".ccwwwwwwwwwcc..",
+  ".cwwwwwwwwwwwc..",
+  ".cwwwbwwwbwwwc..",
+  "ccwwwwwwwwwwwcc.",
+  "cwwwwwwwwwwwwwc.",
+  "cccccccccccccccc",
+];
+
 /** エルム村 */
 export const villageSprite: Sprite = [
   "................",
@@ -685,7 +791,7 @@ export const villageSprite: Sprite = [
 ];
 
 /** 英雄の種類ごとの絵（レベルが違っても同じ絵） */
-const HERO_SPRITES: Record<string, Sprite> = { youth, knight, mage, hunter, priest, thief, bard };
+const HERO_SPRITES: Record<string, Sprite> = { youth, knight, mage, hunter, priest, thief, bard, frost };
 
 /** カードIDごとの絵（英雄以外） */
 const CARD_SPRITES: Record<string, Sprite> = {
@@ -700,6 +806,7 @@ const CARD_SPRITES: Record<string, Sprite> = {
   weapon_tome: tome,
   weapon_amulet: amulet,
   weapon_mithril: mithril,
+  weapon_frost: frostStaff,
   food_bread: bread,
   food_jerky: jerky,
   food_wine: wine,
@@ -717,6 +824,11 @@ const CARD_SPRITES: Record<string, Sprite> = {
   enemy_bone_general: boneGeneral,
   enemy_wraith_queen: wraithQueen,
   enemy_ogre_chief: ogreChief,
+  enemy_snow_wolf: snowWolf,
+  enemy_frost_guard: frostGuard,
+  enemy_slime: slime,
+  enemy_slimeling: slimeling,
+  enemy_snow_queen: snowQueen,
   curse,
 };
 

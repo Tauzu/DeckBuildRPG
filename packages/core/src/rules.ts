@@ -130,6 +130,46 @@ export function bonusExpOnDefeat(s: GameState, reg: CardRegistry): number {
   return sum;
 }
 
+/** 護衛に守られていて、攻撃の対象に選べない敵の uid（仕様書 5.3.3） */
+export function guardedUids(s: Pick<GameState, "route">, reg: CardRegistry): Set<string> {
+  const guarded = new Set<string>();
+  s.route.forEach((square, t) => {
+    const here = square.filter((c) => reg.enemy(c.defId).traits.includes("guard"));
+    const behind = s.route[t + 1] ?? [];
+    const guardsBehind = behind.some((c) => reg.enemy(c.defId).traits.includes("guard"));
+    for (const c of square) {
+      const isGuard = reg.enemy(c.defId).traits.includes("guard");
+      // 1つ集落側のマスの護衛が守る。同じマスの護衛は、護衛を持たない敵を守る
+      if (guardsBehind || (!isGuard && here.length > 0)) guarded.add(c.uid);
+    }
+  });
+  return guarded;
+}
+
+/** 凍結・後退の対象にできる敵（ボス以外）の uid */
+export function targetCandidates(s: GameState, reg: CardRegistry, mode: "freeze" | "push"): string[] {
+  const list: string[] = [];
+  s.route.forEach((square, i) => {
+    for (const c of square) {
+      if (reg.enemy(c.defId).isBoss) continue;
+      if (mode === "freeze" && s.frozen.includes(c.uid)) continue;
+      if (mode === "push" && i === 0) continue;
+      list.push(c.uid);
+    }
+  });
+  return list;
+}
+
+/** 場に出している武器に、撃破に失敗すると凍結する能力（chill）があるか */
+export function hasChill(s: GameState, reg: CardRegistry): boolean {
+  if (s.turn?.action !== "battle") return false;
+  const p = s.players[s.currentPlayer];
+  return !!p && p.field.some((c) => {
+    const d = reg.get(c.defId);
+    return d.type === "weapon" && d.ability?.kind === "chill";
+  });
+}
+
 /** 戦闘中のダメージの見込み。戦闘中でなければ null */
 export function battlePreview(
   s: GameState,

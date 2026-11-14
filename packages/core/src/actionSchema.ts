@@ -22,4 +22,5 @@ export const actionSchema: z.ZodType<Action> = z.discriminatedUnion("type", [
   z.object({ type: z.literal("finishBattle") }),
   z.object({ type: z.literal("resolveTrash"), uids }),
   z.object({ type: z.literal("discardForEffect"), uids }),
+  z.object({ type: z.literal("chooseTarget"), targetUid: id }),
 ]);

@@ -9,6 +9,7 @@ import {
   type EnemyDef,
   enemyHp,
   type GameState,
+  guardedUids,
   heroStackId,
   type PlayerState,
 } from "@deckbuild/core";
@@ -127,6 +128,13 @@ export function smartBot(opts: SmartOptions, name = "smart"): Bot {
         const uids = [...p.hand].sort((a, b) => junkScore(reg, a) - junkScore(reg, b)).slice(0, req.count).map((c) => c.uid);
         return { type: "discardForEffect", uids };
       }
+      if (s.pending?.kind === "target") {
+        // 集落に一番近い敵を選ぶ（凍結も後退も、いちばん危ない敵に使う）
+        const pend = s.pending;
+        const slotOf = (uid: string) => s.route.findIndex((sq) => sq.some((c) => c.uid === uid));
+        const uid = [...pend.uids].sort((a, b) => slotOf(b) - slotOf(a))[0]!;
+        return { type: "chooseTarget", targetUid: uid };
+      }
       if (s.pending?.kind === "trash") {
         // 捨て札から、ゴミ（呪い・金にならない敵カード・若者）を優先して廃棄する。手札は金が減るので触らない
         const max = s.pending.max;
@@ -155,9 +163,11 @@ export function smartBot(opts: SmartOptions, name = "smart"): Bot {
 }
 
 function chooseAction(s: GameState, p: PlayerState, reg: CardRegistry, opts: SmartOptions): Action {
+  const guarded = guardedUids(s, reg);
   let best: { uid: string; score: number } | null = null;
   s.route.forEach((square, i) => {
     for (const c of square) {
+      if (guarded.has(c.uid)) continue;
       const e = reg.enemy(c.defId);
       if ((s.enemyDamage[c.uid] ?? 0) + maxDamage(reg, p.hand, e, s.config.freeHeroSlots) < enemyHp(s, e)) continue;
       const score = opts.target === "closest" ? i * 100 + e.exp : e.exp * 100 + i;
@@ -179,6 +189,7 @@ function chooseAction(s: GameState, p: PlayerState, reg: CardRegistry, opts: Sma
     let chip: { uid: string; score: number } | null = null;
     s.route.forEach((square, i) => {
       for (const c of square) {
+        if (guarded.has(c.uid)) continue;
         const e = reg.enemy(c.defId);
         if (mode === "boss" && !e.isBoss) continue;
         if (!e.isBoss && i < 3) continue;
@@ -224,7 +235,7 @@ function villageStep(s: GameState, p: PlayerState, reg: CardRegistry): Action {
   });
   if (effectHeroes.length > 0) {
     if (turn.usedSlots < turn.foodSlots + s.config.freeHeroSlots) {
-      const order = ["draw", "multi", "gold", "trash", "exp"];
+      const order = ["draw", "multi", "gold", "trash", "exp", "freeze", "push"];
       const next = [...effectHeroes].sort(
         (a, b) => order.indexOf(reg.hero(a.defId).villageEffect!.kind) - order.indexOf(reg.hero(b.defId).villageEffect!.kind),
       )[0]!;
@@ -278,16 +289,16 @@ function pickPurchase(s: GameState, p: PlayerState, reg: CardRegistry, gold: num
   const needFood = st.food < st.heroes;
   const magicFirst = st.magic < st.physical * 0.6;
   const heroOrder = () => {
-    const support = (st.heroIds["thief"] ?? 0) + (st.heroIds["bard"] ?? 0) + (st.heroIds["priest"] ?? 0);
+    const support = (st.heroIds["thief"] ?? 0) + (st.heroIds["bard"] ?? 0) + (st.heroIds["priest"] ?? 0) + (st.heroIds["frost"] ?? 0);
     const attack = magicFirst ? ["mage", "hunter", "knight"] : ["knight", "hunter", "mage"];
-    return (support * 4 < st.heroes ? ["bard", "priest", ...attack] : attack).map(heroStackId);
+    return (support * 4 < st.heroes ? ["bard", "priest", "frost", ...attack] : attack).map(heroStackId);
   };
   const bigWeapon = magicFirst
     ? ["weapon_tome", "weapon_mithril", "weapon_amulet", "weapon_sage", "weapon_axe", "weapon_hammer"]
     : ["weapon_axe", "weapon_mithril", "weapon_hammer", "weapon_tome", "weapon_amulet"];
   const smallWeapon = magicFirst
-    ? ["weapon_staff", "weapon_bow", "weapon_sword", "weapon_javelin"]
-    : ["weapon_sword", "weapon_bow", "weapon_javelin", "weapon_staff"];
+    ? ["weapon_frost", "weapon_staff", "weapon_bow", "weapon_sword", "weapon_javelin"]
+    : ["weapon_sword", "weapon_bow", "weapon_javelin", "weapon_staff", "weapon_frost"];
 
   if (needFood) return first("food_feast", "food_jerky");
   if (gold >= 5 && st.weapons * 2 < st.heroes) return first(...bigWeapon, ...heroOrder());

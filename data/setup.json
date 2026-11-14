@@ -30,6 +30,7 @@
     {"id": "weapon_amulet", "count": 4},
     {"id": "weapon_axe", "count": 4},
     {"id": "weapon_tome", "count": 4},
+    {"id": "weapon_frost", "count": 4},
     {"id": "weapon_mithril", "count": 3}
   ],
   "enemyDeck": {"bossGroupSize": 3}

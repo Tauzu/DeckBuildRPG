@@ -32,7 +32,12 @@ for (let seed = 1; seed <= games; seed++) {
       row.exp.push(p.exp);
       byTurn.set(s.turnCount, row);
     }
-    const actor = s.pending?.kind === "discard" ? s.pending.requests.find((r) => !r.done)!.playerId : "p1";
+    const actor =
+      s.pending?.kind === "discard"
+        ? s.pending.requests.find((r) => !r.done)!.playerId
+        : s.pending?.kind === "target" || s.pending?.kind === "trash"
+          ? s.pending.playerId
+          : "p1";
     const r = applyAction(s, actor, bot.choose(s, actor, reg), reg);
     if (isEngineError(r)) throw new Error(r.message);
     s = r.state;

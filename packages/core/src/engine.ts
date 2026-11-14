@@ -50,7 +50,12 @@ export interface LegalActions {
   /** 1回で決まる操作の一覧（選択式の入力待ちは含まない） */
   options: ActionOption[];
   /** 選択式の入力待ち（廃棄・手札を捨てる） */
-  selection: { kind: "trash"; max: number; from: ("hand" | "discard")[] } | { kind: "discard"; count: number } | null;
+  selection:
+    | { kind: "trash"; max: number; from: ("hand" | "discard")[] }
+    | { kind: "discard"; count: number }
+    /** 凍結・後退の対象の敵（route 上の uid） */
+    | { kind: "target"; mode: "freeze" | "push"; uids: string[] }
+    | null;
 }
 
 /** 今そのプレイヤーができる操作の一覧（設計書 2.8）。判定は applyAction と同じ処理で行う */
@@ -66,6 +71,9 @@ export function legalActions(state: GameState, playerId: string, reg: CardRegist
     if (pending.kind === "discard") {
       const req = pending.requests.find((r) => r.playerId === playerId && !r.done);
       if (req) return { waitingForMe: true, options: [], selection: { kind: "discard", count: req.count } };
+    }
+    if (pending.kind === "target" && pending.playerId === playerId) {
+      return { waitingForMe: true, options: [], selection: { kind: "target", mode: pending.mode, uids: [...pending.uids] } };
     }
     return none;
   }
@@ -142,6 +150,11 @@ export function timeoutAction(state: GameState, playerId: string): Action | null
   const pending = state.pending;
   if (pending) {
     if (pending.kind === "trash" && pending.playerId === playerId) return { type: "resolveTrash", uids: [] };
+    if (pending.kind === "target" && pending.playerId === playerId) {
+      if (pending.uids.length === 0) return null;
+      const r = rngStep(state.rng);
+      return { type: "chooseTarget", targetUid: pending.uids[Math.floor(r.value * pending.uids.length)]! };
+    }
     if (pending.kind === "discard") {
       const req = pending.requests.find((r) => r.playerId === playerId && !r.done);
       const p = state.players.find((x) => x.id === playerId);

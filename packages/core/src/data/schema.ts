@@ -14,6 +14,9 @@ export const effectSchema: z.ZodType<Effect> = z.lazy(() =>
     z.object({ kind: z.literal("multi"), effects: z.array(effectSchema).min(1) }),
     z.object({ kind: z.literal("discardHand"), count: positive, target: z.enum(["all", "next"]) }),
     z.object({ kind: z.literal("addCurse"), count: positive }),
+    z.object({ kind: z.literal("freeze"), count: positive }),
+    z.object({ kind: z.literal("push"), count: positive }),
+    z.object({ kind: z.literal("rally") }),
   ]),
 );
 
@@ -42,6 +45,7 @@ const weaponAbilitySchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("perLevel"), physical: nonNeg, magic: nonNeg }),
   z.object({ kind: z.literal("defeatExp"), amount: positive }),
   z.object({ kind: z.literal("solo") }),
+  z.object({ kind: z.literal("chill") }),
 ]);
 
 export const weaponDefSchema = z.object({
@@ -74,6 +78,8 @@ export const enemyDefSchema = z.object({
   isBoss: z.boolean(),
   onReveal: effectSchema.nullable(),
   onMarch: effectSchema.nullable(),
+  traits: z.array(z.enum(["guard", "split", "sprint"])).default([]),
+  splitInto: z.string().min(1).nullable().default(null),
 });
 
 export const heroesFileSchema = z.array(heroDefSchema);
@@ -126,6 +132,7 @@ export const stagesFileSchema = z
       name: z.string().min(1),
       description: z.string(),
       tutorial: z.boolean().optional(),
+      extra: z.boolean().optional(),
       fixedSeed: z.number().int().optional(),
       backdrop: z.string().min(1).optional(),
       heroIds: z.array(z.string().min(1)).min(1),
