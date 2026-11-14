@@ -78,7 +78,7 @@ function HandCard({ card }: { card: CardInstance }) {
     } else if (def.type === "hero") {
       hint =
         step === "battle"
-          ? `クリックで場に出して戦わせる${def.villageEffect && battleEffectText(def.villageEffect) ? `（${battleEffectText(def.villageEffect)}）` : ""}`
+          ? `クリックで場に出して戦わせる${def.villageEffect && battleEffectText(def.villageEffect, def.level) ? `（${battleEffectText(def.villageEffect, def.level)}。引いた後は戻せない）` : ""}`
           : def.villageEffect
             ? `クリックで場に出す（村効果：${describeEffect(def.villageEffect)}）`
             : "クリックで場に出す（村効果はない。集落では金価値として使う）";

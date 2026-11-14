@@ -107,6 +107,7 @@ function cancelAction(ctx: Ctx): void {
   const p = currentPlayer(s);
   const turn = s.turn;
   if (turn?.action === "village" && turn.acted) fail("CANNOT_CANCEL", "すでに集落で行動したため取り消せません");
+  if (turn?.action === "battle" && turn.drewUids?.length) fail("CANNOT_CANCEL", "戦闘中にカードを引いたため選び直せません");
   // 戦闘は確定前なら何も確定していないので、出したカードを手札に戻して取り消せる
   for (const c of p.field.splice(0)) {
     p.hand.push(c);
@@ -156,11 +157,16 @@ function playHero(ctx: Ctx, uid: string): void {
     if (turn.action === "village") enqueueEffect(ctx, def.villageEffect, uid, p.id);
     else if (turn.action === "battle") {
       // 戦闘中に出しても、カードを引く効果だけは働く（吟遊詩人）
-      const draws = drawEffects(def.villageEffect);
+      // レベル2以上の英雄だけ。引いた後は戻せない
+      const draws = def.level >= BATTLE_DRAW_MIN_LEVEL ? drawEffects(def.villageEffect) : [];
+      if (draws.length > 0) turn.drewUids = [...(turn.drewUids ?? []), uid];
       for (const e of draws) enqueueEffect(ctx, e, uid, p.id);
     }
   }
 }
+
+/** 戦闘中にカードを引く効果が働く英雄の最低レベル */
+export const BATTLE_DRAW_MIN_LEVEL = 2;
 
 function drawEffects(e: Effect): Effect[] {
   if (e.kind === "draw") return [e];
@@ -212,6 +218,7 @@ function undoBattleCard(ctx: Ctx, uid: string): void {
   const card = findCard(p.field, uid);
   if (!card) fail("CARD_NOT_FOUND", "場にそのカードがありません");
   const def = ctx.reg.get(card.defId);
+  if (turn.drewUids?.includes(uid)) fail("CANNOT_UNDO", "カードを引いた英雄は戻せません");
   const returnCard = (u: string) => {
     const c = takeCard(p.field, u);
     if (!c) return;

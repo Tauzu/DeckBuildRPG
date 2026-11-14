@@ -152,11 +152,18 @@ describe("敵を倒す（仕様書 5.3）", () => {
     expect(r.state.route.flat()).toHaveLength(1);
   });
 
-  it("村効果は戦闘では発動しない（カードを引く効果だけは働く）", () => {
-    const { s: s0, h } = battle(["food_bread", "hero_bard_1"], "enemy_goblin");
+  it("村効果は戦闘では発動しない（レベル2以上の英雄のカードを引く効果だけは働く）", () => {
+    const { s: s0, h } = battle(["food_bread", "hero_bard_2"], "enemy_goblin");
     let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
-    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_bard_1") }).state;
+    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_bard_2") }).state;
     expect(hand(s)).toHaveLength(2);
+    // 引いた後は、英雄を戻すことも行動を選び直すこともできない
+    expect(errorOf(s, "p1", { type: "undoBattleCard", uid: uidOf(h, "hero_bard_2") })).toBe("CANNOT_UNDO");
+    expect(errorOf(s, "p1", { type: "cancelAction" })).toBe("CANNOT_CANCEL");
+    // レベル1の吟遊詩人は戦闘では引けない
+    const lv1 = battle(["food_bread", "hero_bard_1"], "enemy_goblin");
+    const l = act(act(lv1.s, "p1", { type: "playFood", uid: uidOf(lv1.h, "food_bread") }).state, "p1", { type: "playHero", uid: uidOf(lv1.h, "hero_bard_1") }).state;
+    expect(hand(l)).toHaveLength(0);
     // 金や経験値などは戦闘では働かない
     const thief = battle(["food_bread", "hero_thief_1"], "enemy_goblin");
     const t = act(act(thief.s, "p1", { type: "playFood", uid: uidOf(thief.h, "food_bread") }).state, "p1", { type: "playHero", uid: uidOf(thief.h, "hero_thief_1") }).state;

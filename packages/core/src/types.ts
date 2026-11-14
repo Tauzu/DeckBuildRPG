@@ -248,6 +248,8 @@ export type TurnState =
       usedSlots: number;
       /** 英雄の uid → 武器の uid */
       equips: Record<string, string>;
+      /** 戦闘中にカードを引いた英雄の uid（戻す・選び直すと無限に引けるので不可にする） */
+      drewUids?: string[];
     };
 
 export type Pending =

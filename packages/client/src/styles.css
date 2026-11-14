@@ -574,9 +574,12 @@ h3 {
   color: var(--ink-soft);
 }
 
-.card-clickable:hover {
-  transform: translateY(-3px);
-  border-color: var(--accent);
+/* タッチ端末では :hover が最後にタップしたカードに残り、選択中の枠と区別できなくなるので、マウス操作のときだけ効かせる */
+@media (hover: hover) {
+  .card-clickable:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+  }
 }
 
 .card-disabled {
@@ -592,6 +595,24 @@ h3 {
   outline: 3px solid var(--focus);
   outline-offset: 1px;
   transform: translateY(-4px);
+  position: relative;
+}
+/* 選ばれているカードには✓を付ける（枠の色だけに頼らない） */
+.card-selected::after {
+  content: "✓";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--focus);
+  color: #000;
+  font-weight: bold;
+  font-size: 14px;
+  pointer-events: none;
 }
 
 .card-equip {

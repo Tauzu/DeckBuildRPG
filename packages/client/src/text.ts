@@ -192,7 +192,8 @@ export function touchText(s: string): string {
 }
 
 /** 英雄の村効果のうち、戦闘中に出しても働くもの（カードを引く効果だけ） */
-export function battleEffectText(e: Effect): string | null {
+export function battleEffectText(e: Effect, level = 99): string | null {
+  if (level < 2) return null;
   const draws = e.kind === "draw" ? [e] : e.kind === "multi" ? e.effects.filter((x) => x.kind === "draw") : [];
   return draws.length > 0 ? draws.map(describeEffect).join("、") : null;
 }
