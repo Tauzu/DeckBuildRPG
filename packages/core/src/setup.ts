@@ -59,6 +59,8 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     },
     players: [],
     currentPlayer: 0,
+    // 最初のラウンドは席順。2ラウンド目からランダム
+    turnQueue: players.slice(1).map((_, i) => i + 1),
     turnCount: 1,
     step: { kind: "chooseAction" },
     turn: null,

@@ -43,7 +43,7 @@ describe("敵の進軍（仕様書 5.4）", () => {
   });
 
   it("ゴブリン呪術師の公開時：全員が手札を1枚捨てる（選ぶまで待つ）", () => {
-    let s = start(2);
+    let s = placeEnemy(start(2), 3, "enemy_orc").state;
     s = mutate(s, (d) => {
       d.enemyDeck.unshift(...cards("enemy_shaman"));
     });
@@ -81,7 +81,7 @@ describe("敵の進軍（仕様書 5.4）", () => {
   });
 
   it("魔竜の進軍時：次の手番のプレイヤーだけが手札を1枚捨てる。公開された回は発動しない", () => {
-    let s = start(2);
+    let s = placeEnemy(start(2), 3, "enemy_orc").state;
     s = mutate(s, (d) => {
       d.enemyDeck.unshift(...cards("enemy_dragon"));
     });
@@ -93,14 +93,15 @@ describe("敵の進軍（仕様書 5.4）", () => {
     expect(s.pending.requests.map((r) => r.playerId)).toEqual(["p1", "p2"]);
     s = act(s, "p1", timeoutAction(s, "p1")!).state;
     s = act(s, "p2", timeoutAction(s, "p2")!).state;
-    expect(s.currentPlayer).toBe(0);
 
-    // 2ラウンド目の終わり → 進軍時：次の手番の p1 だけ
-    s = pass(s, "p1").state;
+    // 2ラウンド目（順番はランダム）の終わり → 進軍時：次のラウンドの最初の手番のプレイヤーだけ
+    const first = s.players[s.currentPlayer]!.id;
+    const second = s.players[s.turnQueue[0]!]!.id;
+    s = pass(s, first).state;
     expect(s.pending).toBeNull();
-    s = pass(s, "p2").state;
+    s = pass(s, second).state;
     if (s.pending?.kind !== "discard") throw new Error("入力待ちになっていません");
-    expect(s.pending.requests.map((r) => r.playerId)).toEqual(["p1"]);
+    expect(s.pending.requests.map((r) => r.playerId)).toEqual([s.players[s.currentPlayer]!.id]);
   });
 
   it("2人以上では、敵は全員の手番が終わるごと（1ラウンドに1回）に進む", () => {
@@ -112,7 +113,16 @@ describe("敵の進軍（仕様書 5.4）", () => {
     r = pass(r.state, "p2");
     expect(r.state.route[2]!.map((c) => c.uid)).toEqual([uid]);
     expect(r.state.enemyDeck).toHaveLength(deck - 1);
-    expect(r.state.currentPlayer).toBe(0);
+    // 次のラウンドも全員が1回ずつ手番を持つ（順番はランダム）
+    expect([r.state.currentPlayer, ...r.state.turnQueue].sort()).toEqual([0, 1]);
+  });
+
+  it("手番の冒頭に進軍ルートが空なら、1体補充する", () => {
+    const s0 = start(2);
+    expect(s0.route.flat()).toHaveLength(0);
+    const s = pass(s0, "p1").state; // ラウンドの途中なので進軍はしない
+    expect(s.currentPlayer).toBe(1);
+    expect(s.route.flat()).toHaveLength(1);
   });
 
   it("ラウンドの全員が敵を撃破したときだけ進軍しない（1人なら撃破した手番は進軍しない）", () => {

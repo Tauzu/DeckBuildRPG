@@ -2075,15 +2075,15 @@ button {
 
   /* 進軍ルート：5マスを1列に。砦と村は細い帯に */
   .route {
-    grid-template-columns: 36px minmax(0, 1fr) 40px;
-    gap: 4px;
-    padding: 6px;
+    grid-template-columns: 30px minmax(0, 1fr) 34px;
+    gap: 3px;
+    padding: 4px;
   }
 
   .route-squares {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     overflow: visible;
-    gap: 3px;
+    gap: 2px;
   }
 
   .route-end {
@@ -2111,7 +2111,7 @@ button {
 
   .route-square {
     min-height: 92px;
-    padding: 2px;
+    padding: 1px;
   }
 
   .route-square-label {
@@ -2125,7 +2125,7 @@ button {
   .route .card-small {
     width: 100%;
     height: 82px;
-    padding: 2px 3px;
+    padding: 2px 1px;
   }
 
   .route .card-head,
@@ -2744,7 +2744,9 @@ textarea {
   }
 
   .route .card-small .card-name {
+    /* 4文字までは改行せず1行に収める */
     font-size: 8px;
+    letter-spacing: -0.3px;
     line-height: 1.15;
     height: 2.3em;
     text-align: center;
