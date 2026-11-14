@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { TitleScene } from "./art/TitleScene.js";
 import { DangerPicker } from "./components/DangerPicker.js";
 import { ActionBar } from "./components/ActionBar.js";
 import { LogPanel } from "./components/LogPanel.js";
@@ -29,6 +30,7 @@ export function TitleScreen() {
   const tutorial = reg.stages.find((st) => st.tutorial);
   return (
     <main className="title-screen">
+      <TitleScene />
       <div className="title-box panel">
         <p className="title-kicker">デッキビルド × RPG</p>
         <h1 className="title-logo">FOODIE QUEST</h1>

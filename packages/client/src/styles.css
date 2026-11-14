@@ -2759,3 +2759,125 @@ textarea {
     -webkit-box-orient: vertical;
   }
 }
+
+/* ---------- タイトル画面の背景 ---------- */
+.title-screen {
+  position: relative;
+  overflow: hidden;
+  background: #070a1e;
+}
+
+.title-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.title-screen .title-box {
+  position: relative;
+  z-index: 1;
+  background: rgb(11 15 44 / 0.88);
+  box-shadow:
+    inset 0 0 0 2px rgb(11 15 44 / 0.88),
+    inset 0 0 0 3px var(--edge-dim),
+    0 0 40px rgb(0 0 0 / 0.6);
+}
+
+.title-screen .title-logo {
+  text-shadow:
+    4px 4px 0 #a0281a,
+    0 0 24px rgb(255 210 60 / 0.35);
+}
+
+.ts-twinkle {
+  animation: ts-twinkle 3s steps(2, jump-none) infinite;
+}
+
+.ts-window {
+  animation: ts-window 5s ease-in-out infinite;
+}
+
+.ts-smoke {
+  opacity: 0;
+  animation: ts-smoke 4s linear infinite;
+}
+
+/* 魔竜が、月の前をゆっくり横切る */
+.ts-dragon {
+  animation: ts-fly 70s linear infinite;
+}
+
+.ts-dragon-bob {
+  animation: ts-bob 3s ease-in-out infinite;
+}
+
+@keyframes ts-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes ts-window {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+@keyframes ts-smoke {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  20% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(4px, -9px);
+  }
+}
+
+@keyframes ts-fly {
+  from {
+    transform: translate(-30px, 12px);
+  }
+  to {
+    transform: translate(190px, 4px);
+  }
+}
+
+@keyframes ts-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-twinkle,
+  .ts-window,
+  .ts-smoke,
+  .ts-dragon-bob {
+    animation: none;
+  }
+  .ts-smoke {
+    display: none;
+  }
+  .ts-dragon {
+    animation: none;
+    transform: translate(100px, 8px);
+  }
+}
