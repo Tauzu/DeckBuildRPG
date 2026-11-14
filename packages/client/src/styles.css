@@ -2849,10 +2849,10 @@ textarea {
 
 @keyframes ts-fly {
   from {
-    transform: translate(-30px, 12px);
+    transform: translate(var(--fx0), var(--fy0));
   }
   to {
-    transform: translate(190px, 4px);
+    transform: translate(var(--fx1), var(--fy1));
   }
 }
 
@@ -2878,6 +2878,6 @@ textarea {
   }
   .ts-dragon {
     animation: none;
-    transform: translate(100px, 8px);
+    transform: translate(40px, 10px);
   }
 }

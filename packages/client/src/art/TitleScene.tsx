@@ -1,8 +1,5 @@
 // タイトル画面の背景：月夜の村と、遠くの火山、月をよぎる魔竜。外部の素材は使わず、図形を組み合わせてここで描く
-import { memo } from "react";
-
-const W = 160;
-const H = 90;
+import { memo, useEffect, useState } from "react";
 
 type Grid = (string | null)[][];
 
@@ -19,11 +16,17 @@ function rng(seed: number): () => number {
 }
 
 class Canvas {
-  readonly g: Grid = Array.from({ length: H }, () => Array<string | null>(W).fill(null));
-  constructor(readonly r: () => number) {}
+  readonly g: Grid;
+  constructor(
+    readonly r: () => number,
+    readonly W: number,
+    readonly H: number,
+  ) {
+    this.g = Array.from({ length: H }, () => Array<string | null>(W).fill(null));
+  }
 
   px(x: number, y: number, c: string) {
-    if (x >= 0 && x < W && y >= 0 && y < H) this.g[y]![x] = c;
+    if (x >= 0 && x < this.W && y >= 0 && y < this.H) this.g[y]![x] = c;
   }
   rect(x: number, y: number, w: number, h: number, c: string) {
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) this.px(x + i, y + j, c);
@@ -34,9 +37,9 @@ class Canvas {
   /** 空：上から色の帯を重ね、境目は市松模様でぼかす */
   sky(colors: string[], bottom: number) {
     const band = bottom / colors.length;
-    for (let y = 0; y < H; y++) {
+    for (let y = 0; y < this.H; y++) {
       const k = Math.min(colors.length - 1, Math.floor(y / band));
-      for (let x = 0; x < W; x++) {
+      for (let x = 0; x < this.W; x++) {
         const edge = k + 1 < colors.length && y === Math.floor((k + 1) * band) - 1 && (x + y) % 2 === 0;
         this.px(x, y, edge ? colors[k + 1]! : colors[k]!);
       }
@@ -44,14 +47,14 @@ class Canvas {
   }
   ridge(base: number, amp: number, c: string, step = 0.5) {
     let h = base;
-    for (let x = 0; x < W; x++) {
+    for (let x = 0; x < this.W; x++) {
       h += (this.r() - 0.5) * 2 * step;
       h = Math.max(base - amp, Math.min(base + amp, h));
-      for (let y = Math.round(h); y < H; y++) this.px(x, y, c);
+      for (let y = Math.round(h); y < this.H; y++) this.px(x, y, c);
     }
   }
   peak(cx: number, top: number, slope: number, c: string, snow?: string) {
-    for (let y = top; y < H; y++) {
+    for (let y = top; y < this.H; y++) {
       const half = Math.floor((y - top) * slope);
       for (let x = cx - half; x <= cx + half; x++) this.px(x, y, snow && y < top + 3 ? snow : c);
     }
@@ -130,63 +133,92 @@ function spritePath(rows: string[]): string {
 }
 
 interface Scene {
+  w: number;
+  h: number;
   base: Layer[];
   twinkle: { x: number; y: number; delay: number }[];
   smoke: { x: number; y: number; delay: number }[];
   windows: { x: number; y: number }[];
+  /** 魔竜の飛ぶ始点・終点（y は画面の高さに応じて決める） */
+  fly: { x0: number; x1: number; y0: number; y1: number; sec: number };
 }
 
-let scene: Scene | null = null;
+const scenes = new Map<string, Scene>();
 
-function build(): Scene {
-  if (scene) return scene;
-  const c = new Canvas(rng(20261114));
+/** 横長（パソコン）は 160x90、縦長（スマホ縦持ち）は 72x128 で、それぞれ構図を変えて描く */
+function build(portrait: boolean): Scene {
+  const key = portrait ? "p" : "l";
+  const hit = scenes.get(key);
+  if (hit) return hit;
+  const W = portrait ? 72 : 160;
+  const H = portrait ? 128 : 90;
+  const f = (landscape: number, port: number) => (portrait ? port : landscape);
+  const c = new Canvas(rng(20261114 + (portrait ? 1 : 0)), W, H);
+  const horizon = Math.round(H * 0.69);
   // 夜空（地平線に近いほど赤い）
-  c.sky(["#070a1e", "#0d1230", "#171a40", "#2a2050", "#4a2a58", "#7a3a58", "#b4505a"], 62);
+  c.sky(["#070a1e", "#0d1230", "#171a40", "#2a2050", "#4a2a58", "#7a3a58", "#b4505a"], horizon);
   // 星
   const twinkle: Scene["twinkle"] = [];
-  for (let i = 0; i < 90; i++) {
+  const starCount = Math.round((W * H) / 160);
+  for (let i = 0; i < starCount; i++) {
     const x = Math.floor(c.r() * W);
-    const y = Math.floor(c.r() * 44);
+    const y = Math.floor(c.r() * H * 0.5);
     c.px(x, y, c.r() < 0.2 ? "#ffffff" : "#b8bde8");
     if (i % 9 === 0) twinkle.push({ x, y, delay: Math.round(c.r() * 30) / 10 });
   }
   // 月（暈つき）
-  c.disc(112, 20, 12, "#1e2250");
-  c.disc(112, 20, 10, "#2c3068");
-  c.disc(112, 20, 8, "#f0e8bc");
-  c.disc(115, 18, 2, "#d8cf9c");
-  c.disc(108, 24, 1, "#d8cf9c");
+  const mx = f(112, 46);
+  const my = f(20, 26);
+  c.disc(mx, my, 12, "#1e2250");
+  c.disc(mx, my, 10, "#2c3068");
+  c.disc(mx, my, 8, "#f0e8bc");
+  c.disc(mx + 3, my - 2, 2, "#d8cf9c");
+  c.disc(mx - 4, my + 4, 1, "#d8cf9c");
   // 遠くの山
-  c.peak(24, 40, 1.0, "#2a2252", "#8a86b8");
-  c.peak(58, 34, 1.1, "#32285a", "#9a96c4");
-  c.peak(86, 44, 0.9, "#2a2250");
-  c.ridge(54, 2, "#241c46", 0.5);
-  // 魔竜の火山（右）
-  c.peak(142, 30, 1.5, "#1a0e22");
-  c.rect(137, 29, 11, 2, "#f0902a");
-  c.rect(139, 27, 7, 2, "#ffd23c");
-  for (let y = 31; y < 54; y++) {
-    c.px(142 + Math.round(Math.sin(y / 2.2) * 2), y, y % 4 === 0 ? "#ffd23c" : "#e0502a");
-    if (y % 3 === 0) c.px(137 - Math.floor((y - 31) * 0.4), y, "#a02a14");
+  const mt = Math.round(H * 0.44);
+  if (portrait) {
+    c.peak(10, mt + 6, 1.0, "#2a2252", "#8a86b8");
+    c.peak(36, mt - 4, 1.1, "#32285a", "#9a96c4");
+  } else {
+    c.peak(24, 40, 1.0, "#2a2252", "#8a86b8");
+    c.peak(58, 34, 1.1, "#32285a", "#9a96c4");
+    c.peak(86, 44, 0.9, "#2a2250");
+  }
+  c.ridge(mt + 10, 2, "#241c46", 0.5);
+  // 魔竜の火山
+  const vx = f(142, 58);
+  const vt = f(30, mt - 8);
+  c.peak(vx, vt, 1.5, "#1a0e22");
+  c.rect(vx - 5, vt - 1, 11, 2, "#f0902a");
+  c.rect(vx - 3, vt - 3, 7, 2, "#ffd23c");
+  for (let y = vt + 1; y < vt + 24; y++) {
+    c.px(vx + Math.round(Math.sin(y / 2.2) * 2), y, y % 4 === 0 ? "#ffd23c" : "#e0502a");
+    if (y % 3 === 0) c.px(vx - 5 - Math.floor((y - vt) * 0.4), y, "#a02a14");
   }
   // 火の粉
-  for (let i = 0; i < 14; i++) c.px(130 + Math.floor(c.r() * 26), 14 + Math.floor(c.r() * 15), c.r() < 0.5 ? "#f0902a" : "#ffd23c");
+  for (let i = 0; i < 14; i++) c.px(vx - 12 + Math.floor(c.r() * 26), vt - 16 + Math.floor(c.r() * 15), c.r() < 0.5 ? "#f0902a" : "#ffd23c");
   // 丘と森
-  c.ridge(58, 3, "#161638", 0.6);
-  for (let x = 2; x < W; x += 4 + Math.floor(c.r() * 4)) c.pine(x, 66, 6 + Math.floor(c.r() * 5), "#101a2e", "#0a1020");
-  c.ridge(66, 2, "#0f1a2a", 0.4);
+  c.ridge(horizon - 4, 3, "#161638", 0.6);
+  for (let x = 2; x < W; x += 4 + Math.floor(c.r() * 4)) c.pine(x, horizon + 4, 6 + Math.floor(c.r() * 5), "#101a2e", "#0a1020");
+  c.ridge(horizon + 4, 2, "#0f1a2a", 0.4);
   // 村
   const windows: Scene["windows"] = [];
   const smoke: Scene["smoke"] = [];
-  const homes: [number, number, number, string, string][] = [
-    [46, 8, 7, "#4a3a4e", "#3a2038"],
-    [60, 10, 9, "#54404a", "#4a2430"],
-    [76, 9, 6, "#4a3a4e", "#36203a"],
-    [90, 12, 10, "#5a443f", "#52282c"],
-    [108, 8, 7, "#4a3a4e", "#3a2038"],
-  ];
-  const ground = 76;
+  const homes: [number, number, number, string, string][] = portrait
+    ? [
+        [3, 8, 7, "#4a3a4e", "#3a2038"],
+        [17, 10, 9, "#54404a", "#4a2430"],
+        [34, 9, 6, "#4a3a4e", "#36203a"],
+        [50, 12, 10, "#5a443f", "#52282c"],
+      ]
+    : [
+        [46, 8, 7, "#4a3a4e", "#3a2038"],
+        [60, 10, 9, "#54404a", "#4a2430"],
+        [76, 9, 6, "#4a3a4e", "#36203a"],
+        [90, 12, 10, "#5a443f", "#52282c"],
+        [108, 8, 7, "#4a3a4e", "#3a2038"],
+      ];
+  const ground = horizon + 14;
   c.rect(0, ground, W, H - ground, "#0c1622");
   for (const [x, w, h, wall, roof] of homes) {
     c.house(x, ground, w, h, wall, roof, "#ffd23c");
@@ -196,21 +228,50 @@ function build(): Scene {
   // 手前の道と草
   c.rect(0, ground + 2, W, 3, "#17202c");
   for (let x = 0; x < W; x++) if ((x * 7 + 3) % 5 === 0) c.px(x, ground + 3, "#2a3444");
-  for (let x = 0; x < W; x++) if (c.r() < 0.18) c.px(x, ground + 6 + Math.floor(c.r() * 6), "#13202a");
-  // 手前の大きな木（両端）
-  for (const [x, h] of [[6, 26], [16, 20], [150, 28], [140, 18], [30, 14]] as const) c.pine(x, H - 2, h, "#08101c", "#05080e");
+  for (let x = 0; x < W; x++) for (let y = ground + 6; y < H - 3; y++) if (c.r() < 0.02) c.px(x, y, "#13202a");
+  // 手前の大きな木
+  const trees: (readonly [number, number])[] = portrait
+    ? [[5, 30], [14, 22], [66, 32], [57, 20]]
+    : [[6, 26], [16, 20], [150, 28], [140, 18], [30, 14]];
+  for (const [x, h] of trees) c.pine(x, H - 2, h, "#08101c", "#05080e");
   c.rect(0, H - 3, W, 3, "#05080e");
-  return (scene = { base: toPaths(c.g), twinkle, smoke, windows });
+  const s: Scene = {
+    w: W,
+    h: H,
+    base: toPaths(c.g),
+    twinkle,
+    smoke,
+    windows,
+    fly: portrait ? { x0: -24, x1: W + 6, y0: 40, y1: 26, sec: 40 } : { x0: -24, x1: W + 6, y0: 12, y1: 4, sec: 70 },
+  };
+  scenes.set(key, s);
+  return s;
 }
 
 const DRAGON_D = spritePath(DRAGON);
 
+const PORTRAIT_QUERY = "(max-aspect-ratio: 4/5)";
+
+function usePortrait(): boolean {
+  const [portrait, setPortrait] = useState(() => typeof matchMedia === "function" && matchMedia(PORTRAIT_QUERY).matches);
+  useEffect(() => {
+    if (typeof matchMedia !== "function") return;
+    const mq = matchMedia(PORTRAIT_QUERY);
+    const on = () => setPortrait(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return portrait;
+}
+
 export const TitleScene = memo(function TitleScene() {
-  const s = build();
+  const s = build(usePortrait());
+  const fly = { "--fx0": `${s.fly.x0}px`, "--fx1": `${s.fly.x1}px`, "--fy0": `${s.fly.y0}px`, "--fy1": `${s.fly.y1}px`, animationDuration: `${s.fly.sec}s` } as React.CSSProperties;
   return (
     <svg
       className="title-scene"
-      viewBox={`0 0 ${W} ${H}`}
+      viewBox={`0 0 ${s.w} ${s.h}`}
       preserveAspectRatio="xMidYMax slice"
       shapeRendering="crispEdges"
       aria-hidden="true"
@@ -227,7 +288,7 @@ export const TitleScene = memo(function TitleScene() {
       {s.smoke.map((m, i) => (
         <rect key={i} className="ts-smoke" x={m.x} y={m.y} width="2" height="2" fill="#6a6a86" style={{ animationDelay: `${m.delay}s` }} />
       ))}
-      <g className="ts-dragon">
+      <g className="ts-dragon" style={fly}>
         <g className="ts-dragon-bob">
           <path d={DRAGON_D} fill="#04040c" />
         </g>
