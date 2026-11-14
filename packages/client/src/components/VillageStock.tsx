@@ -9,7 +9,8 @@ export function VillageStock() {
   const choosing = view.step.kind === "chooseAction" && legal.waitingForMe && !legal.selection;
   const entries = Object.entries(view.village.stacks);
   const heroes = entries.filter(([id]) => id.startsWith("hero:"));
-  const others = entries.filter(([id]) => !id.startsWith("hero:"));
+  const foods = entries.filter(([id]) => id.startsWith("food_"));
+  const weapons = entries.filter(([id]) => !id.startsWith("hero:") && !id.startsWith("food_"));
 
   const renderStack = ([stackId, st]: (typeof entries)[number]) => {
     const opt = findOption(legal.options, (a) => a.type === "buy" && a.stackId === stackId);
@@ -44,7 +45,8 @@ export function VillageStock() {
     <section className="stock panel">
       <h2>村の在庫</h2>
       <div className="stock-row">{heroes.map(renderStack)}</div>
-      <div className="stock-row">{others.map(renderStack)}</div>
+      <div className="stock-row">{foods.map(renderStack)}</div>
+      <div className="stock-row">{weapons.map(renderStack)}</div>
     </section>
   );
 }

@@ -141,8 +141,15 @@ function playFood(ctx: Ctx, uid: string): void {
   s.turn!.foodSlots += def.food;
   markActed(ctx);
   ctx.events.push({ type: "cardPlayed", playerId: p.id, uid, defId: card.defId });
-  // 食料の効果は村でだけ働く
-  if (def.effect && s.turn!.action === "village") enqueueEffect(ctx, def.effect, uid, p.id);
+  // 食料の効果は村で働く。戦闘中は effectInBattle の食料だけで、使った後は戻せない
+  if (def.effect) {
+    const turn = s.turn!;
+    if (turn.action === "village") enqueueEffect(ctx, def.effect, uid, p.id);
+    else if (turn.action === "battle" && def.effectInBattle) {
+      turn.drewUids = [...(turn.drewUids ?? []), uid];
+      enqueueEffect(ctx, def.effect, uid, p.id);
+    }
+  }
 }
 
 function playHero(ctx: Ctx, uid: string): void {

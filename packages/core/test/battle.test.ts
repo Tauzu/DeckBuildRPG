@@ -188,6 +188,12 @@ describe("敵を倒す（仕様書 5.3）", () => {
     // 聖餅の廃棄は戦闘では働かない
     const host = battle(["food_host", "hero_youth_0"], "enemy_goblin");
     expect(act(host.s, "p1", { type: "playFood", uid: uidOf(host.h, "food_host") }).state.pending).toBeNull();
+    // 聖水の廃棄は戦闘でも働き、使った後は戻せない
+    const water = battle(["food_holy_water", "hero_youth_0"], "enemy_goblin");
+    let w = act(water.s, "p1", { type: "playFood", uid: uidOf(water.h, "food_holy_water") }).state;
+    expect(w.pending).toEqual({ kind: "trash", playerId: "p1", max: 1 });
+    w = act(w, "p1", { type: "resolveTrash", uids: [] }).state;
+    expect(errorOf(w, "p1", { type: "undoBattleCard", uid: uidOf(water.h, "food_holy_water") })).toBe("CANNOT_UNDO");
   });
 
   it("進軍ルートに敵がいなければ戦闘は選べない", () => {

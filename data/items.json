@@ -3,7 +3,7 @@
   { "id": "food_jerky", "name": "干し肉", "type": "food", "cost": 3, "gold": 1, "food": 2 },
   { "id": "food_wine", "name": "葡萄酒", "type": "food", "cost": 3, "gold": 2, "food": 1 },
   { "id": "food_host", "name": "聖餅", "type": "food", "cost": 2, "gold": 0, "food": 1, "effect": { "kind": "trash", "count": 1 } },
-  { "id": "food_holy_water", "name": "聖水", "type": "food", "cost": 5, "gold": 1, "food": 2, "effect": { "kind": "trash", "count": 1 } },
+  { "id": "food_holy_water", "name": "聖水", "type": "food", "cost": 5, "gold": 1, "food": 2, "effect": { "kind": "trash", "count": 1 }, "effectInBattle": true },
   { "id": "food_feast", "name": "祝宴の料理", "type": "food", "cost": 6, "gold": 1, "food": 3 },
 
   { "id": "weapon_club", "name": "木の棍棒", "type": "weapon", "cost": 1, "gold": 0, "physical": 2, "magic": 0, "ability": null },

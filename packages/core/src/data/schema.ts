@@ -61,6 +61,7 @@ export const foodDefSchema = z.object({
   type: z.literal("food"),
   food: positive,
   effect: effectSchema.nullable().default(null),
+  effectInBattle: z.boolean().default(false),
 });
 
 export const curseDefSchema = z.object({

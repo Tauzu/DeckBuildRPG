@@ -137,6 +137,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
             <span className="stat-food">食糧 {def.food}</span>
           </div>
           {def.effect && <div className="card-text">村：{describeEffect(def.effect)}</div>}
+          {def.effect && def.effectInBattle && <div className="card-text">戦闘中も：{describeEffect(def.effect)}</div>}
           <div className="card-note">英雄を追加で{def.food}人出せる</div>
         </div>
       );
