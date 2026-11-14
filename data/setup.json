@@ -19,6 +19,8 @@
     {"id": "food_bread", "count": 10},
     {"id": "food_jerky", "count": 8},
     {"id": "food_wine", "count": 8},
+    {"id": "food_host", "count": 6},
+    {"id": "food_holy_water", "count": 4},
     {"id": "food_feast", "count": 5},
     {"id": "weapon_club", "count": 6},
     {"id": "weapon_sword", "count": 6},

@@ -220,9 +220,10 @@ export function touchText(s: string): string {
   return touch ? s.replaceAll("クリック", "タップ") : s;
 }
 
-/** 英雄の村効果のうち、戦闘中に出しても働くもの（カードを引く効果だけ） */
+/** 英雄の村効果のうち、戦闘中に出しても働くもの（カードを引く・廃棄する効果） */
 export function battleEffectText(e: Effect, level = 99): string | null {
   if (level < 2) return null;
-  const draws = e.kind === "draw" ? [e] : e.kind === "multi" ? e.effects.filter((x) => x.kind === "draw") : [];
-  return draws.length > 0 ? draws.map(describeEffect).join("、") : null;
+  const usable = (x: Effect) => x.kind === "draw" || x.kind === "trash";
+  const list = e.kind === "multi" ? e.effects.filter(usable) : usable(e) ? [e] : [];
+  return list.length > 0 ? list.map(describeEffect).join("、") : null;
 }

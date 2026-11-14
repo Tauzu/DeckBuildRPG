@@ -68,6 +68,8 @@ export interface WeaponDef extends BaseDef {
 export interface FoodDef extends BaseDef {
   type: "food";
   food: number;
+  /** 村で出したときの効果 */
+  effect: Effect | null;
 }
 
 /** 敵の特性（仕様書 2.5）。guard：護衛、split：分裂、sprint：疾走 */

@@ -108,6 +108,15 @@ describe("村効果（仕様書 5.2(b)）", () => {
     expect(s.trash.map((c) => c.uid)).toContain(curseUid);
   });
 
+  it("聖餅・聖水：村で出すと廃棄できる", () => {
+    for (const id of ["food_host", "food_holy_water"]) {
+      const s0 = visit([id, "hero_youth_0"]);
+      const h = hand(s0);
+      const s = act(s0, "p1", { type: "playFood", uid: uidOf(h, id) }).state;
+      expect(s.pending).toEqual({ kind: "trash", playerId: "p1", max: 1 });
+    }
+  });
+
   it("僧侶：使った金が足りなくなる廃棄はできない", () => {
     const s0 = visit(["food_bread", "hero_priest_1", "food_wine"]);
     const h = hand(s0);

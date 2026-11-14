@@ -141,6 +141,8 @@ function playFood(ctx: Ctx, uid: string): void {
   s.turn!.foodSlots += def.food;
   markActed(ctx);
   ctx.events.push({ type: "cardPlayed", playerId: p.id, uid, defId: card.defId });
+  // 食料の効果は村でだけ働く
+  if (def.effect && s.turn!.action === "village") enqueueEffect(ctx, def.effect, uid, p.id);
 }
 
 function playHero(ctx: Ctx, uid: string): void {
@@ -160,21 +162,21 @@ function playHero(ctx: Ctx, uid: string): void {
   if (def.villageEffect) {
     if (turn.action === "village") enqueueEffect(ctx, def.villageEffect, uid, p.id);
     else if (turn.action === "battle") {
-      // 戦闘中に出しても、カードを引く効果だけは働く（吟遊詩人）
-      // レベル2以上の英雄だけ。引いた後は戻せない
-      const draws = def.level >= BATTLE_DRAW_MIN_LEVEL ? drawEffects(def.villageEffect) : [];
-      if (draws.length > 0) turn.drewUids = [...(turn.drewUids ?? []), uid];
-      for (const e of draws) enqueueEffect(ctx, e, uid, p.id);
+      // 戦闘中に出しても、カードを引く・廃棄する効果は働く（吟遊詩人・僧侶）
+      // レベル2以上の英雄だけ。効果を使った後は戻せない
+      const usable = def.level >= BATTLE_EFFECT_MIN_LEVEL ? battleEffects(def.villageEffect) : [];
+      if (usable.length > 0) turn.drewUids = [...(turn.drewUids ?? []), uid];
+      for (const e of usable) enqueueEffect(ctx, e, uid, p.id);
     }
   }
 }
 
-/** 戦闘中にカードを引く効果が働く英雄の最低レベル */
-export const BATTLE_DRAW_MIN_LEVEL = 2;
+/** 戦闘中にも村効果（引く・廃棄）が働く英雄の最低レベル */
+export const BATTLE_EFFECT_MIN_LEVEL = 2;
 
-function drawEffects(e: Effect): Effect[] {
-  if (e.kind === "draw") return [e];
-  return e.kind === "multi" ? e.effects.flatMap(drawEffects) : [];
+function battleEffects(e: Effect): Effect[] {
+  if (e.kind === "draw" || e.kind === "trash") return [e];
+  return e.kind === "multi" ? e.effects.flatMap(battleEffects) : [];
 }
 
 // ---------------------------------------------------------------------------

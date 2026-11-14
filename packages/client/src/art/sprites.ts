@@ -811,6 +811,8 @@ const CARD_SPRITES: Record<string, Sprite> = {
   food_jerky: jerky,
   food_wine: wine,
   food_feast: feast,
+  food_host: bread,
+  food_holy_water: wine,
   enemy_goblin: goblin,
   enemy_wolf: wolf,
   enemy_skeleton: skeleton,
