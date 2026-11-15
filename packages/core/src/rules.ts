@@ -117,7 +117,7 @@ export function battleAttackers(s: GameState, reg: CardRegistry): Attacker[] {
   return list;
 }
 
-/** 撃破したときに増える経験値（武器の defeatExp）。場で使われている武器だけ数える */
+/** 撃破したときに増える経験値（武器の defeatExp と英雄の defeatExp）。場に出ているものだけ数える */
 export function bonusExpOnDefeat(s: GameState, reg: CardRegistry): number {
   if (s.turn?.action !== "battle") return 0;
   const p = s.players[s.currentPlayer];
@@ -126,6 +126,7 @@ export function bonusExpOnDefeat(s: GameState, reg: CardRegistry): number {
   for (const c of p.field) {
     const d = reg.get(c.defId);
     if (d.type === "weapon" && d.ability?.kind === "defeatExp") sum += d.ability.amount;
+    if (d.type === "hero") sum += d.defeatExp;
   }
   return sum;
 }

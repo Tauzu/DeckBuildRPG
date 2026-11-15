@@ -137,6 +137,13 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   priestBattle2: (d) => {
     for (const h of d.heroes) if (h.id === "hero_priest_2") h.battleEffect = { kind: "trash", count: 1 };
   },
+  /** 狩人を変更前（Lv3 の村で経験値+1のみ、戦闘の撃破ボーナスなし）に戻す */
+  hunterOld: (d) => {
+    for (const h of d.heroes) {
+      if (h.id === "hero_hunter_2") h.villageEffect = null;
+      if (h.id === "hero_hunter_3") h.defeatExp = 0;
+    }
+  },
   /** 敵を撃破した直後にもレベルアップ・転職できる */
   lvBattle: (d) => {
     d.setup.levelUpAfterBattle = true;

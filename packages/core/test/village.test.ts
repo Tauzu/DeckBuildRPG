@@ -79,6 +79,14 @@ describe("村効果（仕様書 5.2(b)）", () => {
     expect(currentGold(s, reg)).toBe(3);
   });
 
+  it("狩人Lv2：村で経験値+1", () => {
+    const s0 = visit(["food_bread", "hero_hunter_2"]);
+    const h = hand(s0);
+    let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
+    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_hunter_2") }).state;
+    expect(s.players[0]!.exp).toBe(1);
+  });
+
   it("狩人Lv3：経験値+1（所持・総獲得の両方）", () => {
     const s0 = visit(["food_bread", "hero_hunter_3"]);
     const h = hand(s0);

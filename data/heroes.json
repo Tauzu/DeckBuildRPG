@@ -10,8 +10,8 @@
   { "id": "hero_mage_3", "name": "魔法使い", "type": "hero", "cost": 10, "gold": 2, "heroId": "mage", "level": 3, "physical": 0, "magic": 8, "villageEffect": null, "nextLevelExp": null },
 
   { "id": "hero_hunter_1", "name": "狩人", "type": "hero", "cost": 4, "gold": 1, "heroId": "hunter", "level": 1, "physical": 2, "magic": 1, "villageEffect": null, "nextLevelExp": 2 },
-  { "id": "hero_hunter_2", "name": "狩人", "type": "hero", "cost": 7, "gold": 1, "heroId": "hunter", "level": 2, "physical": 3, "magic": 2, "villageEffect": null, "nextLevelExp": 4 },
-  { "id": "hero_hunter_3", "name": "狩人", "type": "hero", "cost": 10, "gold": 1, "heroId": "hunter", "level": 3, "physical": 5, "magic": 3, "villageEffect": { "kind": "exp", "amount": 1 }, "nextLevelExp": null },
+  { "id": "hero_hunter_2", "name": "狩人", "type": "hero", "cost": 7, "gold": 1, "heroId": "hunter", "level": 2, "physical": 3, "magic": 2, "villageEffect": { "kind": "exp", "amount": 1 }, "nextLevelExp": 4 },
+  { "id": "hero_hunter_3", "name": "狩人", "type": "hero", "cost": 10, "gold": 1, "heroId": "hunter", "level": 3, "physical": 5, "magic": 3, "villageEffect": { "kind": "exp", "amount": 1 }, "defeatExp": 1, "nextLevelExp": null },
 
   { "id": "hero_priest_1", "name": "僧侶", "type": "hero", "cost": 4, "gold": 1, "heroId": "priest", "level": 1, "physical": 1, "magic": 1, "villageEffect": { "kind": "trash", "count": 1 }, "nextLevelExp": 2 },
   { "id": "hero_priest_2", "name": "僧侶", "type": "hero", "cost": 7, "gold": 1, "heroId": "priest", "level": 2, "physical": 1, "magic": 3, "villageEffect": { "kind": "trash", "count": 1 }, "battleEffect": { "kind": "trash", "count": 1 }, "nextLevelExp": 4 },

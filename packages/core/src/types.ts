@@ -44,6 +44,8 @@ export interface HeroDef extends BaseDef {
   villageEffect: Effect | null;
   /** 戦闘中に出したときに働く効果（村効果とは別に持つ）。使った後は戻せない */
   battleEffect: Effect | null;
+  /** 戦闘で場に出ているとき、敵を撃破すると増える経験値（出した後も手札に戻せる） */
+  defeatExp: number;
   nextLevelExp: number | null;
 }
 

@@ -292,4 +292,16 @@ describe("武器の能力（仕様書 3.2）", () => {
     s = act(s, "p1", { type: "confirmAttack" }).state;
     expect(s.players[0]!.exp).toBe(reg.enemy("enemy_goblin").exp + 1);
   });
+
+  it("狩人Lv3：出して撃破すると経験値+1。Lv2は+0。出した後も手札に戻せる", () => {
+    for (const [id, bonus] of [["hero_hunter_3", 1], ["hero_hunter_2", 0]] as const) {
+      const { s: s0, h } = battle([id], "enemy_goblin");
+      const hunter = uidOf(h, id);
+      let s = act(s0, "p1", { type: "playHero", uid: hunter }).state;
+      s = act(s, "p1", { type: "undoBattleCard", uid: hunter }).state;
+      s = act(s, "p1", { type: "playHero", uid: hunter }).state;
+      s = act(s, "p1", { type: "confirmAttack" }).state;
+      expect(s.players[0]!.exp).toBe(reg.enemy("enemy_goblin").exp + bonus);
+    }
+  });
 });
