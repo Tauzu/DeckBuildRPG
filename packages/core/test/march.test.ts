@@ -158,6 +158,28 @@ describe("敵の進軍（仕様書 5.4）", () => {
     expect(r.state.roundDefeats).toBe(0);
   });
 
+  it("3人のとき：2体撃破すれば（誰が倒しても）進軍しない。1体だけなら進軍する", () => {
+    const defeat = (s: ReturnType<typeof start>, playerId: string) => {
+      const idx = s.players.findIndex((p) => p.id === playerId);
+      const placed = placeEnemy(setHand(s, idx, ["hero_knight_1"]), 1, "enemy_goblin");
+      let t = act(placed.state, playerId, { type: "chooseBattle", targetUid: placed.uid }).state;
+      t = act(t, playerId, { type: "playHero", uid: t.players[idx]!.hand[0]!.uid }).state;
+      return confirmAndFinish(t, playerId);
+    };
+    const base = placeEnemy(start(3), 3, "enemy_orc").state;
+    // 1体だけ → 進軍する
+    let r = defeat(base, "p1");
+    r = pass(r.state, "p2");
+    r = pass(r.state, "p3");
+    expect(r.events.some((e) => e.type === "enemyMoved")).toBe(true);
+    // 2体（p1 と p3）→ 進軍しない
+    r = defeat(base, "p1");
+    r = pass(r.state, "p2");
+    r = defeat(r.state, "p3");
+    expect(r.events.some((e) => e.type === "marchSkipped")).toBe(true);
+    expect(r.events.some((e) => e.type === "enemyMoved" || e.type === "enemyRevealed")).toBe(false);
+  });
+
   it("手番は手番順に回る", () => {
     let s = start(3);
     expect(errorOf(s, "p2", { type: "chooseVillage" })).toBe("NOT_YOUR_TURN");

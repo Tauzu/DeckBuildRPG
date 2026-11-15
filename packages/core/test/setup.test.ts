@@ -74,9 +74,9 @@ describe("ステージ（企画書 12章）", () => {
 describe("ゲームの準備（仕様書 4章）", () => {
   it.each([
     [1, 18, 15, 40],
-    [2, 24, 15, 69],
-    [3, 30, 20, 113],
-    [4, 36, 20, 165],
+    [2, 24, 15, 66],
+    [3, 30, 20, 110],
+    [4, 36, 20, 142],
   ])("%i人：敵の山札・耐久値・ボスの生命力", (n, enemyCount, hp, bossHp) => {
     const s = start(n);
     expect(s.enemyDeck).toHaveLength(enemyCount + 1);

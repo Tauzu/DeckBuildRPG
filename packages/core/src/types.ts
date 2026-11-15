@@ -226,7 +226,8 @@ export interface GameConfig {
 }
 
 export type MarchTiming = "turn" | "round";
-export type MarchSkip = "any" | "all" | "none";
+/** any：1体でも撃破したら。all：ラウンドの全員が撃破したら。two：1人なら撃破したら、2人以上なら2体以上撃破したら。none：止めない */
+export type MarchSkip = "any" | "all" | "two" | "none";
 
 export interface PlayerState {
   id: string;

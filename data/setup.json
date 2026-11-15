@@ -7,7 +7,7 @@
   "freeHeroSlots": 1,
   "levelUpAfterBattle": true,
   "marchTiming": "round",
-  "marchSkip": "all",
+  "marchSkip": "two",
   "curseStock": 20,
   "startingDeck": [
     {"id": "hero_youth_0", "count": 3},

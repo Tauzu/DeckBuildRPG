@@ -36,7 +36,8 @@ export function advance(ctx: Ctx): void {
           break;
         }
         const turns = perTurn ? 1 : s.players.length;
-        const skip = s.config.marchSkip === "any" ? s.roundDefeats > 0 : s.config.marchSkip === "all" ? s.roundDefeats >= turns : false;
+        const need = s.config.marchSkip === "all" ? turns : s.config.marchSkip === "two" ? Math.min(2, turns) : 1;
+        const skip = s.config.marchSkip === "none" ? false : s.roundDefeats >= need;
         s.roundDefeats = 0;
         // 魔物が1体もいないときは、倒した直後でも必ず補充する（選べる行動がなくなるため）
         if (skip && s.route.some((r) => r.length > 0)) {

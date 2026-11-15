@@ -27,13 +27,13 @@ export function ActionBar() {
     </button>
   );
 
-  // 撃破したときに進軍がどうなるか（ラウンドの全員が撃破すると進軍しない）
+  // 撃破したときに進軍がどうなるか（2人以上では、ラウンドで2体以上撃破すると進軍しない）
   const players = view.players.length;
   const defeatsAfter = view.roundDefeats + 1; // この手番の撃破を含める（数えるのは手番の終わり）
   const marchNote =
     players === 1
       ? "撃破すればこの手番は敵が進軍しない"
-      : `このラウンドの撃破 ${Math.min(defeatsAfter, players)} / ${players}人。全員が撃破すれば敵は進軍しない`;
+      : `このラウンドの撃破 ${Math.min(defeatsAfter, 2)} / 2体。2体以上撃破すれば敵は進軍しない`;
 
   let message = "";
   let buttons = null;

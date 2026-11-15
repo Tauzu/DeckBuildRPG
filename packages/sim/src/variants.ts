@@ -166,7 +166,7 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
 export function buildRegistry(names: string[]): CardRegistry {
   const d = loadData();
   for (const n of names) {
-    const f = VARIANTS[n] ?? perCount(n) ?? stageBoss(n) ?? stageBossMulti(n);
+    const f = VARIANTS[n] ?? perCount(n) ?? stageBoss(n) ?? stageBossMulti(n) ?? percent(n);
     if (!f) throw new Error(`未知の候補: ${n}（${Object.keys(VARIANTS).join(", ")}）`);
     f(d);
   }
@@ -208,5 +208,19 @@ function stageBossMulti(name: string): ((d: Data) => void) | undefined {
     const st = d.stages.find((x) => x.id === m[1]);
     if (!st) throw new Error(`未知のステージ: ${m[1]}`);
     for (const [i, n] of ["2", "3", "4"].entries()) if (st.playerCounts[n]) st.playerCounts[n].bossHp = Number(m[i + 2]);
+  };
+}
+
+/** 2〜4人のボスの生命力、または敵の枚数を、全ステージで一律に何%にするか。例：bossPct_80、enemyPct_120 */
+function percent(name: string): ((d: Data) => void) | undefined {
+  const m = /^(bossPct|enemyPct)_(\d+)$/.exec(name);
+  if (!m) return undefined;
+  const ratio = Number(m[2]) / 100;
+  return (d) => {
+    for (const [n, pc] of allCounts(d)) {
+      if (n === "1") continue;
+      if (m[1] === "bossPct") pc.bossHp = Math.round(pc.bossHp * ratio);
+      else for (const id of Object.keys(pc.enemies)) pc.enemies[id] = Math.max(1, Math.round(pc.enemies[id] * ratio));
+    }
   };
 }
