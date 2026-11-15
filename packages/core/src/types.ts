@@ -42,6 +42,8 @@ export interface HeroDef extends BaseDef {
   physical: number;
   magic: number;
   villageEffect: Effect | null;
+  /** 戦闘中に出したときに働く効果（村効果とは別に持つ）。使った後は戻せない */
+  battleEffect: Effect | null;
   nextLevelExp: number | null;
 }
 
@@ -332,8 +334,6 @@ export interface GameState {
   roundDefeats: number;
   /** 凍結中の敵の uid（次の進軍で動かない。仕様書 5.4） */
   frozen: string[];
-  /** すでに分裂した敵の uid（1体1回まで。仕様書 5.3.3） */
-  split: string[];
   result: GameResult | null;
 }
 

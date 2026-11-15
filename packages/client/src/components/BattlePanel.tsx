@@ -63,6 +63,7 @@ export function BattlePanel() {
               耐性で 物理 {p.physical}→{p.physicalAfter}、魔法 {p.magic}→{p.magicAfter}
             </p>
           )}
+          {p && p.frozenBonus > 0 && <p className="dialog-note">凍結中なので ダメージ +{p.frozenBonus}</p>}
         </div>
       </div>
     </section>

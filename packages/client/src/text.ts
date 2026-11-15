@@ -49,7 +49,7 @@ export function describeWeaponAbility(a: WeaponAbility): string {
     case "solo":
       return "英雄がいなくても使える";
     case "chill":
-      return "倒せなかった敵を凍結する（ボス以外）";
+      return "倒せなかった敵を凍結する（ボス以外。凍結中は受けるダメージ+2）";
   }
 }
 
@@ -59,7 +59,7 @@ export function describeTrait(t: EnemyTrait): string {
     case "guard":
       return "護衛：同じマスと1つ後ろのマスの敵を守る。倒すまで守られた敵は選べない";
     case "split":
-      return "分裂：倒せなかったとき、1マス目に小スライムを1体出す（1回だけ）";
+      return "分裂：倒すと、1マス目に小スライムを1体出す";
     case "sprint":
       return "疾走：進軍で2マス進む";
   }
@@ -82,7 +82,7 @@ export function describeEffect(e: Effect): string {
     case "addCurse":
       return `全員の捨て札に呪いを${e.count}枚加える`;
     case "freeze":
-      return `敵${e.count}体を凍結（次の進軍で動かない）`;
+      return `敵${e.count}体を凍結（次の進軍で動かず、受けるダメージ+2）`;
     case "push":
       return `敵${e.count}体を1マス戻す`;
     case "rally":
@@ -173,7 +173,7 @@ export function eventText(
     case "enemyPushed":
       return `${name(e.defId)}を${e.from + 1}マス目から${e.to + 1}マス目に押し戻した`;
     case "enemySplit":
-      return `${byUid(e.parentUid)}が分裂して、${name(e.defId)}が現れた`;
+      return `倒されたスライムが分裂して、${name(e.defId)}が現れた`;
     case "cardsDiscarded":
       return `${playerName(e.playerId)}が手札を捨てた：${e.defIds.map(name).join("、")}`;
     case "curseAdded":
@@ -220,10 +220,8 @@ export function touchText(s: string): string {
   return touch ? s.replaceAll("クリック", "タップ") : s;
 }
 
-/** 英雄の村効果のうち、戦闘中に出しても働くもの（カードを引く・廃棄する効果） */
-export function battleEffectText(e: Effect, level = 99): string | null {
-  if (level < 2) return null;
-  const usable = (x: Effect) => x.kind === "draw" || x.kind === "trash";
-  const list = e.kind === "multi" ? e.effects.filter(usable) : usable(e) ? [e] : [];
-  return list.length > 0 ? list.map(describeEffect).join("、") : null;
+
+/** 英雄が戦闘中に出したときの効果の説明（なければ null） */
+export function battleEffectText(e: Effect | null): string | null {
+  return e ? describeEffect(e) : null;
 }

@@ -170,15 +170,24 @@ export function hasChill(s: GameState, reg: CardRegistry): boolean {
   });
 }
 
+/** 凍結中の敵に与えるダメージの加算（仕様書 5.3.1）。ダメージが1以上のときだけ */
+export const FROZEN_BONUS_DAMAGE = 2;
+
+export function frozenBonus(s: GameState, targetUid: string, total: number): number {
+  return total > 0 && s.frozen.includes(targetUid) ? FROZEN_BONUS_DAMAGE : 0;
+}
+
 /** 戦闘中のダメージの見込み。戦闘中でなければ null */
 export function battlePreview(
   s: GameState,
   reg: CardRegistry,
-): (DamageBreakdown & { hp: number; prevDamage: number }) | null {
+): (DamageBreakdown & { hp: number; prevDamage: number; frozenBonus: number }) | null {
   if (s.turn?.action !== "battle") return null;
   const targetUid = s.turn.targetUid;
   const target = s.route.flat().find((c) => c.uid === targetUid);
   if (!target) return null;
   const def = reg.enemy(target.defId);
-  return { ...calcDamage(battleAttackers(s, reg), def), hp: enemyHp(s, def), prevDamage: s.enemyDamage[targetUid] ?? 0 };
+  const d = calcDamage(battleAttackers(s, reg), def);
+  const bonus = frozenBonus(s, targetUid, d.total);
+  return { ...d, total: d.total + bonus, frozenBonus: bonus, hp: enemyHp(s, def), prevDamage: s.enemyDamage[targetUid] ?? 0 };
 }

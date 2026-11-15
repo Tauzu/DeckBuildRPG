@@ -114,7 +114,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
             <span className="stat-mag" title="魔法攻撃力">魔 {def.magic}</span>
           </div>
           {def.villageEffect && <div className="card-text">村：{describeEffect(def.villageEffect)}</div>}
-          {def.villageEffect && battleEffectText(def.villageEffect, def.level) && <div className="card-text">戦闘中も：{battleEffectText(def.villageEffect, def.level)}</div>}
+          {def.battleEffect && battleEffectText(def.battleEffect) && <div className="card-text">戦闘中も：{battleEffectText(def.battleEffect)}</div>}
           {def.nextLevelExp !== null && <div className="card-note">次のLvまで 経験値{def.nextLevelExp}</div>}
           {def.level === 0 && <div className="card-note">経験値2で転職できる</div>}
         </div>

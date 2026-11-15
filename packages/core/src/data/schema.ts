@@ -37,6 +37,7 @@ export const heroDefSchema = z.object({
   physical: nonNeg,
   magic: nonNeg,
   villageEffect: effectSchema.nullable(),
+  battleEffect: effectSchema.nullable().default(null),
   nextLevelExp: positive.nullable(),
 });
 

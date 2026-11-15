@@ -152,11 +152,11 @@ describe("敵を倒す（仕様書 5.3）", () => {
     expect(r.state.route.flat()).toHaveLength(1);
   });
 
-  it("村効果は戦闘では発動しない（レベル2以上の英雄のカードを引く効果だけは働く）", () => {
+  it("村効果は戦闘では発動しない（戦闘効果を持つ英雄だけ働く。吟遊詩人Lv2は1枚引く）", () => {
     const { s: s0, h } = battle(["food_bread", "hero_bard_2"], "enemy_goblin");
     let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
     s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_bard_2") }).state;
-    expect(hand(s)).toHaveLength(2);
+    expect(hand(s)).toHaveLength(1);
     // 引いた後は、英雄を戻すことも行動を選び直すこともできない
     expect(errorOf(s, "p1", { type: "undoBattleCard", uid: uidOf(h, "hero_bard_2") })).toBe("CANNOT_UNDO");
     expect(errorOf(s, "p1", { type: "cancelAction" })).toBe("CANNOT_CANCEL");
@@ -170,21 +170,25 @@ describe("敵を倒す（仕様書 5.3）", () => {
     expect(hand(t)).toHaveLength(0);
   });
 
-  it("僧侶Lv2以上は戦闘中でも廃棄できる。Lv1は働かず、廃棄後は戻せない。食料の廃棄効果は村だけ", () => {
-    const { s: s0, h } = battle(["food_bread", "hero_priest_2", "hero_youth_0"], "enemy_goblin");
+  it("僧侶は戦闘中でも廃棄できる（Lv2は1枚、Lv3は2枚）。Lv1は働かず、廃棄後は戻せない。食料の廃棄効果は村だけ", () => {
+    const { s: s0, h } = battle(["food_bread", "hero_priest_3", "hero_youth_0"], "enemy_goblin");
     let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_bread") }).state;
-    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_priest_2") }).state;
-    expect(s.pending).toEqual({ kind: "trash", playerId: "p1", max: 1 });
+    s = act(s, "p1", { type: "playHero", uid: uidOf(h, "hero_priest_3") }).state;
+    expect(s.pending).toEqual({ kind: "trash", playerId: "p1", max: 2 });
     const youth = uidOf(h, "hero_youth_0");
     s = act(s, "p1", { type: "resolveTrash", uids: [youth] }).state;
     expect(s.trash.map((c) => c.uid)).toContain(youth);
-    expect(errorOf(s, "p1", { type: "undoBattleCard", uid: uidOf(h, "hero_priest_2") })).toBe("CANNOT_UNDO");
+    expect(errorOf(s, "p1", { type: "undoBattleCard", uid: uidOf(h, "hero_priest_3") })).toBe("CANNOT_UNDO");
     expect(errorOf(s, "p1", { type: "cancelAction" })).toBe("CANNOT_CANCEL");
-    // Lv1 は戦闘では働かない
+    // Lv2 は1枚まで、Lv1 は戦闘では働かない
+    const lv2 = battle(["food_bread", "hero_priest_2", "hero_youth_0"], "enemy_goblin");
+    let l2 = act(lv2.s, "p1", { type: "playFood", uid: uidOf(lv2.h, "food_bread") }).state;
+    l2 = act(l2, "p1", { type: "playHero", uid: uidOf(lv2.h, "hero_priest_2") }).state;
+    expect(l2.pending).toEqual({ kind: "trash", playerId: "p1", max: 1 });
     const lv1 = battle(["food_bread", "hero_priest_1", "hero_youth_0"], "enemy_goblin");
-    let l = act(lv1.s, "p1", { type: "playFood", uid: uidOf(lv1.h, "food_bread") }).state;
-    l = act(l, "p1", { type: "playHero", uid: uidOf(lv1.h, "hero_priest_1") }).state;
-    expect(l.pending).toBeNull();
+    let l1 = act(lv1.s, "p1", { type: "playFood", uid: uidOf(lv1.h, "food_bread") }).state;
+    l1 = act(l1, "p1", { type: "playHero", uid: uidOf(lv1.h, "hero_priest_1") }).state;
+    expect(l1.pending).toBeNull();
     // 聖餅の廃棄は戦闘では働かない
     const host = battle(["food_host", "hero_youth_0"], "enemy_goblin");
     expect(act(host.s, "p1", { type: "playFood", uid: uidOf(host.h, "food_host") }).state.pending).toBeNull();

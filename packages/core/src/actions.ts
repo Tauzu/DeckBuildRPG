@@ -13,7 +13,7 @@ import {
 } from "./context.js";
 import { enqueueEffect } from "./effects.js";
 import { endGame } from "./flow.js";
-import { battleAttackers, bonusExpOnDefeat, calcDamage, cardsGold, enemyHp, guardedUids, hasChill } from "./rules.js";
+import { battleAttackers, bonusExpOnDefeat, calcDamage, cardsGold, enemyHp, frozenBonus, guardedUids, hasChill } from "./rules.js";
 import type { Action, CardInstance, Effect, PlayerState } from "./types.js";
 
 export function dispatch(ctx: Ctx, playerId: string, action: Action): void {
@@ -166,24 +166,12 @@ function playHero(ctx: Ctx, uid: string): void {
   turn.usedSlots += 1;
   markActed(ctx);
   ctx.events.push({ type: "cardPlayed", playerId: p.id, uid, defId: card.defId });
-  if (def.villageEffect) {
-    if (turn.action === "village") enqueueEffect(ctx, def.villageEffect, uid, p.id);
-    else if (turn.action === "battle") {
-      // 戦闘中に出しても、カードを引く・廃棄する効果は働く（吟遊詩人・僧侶）
-      // レベル2以上の英雄だけ。効果を使った後は戻せない
-      const usable = def.level >= BATTLE_EFFECT_MIN_LEVEL ? battleEffects(def.villageEffect) : [];
-      if (usable.length > 0) turn.drewUids = [...(turn.drewUids ?? []), uid];
-      for (const e of usable) enqueueEffect(ctx, e, uid, p.id);
-    }
+  if (turn.action === "village" && def.villageEffect) enqueueEffect(ctx, def.villageEffect, uid, p.id);
+  // 戦闘中は battleEffect だけが働く。使った後は戻せない
+  if (turn.action === "battle" && def.battleEffect) {
+    turn.drewUids = [...(turn.drewUids ?? []), uid];
+    enqueueEffect(ctx, def.battleEffect, uid, p.id);
   }
-}
-
-/** 戦闘中にも村効果（引く・廃棄）が働く英雄の最低レベル */
-export const BATTLE_EFFECT_MIN_LEVEL = 2;
-
-function battleEffects(e: Effect): Effect[] {
-  if (e.kind === "draw" || e.kind === "trash") return [e];
-  return e.kind === "multi" ? e.effects.flatMap(battleEffects) : [];
 }
 
 // ---------------------------------------------------------------------------
@@ -272,7 +260,8 @@ function confirmAttack(ctx: Ctx): void {
 
   const def = ctx.reg.enemy(target.defId);
   const hp = enemyHp(s, def);
-  const { total } = calcDamage(battleAttackers(s, ctx.reg), def);
+  const base = calcDamage(battleAttackers(s, ctx.reg), def).total;
+  const total = base + frozenBonus(s, target.uid, base);
   const prevDamage = s.enemyDamage[target.uid] ?? 0;
   const defeated = prevDamage + total >= hp;
   ctx.events.push({
@@ -292,21 +281,21 @@ function confirmAttack(ctx: Ctx): void {
   } else if (keep && total > 0) s.enemyDamage[target.uid] = prevDamage + total;
 
   if (!defeated) {
-    // 撃破に失敗したときの効果：chill の武器で凍結、split の敵は分身を出す（仕様書 5.3.3）
+    // 撃破に失敗したときの効果：chill の武器で凍結（仕様書 5.3.3）
     if (!def.isBoss && hasChill(s, ctx.reg) && !s.frozen.includes(target.uid)) {
       s.frozen.push(target.uid);
       ctx.events.push({ type: "enemyFrozen", uid: target.uid, defId: target.defId });
-    }
-    if (def.traits.includes("split") && def.splitInto && !s.split.includes(target.uid)) {
-      const child = newCard(s, def.splitInto);
-      s.route[0]!.push(child);
-      s.split.push(target.uid);
-      ctx.events.push({ type: "enemySplit", parentUid: target.uid, uid: child.uid, defId: child.defId });
     }
   }
 
   if (defeated) {
     takeCard(square, target.uid);
+    // 分裂：split の敵は、倒すと必ず1マス目に分身を出す（仕様書 5.3.3）
+    if (def.traits.includes("split") && def.splitInto) {
+      const child = newCard(s, def.splitInto);
+      s.route[0]!.push(child);
+      ctx.events.push({ type: "enemySplit", parentUid: target.uid, uid: child.uid, defId: child.defId });
+    }
     if (s.config.lootToDeck) p.discard.push(target);
     else s.trash.push(target);
     const exp = def.exp + bonusExpOnDefeat(s, ctx.reg);

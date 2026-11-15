@@ -129,6 +129,14 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   bard2: (d) => {
     for (const h of d.heroes) if (h.id === "hero_bard_1") h.villageEffect = { kind: "draw", count: 2 };
   },
+  /** 吟遊詩人 Lv2 の戦闘ドローを2枚に戻す */
+  bardBattle2: (d) => {
+    for (const h of d.heroes) if (h.id === "hero_bard_2") h.battleEffect = { kind: "draw", count: 2 };
+  },
+  /** 僧侶 Lv2 も戦闘中に廃棄1枚 */
+  priestBattle2: (d) => {
+    for (const h of d.heroes) if (h.id === "hero_priest_2") h.battleEffect = { kind: "trash", count: 1 };
+  },
   /** 敵を撃破した直後にもレベルアップ・転職できる */
   lvBattle: (d) => {
     d.setup.levelUpAfterBattle = true;

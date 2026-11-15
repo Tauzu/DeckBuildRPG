@@ -74,10 +74,9 @@ export function drawCards(ctx: Ctx, player: PlayerState, n: number): string[] {
   return drawn;
 }
 
-/** 敵が取り除かれたとき、凍結・分裂済みの記録を消す */
+/** 敵が取り除かれたとき、凍結の記録を消す */
 export function forgetEnemy(s: GameState, uid: string): void {
   s.frozen = s.frozen.filter((u) => u !== uid);
-  s.split = s.split.filter((u) => u !== uid);
 }
 
 export function heroStackId(heroId: string): string {

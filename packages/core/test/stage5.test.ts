@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGame, guardedUids, legalActions, timeoutAction } from "../src/index.js";
+import { battlePreview, createGame, guardedUids, legalActions, timeoutAction } from "../src/index.js";
 import { act, cards, confirmAndFinish, errorOf, hand, mutate, placeEnemy, players, reg, setHand, start, uidOf } from "./helpers.js";
 
 /** 集落を訪れて何もせずに手番を終える */
@@ -156,16 +156,33 @@ describe("分裂（仕様書 5.3.3）と霜の杖（chill）", () => {
     return confirmAndFinish(t).state;
   }
 
-  it("スライムへの攻撃が撃破に失敗すると、1マス目に小スライムが出る（1体につき1回だけ）", () => {
+  it("スライムを倒すと、1マス目に小スライムが出る（倒すたびに必ず）。倒せなかったときは出ない", () => {
     const slime = placeEnemy(start(), 3, "enemy_slime");
-    let s = attack(slime.state, slime.uid, ["hero_youth_0"]);
-    const lings = () => s.route.flat().filter((c) => c.defId === "enemy_slimeling");
-    // 手番が終わった進軍で小スライムは1マス進み、新たに1体公開される
-    expect(lings()).toHaveLength(1);
-    expect(s.split).toEqual([slime.uid]);
-    const alive = s.route.flat().find((c) => c.uid === slime.uid)!;
-    s = attack(s, alive.uid, ["hero_youth_0"]);
-    expect(lings()).toHaveLength(1);
+    const failed = attack(slime.state, slime.uid, ["hero_youth_0"]);
+    expect(failed.route.flat().filter((c) => c.defId === "enemy_slimeling")).toHaveLength(0);
+    const killed = attack(slime.state, slime.uid, ["hero_knight_3", "food_bread"]);
+    expect(killed.route.flat().some((c) => c.uid === slime.uid)).toBe(false);
+    // 手番が終わった進軍で小スライムは1マス進む
+    expect(killed.route.flat().filter((c) => c.defId === "enemy_slimeling")).toHaveLength(1);
+  });
+
+  it("凍結中の敵へのダメージは+2（ダメージが1以上のときだけ）", () => {
+    const orc = placeEnemy(start(), 1, "enemy_orc");
+    const frozen = mutate(orc.state, (d) => {
+      d.frozen.push(orc.uid);
+    });
+    const b = act(setHand(frozen, 0, ["hero_knight_1", "food_bread"]), "p1", { type: "chooseBattle", targetUid: orc.uid }).state;
+    const withHero = act(act(b, "p1", { type: "playFood", uid: uidOf(hand(b), "food_bread") }).state, "p1", {
+      type: "playHero",
+      uid: uidOf(hand(b), "hero_knight_1"),
+    }).state;
+    expect(battlePreview(withHero, reg)).toMatchObject({ total: 5, frozenBonus: 2 });
+    const plain = act(setHand(orc.state, 0, ["hero_knight_1", "food_bread"]), "p1", { type: "chooseBattle", targetUid: orc.uid }).state;
+    const p2 = act(act(plain, "p1", { type: "playFood", uid: uidOf(hand(plain), "food_bread") }).state, "p1", {
+      type: "playHero",
+      uid: uidOf(hand(plain), "hero_knight_1"),
+    }).state;
+    expect(battlePreview(p2, reg)).toMatchObject({ total: 3, frozenBonus: 0 });
   });
 
   it("小スライムは分裂しない。撃破すると経験値0", () => {
