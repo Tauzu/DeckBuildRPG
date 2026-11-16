@@ -14,7 +14,7 @@
     {"id": "food_bread", "count": 5},
     {"id": "weapon_club", "count": 2}
   ],
-  "heroStock": {"countsByLevel": {"1": 4, "2": 3, "3": 2}},
+  "heroStock": {"countsByLevel": {"1": 5, "2": 4, "3": 3}},
   "itemStock": [
     {"id": "food_bread", "count": 10},
     {"id": "food_jerky", "count": 8},

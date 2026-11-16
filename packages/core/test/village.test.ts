@@ -13,7 +13,7 @@ describe("購入（仕様書 5.2(c)）", () => {
     expect(currentGold(s, reg)).toBe(4);
     s = act(s, "p1", { type: "buy", stackId: "hero:knight" }).state;
     expect(s.players[0]!.discard.at(-1)!.defId).toBe("hero_knight_1");
-    expect(s.village.stacks["hero:knight"]).toHaveLength(8);
+    expect(s.village.stacks["hero:knight"]).toHaveLength(11);
     expect(currentGold(s, reg)).toBe(0);
     expect(errorOf(s, "p1", { type: "buy", stackId: "food_bread" })).toBe("NOT_ENOUGH_GOLD");
   });
@@ -156,7 +156,7 @@ describe("レベルアップ・転職（仕様書 5.2(d)(e)）", () => {
     expect(s.trash.map((c) => c.uid)).toContain(uid);
     // 在庫の Lv1 は上に残ったまま、Lv2 が1枚減る
     const levels = s.village.stacks["hero:knight"]!.map((c) => reg.hero(c.defId).level);
-    expect(levels).toEqual([1, 1, 1, 1, 2, 2, 3, 3]);
+    expect(levels).toEqual([1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3]);
   });
 
   it("経験値が足りない・最大レベル・在庫切れはできない", () => {

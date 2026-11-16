@@ -177,7 +177,7 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
 export function buildRegistry(names: string[]): CardRegistry {
   const d = loadData();
   for (const n of names) {
-    const f = VARIANTS[n] ?? perCount(n) ?? stageBoss(n) ?? stageBossMulti(n) ?? percent(n);
+    const f = VARIANTS[n] ?? perCount(n) ?? stageBoss(n) ?? stageBossMulti(n) ?? percent(n) ?? heroStock(n);
     if (!f) throw new Error(`未知の候補: ${n}（${Object.keys(VARIANTS).join(", ")}）`);
     f(d);
   }
@@ -233,5 +233,14 @@ function percent(name: string): ((d: Data) => void) | undefined {
       if (m[1] === "bossPct") pc.bossHp = Math.round(pc.bossHp * ratio);
       else for (const id of Object.keys(pc.enemies)) pc.enemies[id] = Math.max(1, Math.round(pc.enemies[id] * ratio));
     }
+  };
+}
+
+/** 英雄在庫の枚数（Lv1／Lv2／Lv3）を指定する候補。例：heroStock_5_4_3 */
+function heroStock(name: string): ((d: Data) => void) | undefined {
+  const m = /^heroStock_(\d+)_(\d+)_(\d+)$/.exec(name);
+  if (!m) return undefined;
+  return (d) => {
+    d.setup.heroStock.countsByLevel = { "1": Number(m[1]), "2": Number(m[2]), "3": Number(m[3]) };
   };
 }

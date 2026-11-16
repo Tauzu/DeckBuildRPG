@@ -118,7 +118,7 @@ describe("ゲームの準備（仕様書 4章）", () => {
   it("英雄在庫は上から Lv1→Lv2→Lv3 の順", () => {
     const s = start();
     const levels = s.village.stacks["hero:knight"]!.map((c) => reg.hero(c.defId).level);
-    expect(levels).toEqual([1, 1, 1, 1, 2, 2, 2, 3, 3]);
+    expect(levels).toEqual([1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3]);
   });
 
   it("同じシード値なら同じ状態になる", () => {
