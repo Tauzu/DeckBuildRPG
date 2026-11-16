@@ -4,7 +4,7 @@ import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
 import { useLongPress } from "../hooks.js";
 import { reg, useStore } from "../store.js";
-import { battleEffectText, cardTitle, describeEffect, describeTrait, describeWeaponAbility, resistText } from "../text.js";
+import { affinityText, battleEffectText, cardTitle, describeEffect, describeTrait, describeWeaponAbility, resistText } from "../text.js";
 
 interface Props {
   defId: string;
@@ -128,6 +128,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
             {def.magic > 0 && <span className="stat-mag">魔 +{def.magic}</span>}
           </div>
           {def.ability && <div className="card-text">{describeWeaponAbility(def.ability)}</div>}
+          {def.affinity && <div className="card-text">{affinityText(def.affinity)}</div>}
           <div className="card-note">{def.ability?.kind === "solo" ? "装備せずにそのまま出す" : "英雄1人に1枚装備"}</div>
         </div>
       );

@@ -1,5 +1,5 @@
 // 画面の文言（設計書 4.3：文言は1か所にまとめる）
-import type { CardDef, CardRegistry, Effect, EnemyTrait, ErrorCode, GameEvent, PlayerView, Resist, WeaponAbility } from "@deckbuild/core";
+import type { CardDef, CardRegistry, Effect, EnemyTrait, ErrorCode, GameEvent, PlayerView, Resist, WeaponAbility, WeaponAffinity } from "@deckbuild/core";
 
 export const ERROR_TEXT: Record<ErrorCode, string> = {
   GAME_OVER: "ゲームは終了しています",
@@ -51,6 +51,12 @@ export function describeWeaponAbility(a: WeaponAbility): string {
     case "chill":
       return "倒せなかった敵を凍結する（ボス以外。凍結中は受けるダメージ+2）";
   }
+}
+
+/** 武器の得意英雄の説明 */
+export function affinityText(a: WeaponAffinity): string {
+  const parts = [a.physical > 0 && `物+${a.physical}`, a.magic > 0 && `魔+${a.magic}`].filter(Boolean).join("・");
+  return `得意：${a.heroes.map((h) => HERO_NAMES[h] ?? h).join("・")}が装備すると${parts}`;
 }
 
 /** 敵の特性の説明 */

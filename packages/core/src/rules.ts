@@ -86,6 +86,10 @@ export function equippedAttack(hero: HeroDef, weapon: WeaponDef | null): Attacke
   if (weapon) {
     physical += weapon.physical;
     magic += weapon.magic;
+    if (weapon.affinity?.heroes.includes(hero.heroId)) {
+      physical += weapon.affinity.physical;
+      magic += weapon.affinity.magic;
+    }
     const ab = weapon.ability;
     if (ab?.kind === "perLevel") {
       physical += ab.physical * hero.level;

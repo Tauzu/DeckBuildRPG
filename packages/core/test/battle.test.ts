@@ -77,7 +77,7 @@ describe("敵を倒す（仕様書 5.3）", () => {
     expect(errorOf(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_club"), heroUid: knight })).toBe(
       "ALREADY_EQUIPPED",
     );
-    expect(battlePreview(s, reg)?.total).toBe(6);
+    expect(battlePreview(s, reg)?.total).toBe(7);
   });
 
   it("確定前なら出したカードを手札に戻せる。英雄を戻すと装備した武器も戻る", () => {
@@ -254,7 +254,7 @@ describe("武器の能力（仕様書 3.2）", () => {
     let s = act(s0, "p1", { type: "playHero", uid: knight }).state;
     expect(battlePreview(s, reg)?.total).toBe(1);
     s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_hammer"), heroUid: knight }).state;
-    expect(battlePreview(s, reg)?.total).toBe(6);
+    expect(battlePreview(s, reg)?.total).toBe(7);
   });
 
   it("賢者の杖：英雄のレベル1つにつき魔法+1", () => {
@@ -263,7 +263,7 @@ describe("武器の能力（仕様書 3.2）", () => {
     let s = act(s0, "p1", { type: "playHero", uid: mage }).state;
     s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_sage"), heroUid: mage }).state;
     // 魔法使いLv2（魔5）＋杖（魔2）＋レベル2つ分（魔2）
-    expect(battlePreview(s, reg)?.total).toBe(9);
+    expect(battlePreview(s, reg)?.total).toBe(10);
   });
 
   it("投げ槍：英雄がいなくても使える。ほかの武器は英雄なしでは使えない", () => {
@@ -281,7 +281,7 @@ describe("武器の能力（仕様書 3.2）", () => {
     const knight = uidOf(h, "hero_knight_1");
     let s = act(s0, "p1", { type: "playHero", uid: knight }).state;
     s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_javelin"), heroUid: knight }).state;
-    expect(battlePreview(s, reg)?.total).toBe(5);
+    expect(battlePreview(s, reg)?.total).toBe(6);
   });
 
   it("狩りの弓：この武器を使って撃破すると経験値+1", () => {
@@ -291,6 +291,21 @@ describe("武器の能力（仕様書 3.2）", () => {
     s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, "weapon_bow"), heroUid: knight }).state;
     s = act(s, "p1", { type: "confirmAttack" }).state;
     expect(s.players[0]!.exp).toBe(reg.enemy("enemy_goblin").exp + 1);
+  });
+
+  it("得意英雄が装備すると攻撃力が加わる。得意でない英雄・村の若者には加わらない", () => {
+    const dmg = (heroId: string, weaponId: string) => {
+      const { s: s0, h } = battle([heroId, weaponId], "enemy_goblin");
+      const hero = uidOf(h, heroId);
+      let s = act(s0, "p1", { type: "playHero", uid: hero }).state;
+      s = act(s, "p1", { type: "equip", weaponUid: uidOf(h, weaponId), heroUid: hero }).state;
+      return battlePreview(s, reg)?.total;
+    };
+    expect(dmg("hero_knight_1", "weapon_sword")).toBe(3 + 3 + 1);
+    expect(dmg("hero_hunter_1", "weapon_sword")).toBe(2 + 1 + 3);
+    expect(dmg("hero_mage_1", "weapon_tome")).toBe(3 + 5 + 1);
+    expect(dmg("hero_knight_1", "weapon_mithril")).toBe(3 + 4 + 1 + 4 + 1);
+    expect(dmg("hero_priest_1", "weapon_tome")).toBe(1 + 1 + 5);
   });
 
   it("狩人Lv3：出して撃破すると経験値+1。Lv2は+0。出した後も手札に戻せる", () => {

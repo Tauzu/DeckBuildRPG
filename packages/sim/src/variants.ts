@@ -137,6 +137,10 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   priestBattle2: (d) => {
     for (const h of d.heroes) if (h.id === "hero_priest_2") h.battleEffect = { kind: "trash", count: 1 };
   },
+  /** 武器の得意英雄のボーナスをなくす */
+  noAffinity: (d) => {
+    for (const i of d.items) if (i.type === "weapon") i.affinity = null;
+  },
   /** 狩人を変更前（Lv3 の村で経験値+1のみ、戦闘の撃破ボーナスなし）に戻す */
   hunterOld: (d) => {
     for (const h of d.heroes) {

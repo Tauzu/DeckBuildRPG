@@ -56,6 +56,7 @@ export const weaponDefSchema = z.object({
   physical: nonNeg,
   magic: nonNeg,
   ability: weaponAbilitySchema.nullable().default(null),
+  affinity: z.object({ heroes: z.array(z.string().min(1)).min(1), physical: nonNeg, magic: nonNeg }).nullable().default(null),
 });
 
 export const foodDefSchema = z.object({

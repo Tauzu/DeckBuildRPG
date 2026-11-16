@@ -67,6 +67,14 @@ export interface WeaponDef extends BaseDef {
   physical: number;
   magic: number;
   ability: WeaponAbility | null;
+  /** 得意な英雄。この英雄が装備すると攻撃力が加わる（なければ null） */
+  affinity: WeaponAffinity | null;
+}
+
+export interface WeaponAffinity {
+  heroes: HeroId[];
+  physical: number;
+  magic: number;
 }
 
 export interface FoodDef extends BaseDef {
