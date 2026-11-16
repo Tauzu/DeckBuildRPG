@@ -308,6 +308,25 @@ describe("武器の能力（仕様書 3.2）", () => {
     expect(dmg("hero_priest_1", "weapon_tome")).toBe(1 + 1 + 5);
   });
 
+  it("民兵：場に他の民兵がいると、1人につき物理+1（Lv3は+2）。数えるのは同じ英雄だけ", () => {
+    const total = (ids: string[]) => {
+      const { s: s0, h } = battle(["food_feast", ...ids], "enemy_goblin");
+      let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_feast") }).state;
+      const seen = new Set<string>();
+      for (const id of ids) {
+        const uid = h.find((c) => c.defId === id && !seen.has(c.uid))!.uid;
+        seen.add(uid);
+        s = act(s, "p1", { type: "playHero", uid }).state;
+      }
+      return battlePreview(s, reg)?.total;
+    };
+    expect(total(["hero_militia_1"])).toBe(2);
+    expect(total(["hero_militia_1", "hero_militia_1"])).toBe(3 + 3);
+    expect(total(["hero_militia_1", "hero_militia_1", "hero_militia_1"])).toBe(4 * 3);
+    expect(total(["hero_militia_1", "hero_militia_3"])).toBe(3 + (4 + 2));
+    expect(total(["hero_militia_1", "hero_knight_1"])).toBe(2 + 3);
+  });
+
   it("狩人Lv3：出して撃破すると経験値+1。Lv2は+0。出した後も手札に戻せる", () => {
     for (const [id, bonus] of [["hero_hunter_3", 1], ["hero_hunter_2", 0]] as const) {
       const { s: s0, h } = battle([id], "enemy_goblin");

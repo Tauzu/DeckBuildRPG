@@ -193,6 +193,25 @@ const thief: Sprite = [
   "................",
 ];
 
+const militia: Sprite = [
+  "..............n.",
+  "......SSSS....n.",
+  ".....ssssss...s.",
+  ".....SssssS...n.",
+  ".....okkkko...n.",
+  ".....oooooo...n.",
+  "......oooo....n.",
+  "...nnnnnnnn...n.",
+  "..onnnnnnnnnonn.",
+  "....nnyynn....n.",
+  "....nnnnnn....n.",
+  "....bbbbbb....n.",
+  "....bb..bb....n.",
+  "....NN..NN....N.",
+  "...NNN..NNN.....",
+  "................",
+];
+
 const bard: Sprite = [
   "..........w.....",
   "......rrrrw.....",
@@ -791,7 +810,7 @@ export const villageSprite: Sprite = [
 ];
 
 /** 英雄の種類ごとの絵（レベルが違っても同じ絵） */
-const HERO_SPRITES: Record<string, Sprite> = { youth, knight, mage, hunter, priest, thief, bard, frost };
+const HERO_SPRITES: Record<string, Sprite> = { youth, knight, mage, hunter, priest, thief, bard, militia, frost };
 
 /** カードIDごとの絵（英雄以外） */
 const CARD_SPRITES: Record<string, Sprite> = {

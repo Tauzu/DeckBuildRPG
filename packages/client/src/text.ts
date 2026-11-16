@@ -31,6 +31,7 @@ export const HERO_NAMES: Record<string, string> = {
   priest: "僧侶",
   thief: "盗賊",
   bard: "吟遊詩人",
+  militia: "民兵",
   frost: "氷術師",
   youth: "村の若者",
 };
@@ -57,6 +58,12 @@ export function describeWeaponAbility(a: WeaponAbility): string {
 export function affinityText(a: WeaponAffinity): string {
   const parts = [a.physical > 0 && `物+${a.physical}`, a.magic > 0 && `魔+${a.magic}`].filter(Boolean).join("・");
   return `得意：${a.heroes.map((h) => HERO_NAMES[h] ?? h).join("・")}が装備すると${parts}`;
+}
+
+/** 英雄の「群れ」ボーナスの説明 */
+export function packText(b: { physical: number; magic: number }, name: string): string {
+  const parts = [b.physical > 0 && `物+${b.physical}`, b.magic > 0 && `魔+${b.magic}`].filter(Boolean).join("・");
+  return `場に他の${name}がいると、1人につき${parts}`;
 }
 
 /** 敵の特性の説明 */

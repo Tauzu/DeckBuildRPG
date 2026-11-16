@@ -78,10 +78,14 @@ export function calcDamage(attackers: Attacker[], target: Pick<EnemyDef, "resist
   };
 }
 
-/** 英雄が武器を装備したときの攻撃力（武器の能力を含む） */
-export function equippedAttack(hero: HeroDef, weapon: WeaponDef | null): Attacker {
+/** 英雄が武器を装備したときの攻撃力（武器の能力を含む）。packCount は場に出ている他の同じ英雄の数 */
+export function equippedAttack(hero: HeroDef, weapon: WeaponDef | null, packCount = 0): Attacker {
   let physical = hero.physical;
   let magic = hero.magic;
+  if (hero.packBonus) {
+    physical += hero.packBonus.physical * packCount;
+    magic += hero.packBonus.magic * packCount;
+  }
   let pierce = false;
   if (weapon) {
     physical += weapon.physical;
@@ -113,7 +117,8 @@ export function battleAttackers(s: GameState, reg: CardRegistry): Attacker[] {
     if (d.type === "hero") {
       const weaponUid = turn.equips[c.uid];
       const w = weaponUid ? p.field.find((x) => x.uid === weaponUid) : undefined;
-      list.push(equippedAttack(d, w ? reg.weapon(w.defId) : null));
+      const pack = p.field.filter((x) => x.uid !== c.uid && reg.get(x.defId).type === "hero" && reg.hero(x.defId).heroId === d.heroId).length;
+      list.push(equippedAttack(d, w ? reg.weapon(w.defId) : null, pack));
     } else if (d.type === "weapon" && !equipped.has(c.uid) && d.ability?.kind === "solo") {
       list.push({ physical: d.physical, magic: d.magic });
     }

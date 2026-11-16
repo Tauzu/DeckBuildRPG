@@ -46,6 +46,8 @@ export interface HeroDef extends BaseDef {
   battleEffect: Effect | null;
   /** 戦闘で場に出ているとき、敵を撃破すると増える経験値（出した後も手札に戻せる） */
   defeatExp: number;
+  /** 場に出ている他の同じ英雄1体につき加わる攻撃力（なければ null） */
+  packBonus: { physical: number; magic: number } | null;
   nextLevelExp: number | null;
 }
 

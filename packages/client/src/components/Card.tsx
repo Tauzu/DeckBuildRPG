@@ -4,7 +4,7 @@ import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
 import { useLongPress } from "../hooks.js";
 import { reg, useStore } from "../store.js";
-import { affinityText, battleEffectText, cardTitle, describeEffect, describeTrait, describeWeaponAbility, resistText } from "../text.js";
+import { affinityText, packText, battleEffectText, cardTitle, describeEffect, describeTrait, describeWeaponAbility, resistText } from "../text.js";
 
 interface Props {
   defId: string;
@@ -117,6 +117,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
           </div>
           {def.villageEffect && <div className="card-text">村：{describeEffect(def.villageEffect)}</div>}
           {def.battleEffect && battleEffectText(def.battleEffect) && <div className="card-text">戦闘中も：{battleEffectText(def.battleEffect)}</div>}
+          {def.packBonus && <div className="card-text">{packText(def.packBonus, def.name)}</div>}
           {def.defeatExp > 0 && <div className="card-text">戦闘中：撃破すると経験値+{def.defeatExp}</div>}
           {def.nextLevelExp !== null && <div className="card-note">次のLvまで 経験値{def.nextLevelExp}</div>}
           {def.level === 0 && <div className="card-note">経験値2で転職できる</div>}

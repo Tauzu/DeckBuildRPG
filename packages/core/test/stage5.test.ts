@@ -243,11 +243,11 @@ describe("ステージ5「凍てつく峠」", () => {
     expect(reg.stages.at(-1)!.id).toBe("stage5");
   });
 
-  it("1〜4人で始められ、英雄在庫は6束（盗賊の代わりに氷術師）", () => {
+  it("1〜4人で始められ、英雄在庫は7束（盗賊の代わりに氷術師、民兵が加わる）", () => {
     for (const n of [1, 2, 3, 4]) {
       const s = createGame({ seed: 3, players: players(n), stageId: "stage5" }, reg).state;
       const heroStacks = Object.keys(s.village.stacks).filter((k) => k.startsWith("hero:"));
-      expect(heroStacks).toHaveLength(6);
+      expect(heroStacks).toHaveLength(7);
       expect(heroStacks).toContain("hero:frost");
       expect(heroStacks).not.toContain("hero:thief");
       expect(s.village.stacks["weapon_frost"]).toHaveLength(4);
