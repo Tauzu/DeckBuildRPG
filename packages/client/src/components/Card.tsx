@@ -21,6 +21,8 @@ interface Props {
   /** 護衛に守られていて選べない敵 */
   guarded?: boolean | undefined;
   small?: boolean;
+  /** 進軍の演出で、同じカードの位置を追うための ID（敵カードに渡す） */
+  uid?: string | undefined;
   /** マウスを乗せたときの説明（クリックすると何が起きるか）。押せないときは disabledReason を出す */
   hint?: string | null | undefined;
   badge?: ReactNode;
@@ -35,7 +37,7 @@ const TYPE_LABEL: Record<CardDef["type"], string> = {
   curse: "呪い",
 };
 
-export function Card({ defId, onClick, disabledReason, highlight, hp, damage, frozen, guarded, small, hint, badge, children }: Props) {
+export function Card({ defId, onClick, disabledReason, highlight, hp, damage, frozen, guarded, small, uid, hint, badge, children }: Props) {
   const def = reg.get(defId);
   const clickable = !!onClick && !disabledReason;
   const classes = [
@@ -57,7 +59,7 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, fr
   const openDetail = () => showDetail({ defId, hp, damage, tip });
   const press = useLongPress(openDetail);
   return (
-    <div className="card-wrap" onContextMenu={(e) => e.preventDefault()}>
+    <div className="card-wrap" data-uid={uid} onContextMenu={(e) => e.preventDefault()}>
       <button
         type="button"
         className={classes}

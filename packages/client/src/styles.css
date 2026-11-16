@@ -1355,27 +1355,16 @@ h3 {
   }
 }
 
-/* カードが出る・敵が進む */
+/* カードが出る（敵が進む演出は RouteView の useMarchMotion） */
 .zone-cards .card-wrap,
 .stock .card-wrap {
   animation: card-in 0.24s steps(3, end) both;
-}
-
-.route-square-cards .card-wrap {
-  animation: march-in 0.45s steps(5, end) both;
 }
 
 @keyframes card-in {
   from {
     opacity: 0;
     transform: translateY(10px) scale(0.96);
-  }
-}
-
-@keyframes march-in {
-  from {
-    opacity: 0;
-    transform: translateX(-36px);
   }
 }
 
@@ -1681,11 +1670,11 @@ h3 {
 }
 
 /* 進軍：ルートを赤い光が走り、敵が大きく滑り込む */
-.route-marching {
+.route-squares {
   position: relative;
 }
 
-.route-marching::after {
+.route-sweep {
   content: "";
   position: absolute;
   inset: 0;
@@ -1704,26 +1693,6 @@ h3 {
   to {
     background-position: -50% 0;
     opacity: 0;
-  }
-}
-
-.route-marching .route-square-cards .card-wrap {
-  animation: march-in-strong 0.7s steps(7, end) 0.45s both;
-}
-
-@keyframes march-in-strong {
-  0% {
-    opacity: 0.2;
-    transform: translateX(-90px);
-    filter: drop-shadow(0 0 0 transparent);
-  }
-  60% {
-    opacity: 1;
-    filter: drop-shadow(0 0 8px rgb(240 80 30 / 0.9));
-  }
-  100% {
-    transform: none;
-    filter: none;
   }
 }
 

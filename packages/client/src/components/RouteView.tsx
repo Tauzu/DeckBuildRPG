@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import { findOption, reasonText, reg, useStore } from "../store.js";
 import { enemyHp, guardedUids } from "@deckbuild/core";
 import { PixelArt } from "../art/PixelArt.js";
@@ -16,6 +17,8 @@ export function RouteView() {
   const guarded = guardedUids(view, reg);
   const villageHits = useStore((s) => s.villageHits);
   const marches = useStore((s) => s.marches);
+  const squaresRef = useRef<HTMLDivElement>(null);
+  useMarchMotion(squaresRef, view.route, marches);
 
   return (
     <section className="route panel">
@@ -25,7 +28,8 @@ export function RouteView() {
         <div className="route-end-title">魔物の砦</div>
         <div className="route-end-sub">敵の山札 残り {view.enemyDeckCount}枚</div>
       </div>
-      <div key={`march-${marches}`} className={`route-squares${marches > 0 ? " route-marching" : ""}`}>
+      <div ref={squaresRef} className="route-squares">
+        {marches > 0 && <div key={`sweep-${marches}`} className="route-sweep" />}
         {view.route.map((square, i) => (
           <div key={i} className={`route-square ${i === view.route.length - 1 ? "route-square-last" : ""}`}>
             <div className="route-square-label">{i + 1}</div>
@@ -38,6 +42,7 @@ export function RouteView() {
                     key={c.uid}
                     defId={c.defId}
                     small
+                    uid={c.uid}
                     hp={enemyHp(view, def)}
                     damage={view.enemyDamage[c.uid]}
                     frozen={view.frozen.includes(c.uid)}
@@ -84,4 +89,62 @@ export function RouteView() {
       </div>
     </section>
   );
+}
+
+/**
+ * 進軍の演出：敵カードを uid で追い、前の位置から今の位置へ滑らせる（全部消えて出直すのではなく、隣のマスへ移る）。
+ * 新しく出た敵は、進軍のときは砦の側（左）から入ってくる。倒された敵は、そのまま消える。
+ */
+function useMarchMotion(ref: React.RefObject<HTMLDivElement | null>, route: unknown, marches: number) {
+  const prev = useRef<Map<string, { x: number; y: number }> | null>(null);
+  const prevMarches = useRef(marches);
+  useLayoutEffect(() => {
+    const box = ref.current;
+    if (!box) return;
+    // 動いている途中の演出は止めてから、本来の位置を測る
+    const cards = [...box.querySelectorAll<HTMLElement>(".card-wrap[data-uid]")];
+    for (const el of cards) el.getAnimations?.().forEach((a) => a.cancel());
+    const origin = box.getBoundingClientRect();
+    const now = new Map<string, { x: number; y: number }>();
+    for (const el of cards) {
+      const r = el.getBoundingClientRect();
+      now.set(el.dataset.uid!, { x: r.left - origin.left, y: r.top - origin.top });
+    }
+    const before = prev.current;
+    const marched = marches !== prevMarches.current;
+    prev.current = now;
+    prevMarches.current = marches;
+    const reduced = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!before || reduced || typeof cards[0]?.animate !== "function") return;
+    const delay = marched ? 450 : 0; // 撃破の演出が終わるのを待ってから動く
+    for (const el of cards) {
+      const was = before.get(el.dataset.uid!);
+      const at = now.get(el.dataset.uid!)!;
+      if (was) {
+        const dx = was.x - at.x;
+        const dy = was.y - at.y;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+        el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], {
+          duration: 500,
+          delay,
+          easing: "steps(8, end)",
+          fill: "backwards",
+        });
+      } else if (marched) {
+        el.animate(
+          [
+            { opacity: 0.2, transform: "translateX(-90px)" },
+            { opacity: 1, transform: "none" },
+          ],
+          { duration: 600, delay, easing: "steps(7, end)", fill: "backwards" },
+        );
+      } else {
+        el.animate([{ opacity: 0, transform: "translateY(10px) scale(0.96)" }, { opacity: 1, transform: "none" }], {
+          duration: 240,
+          easing: "steps(3, end)",
+          fill: "backwards",
+        });
+      }
+    }
+  }, [route, marches, ref]);
 }
