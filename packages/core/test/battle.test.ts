@@ -308,6 +308,18 @@ describe("武器の能力（仕様書 3.2）", () => {
     expect(dmg("hero_priest_1", "weapon_tome")).toBe(1 + 1 + 5);
   });
 
+  it("盗賊Lv3：手札と場の金価値の合計の半分（切り捨て）が物理に加わる。Lv2にはない", () => {
+    // 盗賊Lv3(金2)＋黒パン2(金1×2)＋棍棒(金0)＝4 → +2
+    const lv3 = battle(["hero_thief_3", "food_bread", "food_bread", "weapon_club"], "enemy_goblin");
+    const s3 = act(lv3.s, "p1", { type: "playHero", uid: uidOf(lv3.h, "hero_thief_3") }).state;
+    expect(battlePreview(s3, reg)?.total).toBe(5 + 2);
+    // 合計が奇数なら切り捨て：金2＋1＋0＋0＝3 → +1
+    const odd = battle(["hero_thief_3", "food_bread", "weapon_club", "weapon_club"], "enemy_goblin");
+    expect(battlePreview(act(odd.s, "p1", { type: "playHero", uid: uidOf(odd.h, "hero_thief_3") }).state, reg)?.total).toBe(5 + 1);
+    const lv2 = battle(["hero_thief_2", "food_bread", "food_bread"], "enemy_goblin");
+    expect(battlePreview(act(lv2.s, "p1", { type: "playHero", uid: uidOf(lv2.h, "hero_thief_2") }).state, reg)?.total).toBe(4);
+  });
+
   it("民兵：場に他の民兵がいると、1人につき物理+1（Lv3は+2）。数えるのは同じ英雄だけ", () => {
     const total = (ids: string[]) => {
       const { s: s0, h } = battle(["food_feast", ...ids], "enemy_goblin");

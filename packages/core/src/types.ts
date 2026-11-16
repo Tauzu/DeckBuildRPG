@@ -47,6 +47,8 @@ export interface HeroDef extends BaseDef {
   /** 戦闘で場に出ているとき、敵を撃破すると増える経験値（出した後も手札に戻せる） */
   defeatExp: number;
   /** 場に出ている他の同じ英雄1体につき加わる攻撃力（なければ null） */
+  /** 戦闘で場に出ているとき、手札と場の金価値の合計をこの数で割って（切り捨て）物理攻撃に加える（0 ならなし） */
+  goldAttackDiv: number;
   packBonus: { physical: number; magic: number } | null;
   nextLevelExp: number | null;
 }

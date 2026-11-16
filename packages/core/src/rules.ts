@@ -118,7 +118,9 @@ export function battleAttackers(s: GameState, reg: CardRegistry): Attacker[] {
       const weaponUid = turn.equips[c.uid];
       const w = weaponUid ? p.field.find((x) => x.uid === weaponUid) : undefined;
       const pack = p.field.filter((x) => x.uid !== c.uid && reg.get(x.defId).type === "hero" && reg.hero(x.defId).heroId === d.heroId).length;
-      list.push(equippedAttack(d, w ? reg.weapon(w.defId) : null, pack));
+      const a = equippedAttack(d, w ? reg.weapon(w.defId) : null, pack);
+      if (d.goldAttackDiv > 0) a.physical += Math.floor(cardsGold(p, reg) / d.goldAttackDiv);
+      list.push(a);
     } else if (d.type === "weapon" && !equipped.has(c.uid) && d.ability?.kind === "solo") {
       list.push({ physical: d.physical, magic: d.magic });
     }
