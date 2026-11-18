@@ -2933,3 +2933,85 @@ textarea {
 .mini-card .mini-equip {
   color: #c3cbd4;
 }
+
+/* ---------- スタンプ ---------- */
+.stamp-picker {
+  margin-bottom: 6px;
+}
+
+.stamp-panel {
+  margin-top: 6px;
+  padding: 6px;
+  background: #05071a;
+  border: 2px solid var(--edge-dim);
+}
+
+.stamp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.stamp-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 2px;
+  background: #0b0e24;
+  border: 2px solid var(--edge-dim);
+  border-radius: 0;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.65rem;
+  cursor: pointer;
+}
+
+.stamp-btn:hover,
+.stamp-btn:focus-visible {
+  border-color: var(--focus);
+}
+
+.stamp-art {
+  width: 36px;
+  height: 36px;
+}
+
+.stamp-mute {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.stamp-bubble {
+  display: inline-flex;
+  animation: stamp-pop 3.5s steps(8, end) both;
+}
+
+.stamp-bubble-art {
+  width: 28px;
+  height: 28px;
+}
+
+@keyframes stamp-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.6);
+  }
+  8% {
+    opacity: 1;
+    transform: translateY(0) scale(1.25);
+  }
+  16% {
+    transform: scale(1);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

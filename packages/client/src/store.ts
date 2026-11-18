@@ -72,6 +72,12 @@ interface Store {
   marches: number;
   /** 自分がカードを買った回数（捨て札の枚数を光らせるきっかけ） */
   buys: number;
+  /** 各プレイヤーが最後に送ったスタンプ（数秒で消える）。n は同じスタンプを続けて送ったときに見分ける番号 */
+  stamps: Record<string, { id: string; n: number }>;
+  /** 他の人のスタンプを表示しない */
+  hideStamps: boolean;
+  sendStamp(id: string): void;
+  setHideStamps(hide: boolean): void;
   /** 大きく表示しているカード（長押し・右クリック） */
   detail: { defId: string; hp?: number | undefined; damage?: number | undefined; tip?: string | null | undefined } | null;
 
@@ -132,6 +138,25 @@ function initialProgress(): Progress {
   const p = seedSeen(reg, loaded);
   if (p !== loaded) saveProgress(p);
   return p;
+}
+
+/** スタンプを出しておく時間 */
+const STAMP_SHOW_MS = 3500;
+let stampCount = 0;
+const HIDE_STAMPS_KEY = "deckbuild.hideStamps.v1";
+function loadHideStamps(): boolean {
+  try {
+    return localStorage.getItem(HIDE_STAMPS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function saveHideStamps(hide: boolean): void {
+  try {
+    localStorage.setItem(HIDE_STAMPS_KEY, hide ? "1" : "0");
+  } catch {
+    // 保存できない環境では、次回は表示に戻るだけ
+  }
 }
 
 const NAME_KEY = "deckbuild.name.v1";
@@ -266,6 +291,19 @@ export const useStore = create<Store>()((set, get) => {
         set({ myId: u.view.viewerId });
         attach(conn);
       },
+      stamp(from, id) {
+        const st = get();
+        if (st.hideStamps && from !== st.myId) return;
+        const n = ++stampCount;
+        set({ stamps: { ...st.stamps, [from]: { id, n } } });
+        setTimeout(() => {
+          const cur = get().stamps[from];
+          if (cur?.n === n) {
+            const { [from]: _gone, ...rest } = get().stamps;
+            set({ stamps: rest });
+          }
+        }, STAMP_SHOW_MS);
+      },
       error(message) {
         const conn = get().conn;
         if (conn instanceof RemoteConnection) conn.pushError(message);
@@ -327,6 +365,15 @@ export const useStore = create<Store>()((set, get) => {
       set({ inviteCode: null });
     },
     fx: [],
+    stamps: {},
+    hideStamps: loadHideStamps(),
+    sendStamp(id) {
+      online?.stamp(id);
+    },
+    setHideStamps(hide) {
+      saveHideStamps(hide);
+      set({ hideStamps: hide, stamps: hide ? {} : get().stamps });
+    },
     villageHits: 0,
     marches: 0,
     buys: 0,

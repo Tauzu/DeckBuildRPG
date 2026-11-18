@@ -2,6 +2,8 @@
 import type { CardInstance } from "@deckbuild/core";
 import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
+import { STAMPS, stampSprite } from "../art/stamps.js";
+import { useState } from "react";
 import { reg, useStore } from "../store.js";
 import { cardTitle } from "../text.js";
 
@@ -42,7 +44,48 @@ function FieldCards({ field, equips }: { field: CardInstance[]; equips: Record<s
   );
 }
 
+/** スタンプを選んで送る（複数人のゲーム中だけ） */
+function StampPicker() {
+  const [open, setOpen] = useState(false);
+  const send = useStore((s) => s.sendStamp);
+  const hide = useStore((s) => s.hideStamps);
+  const setHide = useStore((s) => s.setHideStamps);
+  return (
+    <div className="stamp-picker">
+      <button type="button" className="ghost stamp-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+        スタンプ
+      </button>
+      {open && (
+        <div className="stamp-panel" role="group" aria-label="スタンプ">
+          <div className="stamp-grid">
+            {STAMPS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className="stamp-btn"
+                title={s.label}
+                onClick={() => {
+                  send(s.id);
+                  setOpen(false);
+                }}
+              >
+                <PixelArt sprite={s.sprite} className="stamp-art" />
+                <span>{s.label}</span>
+              </button>
+            ))}
+          </div>
+          <label className="stamp-mute">
+            <input type="checkbox" checked={hide} onChange={(e) => setHide(e.target.checked)} />
+            他の人のスタンプを表示しない
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function OthersPanel() {
+  const stamps = useStore((s) => s.stamps);
   const update = useStore((s) => s.update)!;
   const room = useStore((s) => s.room);
   const { view } = update;
@@ -50,6 +93,7 @@ export function OthersPanel() {
   return (
     <section className="others panel" aria-label="プレイヤー">
       <h2>プレイヤー</h2>
+      {!view.result && room && <StampPicker />}
       <ul className="others-list">
         {view.players.map((p) => {
           const m = room?.members.find((x) => x.id === p.id);
@@ -64,6 +108,11 @@ export function OthersPanel() {
                   </span>
                 )}
                 {p.name}
+                {stamps[p.id] && stampSprite(stamps[p.id]!.id) && (
+                  <span key={stamps[p.id]!.n} className="stamp-bubble" aria-label="スタンプ">
+                    <PixelArt sprite={stampSprite(stamps[p.id]!.id)!} className="stamp-bubble-art" />
+                  </span>
+                )}
                 {me && <span className="others-you">あなた</span>}
                 {m && (m.auto || !m.connected) && <span className="others-off">{m.auto ? "自動" : "接続待ち"}</span>}
               </div>

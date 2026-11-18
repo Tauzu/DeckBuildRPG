@@ -56,6 +56,8 @@ export interface OnlineHandlers {
   room(room: RoomInfo): void;
   state(update: GameUpdate): void;
   error(message: string): void;
+  /** 誰かがスタンプを送った（自分の分も届く） */
+  stamp(from: string, stamp: string): void;
   /** 接続の状態が変わった */
   connection(connected: boolean): void;
   /** 再接続しようとしたが、ルームか席がもうなかった */
@@ -72,6 +74,7 @@ export class Online {
     this.socket.on("room:update", (r: RoomInfo) => h.room(r));
     this.socket.on("game:state", (u: GameUpdate) => h.state(u));
     this.socket.on("game:error", (m: string) => h.error(m));
+    this.socket.on("game:stamp", (m: { from: string; stamp: string }) => h.stamp(m.from, m.stamp));
     this.socket.on("disconnect", () => h.connection(false));
     this.socket.on("connect", () => {
       h.connection(true);
@@ -135,6 +138,10 @@ export class Online {
     this.socket.emit("room:leave");
     this.session = null;
     saveSession(null);
+  }
+
+  stamp(stamp: string): void {
+    this.socket.emit("game:stamp", { stamp });
   }
 
   action(action: Action): void {

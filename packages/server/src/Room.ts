@@ -14,7 +14,7 @@ import {
   newRecord,
   timeoutAction,
 } from "@deckbuild/core";
-import { MAX_PLAYERS, type RoomInfo } from "./protocol.js";
+import { MAX_PLAYERS, type RoomInfo, STAMP_INTERVAL_MS, type StampId } from "./protocol.js";
 
 export interface Member {
   playerId: string;
@@ -34,6 +34,7 @@ export interface RoomHooks {
   sendRoom(socketId: string, room: RoomInfo): void;
   sendState(socketId: string, update: GameUpdate): void;
   sendError(socketId: string, message: string): void;
+  sendStamp(socketId: string, msg: { from: string; stamp: StampId }): void;
   /** 参加者が誰もいなくなり、削除してよくなった */
   onDispose(room: Room): void;
   log(message: string, data?: unknown): void;
@@ -78,6 +79,8 @@ export class Room {
   private readonly timers = new Map<string, NodeJS.Timeout>();
   /** タイマーが切れる時刻 */
   private readonly timerEnds = new Map<string, number>();
+  /** 各自が最後にスタンプを送った時刻 */
+  private readonly lastStamp = new Map<string, number>();
   private nextSeat = 1;
 
   constructor(
@@ -279,6 +282,15 @@ export class Room {
 
   // -------------------------------------------------------------------------
   // ゲームの操作（設計書 5.2 の handleAction）
+
+  /** スタンプを全員に配る。ゲーム中の複数人のときだけ。同じ人は一定の間隔をあける（保存はしない） */
+  sendStamp(playerId: string, stamp: StampId): void {
+    if (!this.state || this.state.result || !this.member(playerId)) return;
+    const now = Date.now();
+    if (now - (this.lastStamp.get(playerId) ?? -Infinity) < STAMP_INTERVAL_MS) return;
+    this.lastStamp.set(playerId, now);
+    for (const m of this.members) if (m.socketId) this.hooks.sendStamp(m.socketId, { from: playerId, stamp });
+  }
 
   handleAction(playerId: string, action: Action): void {
     const m = this.member(playerId);

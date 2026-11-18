@@ -7,11 +7,12 @@ const reg = defaultRegistry();
 const T: RoomTimings = { pendingMs: 1000, disconnectedTurnMs: 2000, idleTurnMs: 5000, seatMs: 10_000, emptyRoomMs: 60_000 };
 
 function setup() {
-  const sent = { rooms: new Map<string, RoomInfo>(), states: new Map<string, GameUpdate>(), errors: [] as string[], disposed: false };
+  const sent = { rooms: new Map<string, RoomInfo>(), states: new Map<string, GameUpdate>(), errors: [] as string[], stamps: [] as { sid: string; from: string; stamp: string }[], disposed: false };
   const hooks: RoomHooks = {
     sendRoom: (sid, r) => sent.rooms.set(sid, r),
     sendState: (sid, u) => sent.states.set(sid, u),
     sendError: (_sid, m) => sent.errors.push(m),
+    sendStamp: (sid, m) => sent.stamps.push({ sid, ...m }),
     onDispose: () => {
       sent.disposed = true;
     },
@@ -260,5 +261,26 @@ describe("残り時間を更新に載せる", () => {
     room.handleAction("p1", { type: "chooseVillage" });
     room.resume(room.member("p1")!.token, "s9");
     expect(sent.states.get("s9")?.timeLeftMs).toBe(T.idleTurnMs);
+  });
+});
+
+describe("スタンプ", () => {
+  it("ゲーム中だけ、全員に配る。同じ人は間隔をあけないと送れず、一覧にないものは受け付けない", () => {
+    const { room, sent } = setup();
+    const a = room.join("あ", "s1");
+    const b = room.join("い", "s2");
+    room.sendStamp(a.playerId, "heart");
+    expect(sent.stamps).toHaveLength(0); // 開始前は送れない
+    room.start(a.playerId);
+    room.sendStamp(a.playerId, "heart");
+    expect(sent.stamps.map((x) => x.sid).sort()).toEqual(["s1", "s2"]);
+    expect(sent.stamps[0]).toMatchObject({ from: a.playerId, stamp: "heart" });
+    room.sendStamp(a.playerId, "star"); // 続けては送れない
+    expect(sent.stamps).toHaveLength(2);
+    room.sendStamp(b.playerId, "fire"); // 別の人は送れる
+    expect(sent.stamps).toHaveLength(4);
+    vi.advanceTimersByTime(1600);
+    room.sendStamp(a.playerId, "star");
+    expect(sent.stamps).toHaveLength(6);
   });
 });

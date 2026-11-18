@@ -12,6 +12,7 @@ import {
   resumeSchema,
   type ServerToClient,
   setStageSchema,
+  stampMessageSchema,
   zodMessage,
 } from "./protocol.js";
 import { DEFAULT_TIMINGS, Room, RoomError, type RoomHooks, type RoomTimings } from "./Room.js";
@@ -42,6 +43,7 @@ export class RoomManager {
       sendRoom: (sid, room) => this.io.to(sid).emit("room:update", room),
       sendState: (sid, u) => this.io.to(sid).emit("game:state", u),
       sendError: (sid, message) => this.io.to(sid).emit("game:error", message),
+      sendStamp: (sid, msg) => this.io.to(sid).emit("game:stamp", msg),
       onDispose: (room) => {
         this.rooms.delete(room.code);
         this.log("ルームを削除", { room: room.code });
@@ -180,6 +182,16 @@ export class RoomManager {
         }
         const { room, playerId } = this.current(socket);
         room.handleAction(playerId, p.data.action);
+      }),
+    );
+
+    socket.on(
+      "game:stamp",
+      guard((msg: unknown) => {
+        const p = stampMessageSchema.safeParse(msg);
+        if (!p.success) return;
+        const { room, playerId } = this.current(socket);
+        room.sendStamp(playerId, p.data.stamp);
       }),
     );
 

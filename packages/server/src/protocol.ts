@@ -20,6 +20,13 @@ export const createSchema = z.object({ name, stageId, danger });
 export const joinSchema = z.object({ code, name });
 export const resumeSchema = z.object({ code, token: z.string().min(1).max(128) });
 export const setStageSchema = z.object({ stageId, danger });
+/** 送れるスタンプ（固定の一覧。自由な文字は送れない） */
+export const STAMP_IDS = ["heart", "star", "smile", "shock", "cry", "fire", "sword", "wine"] as const;
+export type StampId = (typeof STAMP_IDS)[number];
+export const stampMessageSchema = z.object({ stamp: z.enum(STAMP_IDS) });
+/** 同じ人が続けて送れる間隔（ミリ秒） */
+export const STAMP_INTERVAL_MS = 1500;
+
 export const actionMessageSchema = z.object({ action: actionSchema });
 
 /** 参加者1人の公開情報 */
@@ -50,6 +57,7 @@ export interface ServerToClient {
   "room:update": (room: RoomInfo) => void;
   "game:state": (update: GameUpdate) => void;
   "game:error": (message: string) => void;
+  "game:stamp": (msg: { from: string; stamp: StampId }) => void;
 }
 
 export interface ClientToServer {
@@ -61,6 +69,7 @@ export interface ClientToServer {
   "room:backToLobby": (reply: (r: Reply) => void) => void;
   "room:leave": () => void;
   "game:action": (msg: unknown) => void;
+  "game:stamp": (msg: unknown) => void;
 }
 
 /** Zod のエラーを1行の文章にする */
