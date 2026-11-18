@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { playSfx, setBgmMood } from "./audio.js";
 import { effectsFrom, FX_STAGGER, type FxItem, nextFxId, soundsFrom } from "./components/Effects.js";
 import { type GameConnection, type GameUpdate, LocalConnection, RemoteConnection, randomSeed } from "./connection.js";
+import { keepSelection } from "./selection.js";
 import { loadSession, Online, type RoomInfo } from "./online.js";
 import { clearInviteFromAddress, inviteCodeFrom } from "./invite.js";
 import { addSeen, seedSeen, visibleDefIds } from "./codex.js";
@@ -206,7 +207,7 @@ export const useStore = create<Store>()((set, get) => {
         log: [...st.log, ...logLines(u, nameOf)].slice(-300),
         selectedWeapon: null,
         classChangeFor: null,
-        selection: [],
+        selection: keepSelection(st.selection, st.update, u),
       }));
       // カード図鑑：見えたカードを記録する
       const withSeen = addSeen(get().progress, visibleDefIds(u.view));
