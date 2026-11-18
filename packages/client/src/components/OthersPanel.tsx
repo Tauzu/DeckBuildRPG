@@ -1,5 +1,46 @@
 // 他のプレイヤーの情報（仕様書 10.2「横」）。マルチのときだけ表示する
+import type { CardInstance } from "@deckbuild/core";
+import { PixelArt } from "../art/PixelArt.js";
+import { spriteFor } from "../art/sprites.js";
 import { reg, useStore } from "../store.js";
+import { cardTitle } from "../text.js";
+
+/** 他のプレイヤーが場に出したカード。英雄には装備した武器を添える */
+function FieldCards({ field, equips }: { field: CardInstance[]; equips: Record<string, string> }) {
+  const showDetail = useStore((s) => s.showDetail);
+  const equipped = new Set(Object.values(equips));
+  const byUid = new Map(field.map((c) => [c.uid, c]));
+  const mini = (c: CardInstance, extra?: CardInstance) => {
+    const def = reg.get(c.defId);
+    const sprite = spriteFor(def.id, def.type === "hero" ? def.heroId : undefined);
+    const stat =
+      def.type === "hero"
+        ? [def.physical > 0 && `物${def.physical}`, def.magic > 0 && `魔${def.magic}`].filter(Boolean).join(" ")
+        : def.type === "weapon"
+          ? [def.physical > 0 && `物+${def.physical}`, def.magic > 0 && `魔+${def.magic}`].filter(Boolean).join(" ")
+          : def.type === "food"
+            ? `食糧${def.food}`
+            : "";
+    return (
+      <button key={c.uid} type="button" className={`mini-card mini-${def.type}`} title={cardTitle(def)} onClick={() => showDetail({ defId: c.defId })}>
+        {sprite && <PixelArt sprite={sprite} className="mini-art" />}
+        <span className="mini-name">{cardTitle(def)}</span>
+        <span className="mini-stat">{stat}</span>
+        {extra && <span className="mini-equip">＋{cardTitle(reg.get(extra.defId))}</span>}
+      </button>
+    );
+  };
+  const foods = field.filter((c) => reg.get(c.defId).type === "food");
+  const heroes = field.filter((c) => reg.get(c.defId).type === "hero");
+  const loose = field.filter((c) => reg.get(c.defId).type === "weapon" && !equipped.has(c.uid));
+  return (
+    <div className="others-field-cards" aria-label="場のカード">
+      {foods.map((c) => mini(c))}
+      {heroes.map((c) => mini(c, equips[c.uid] ? byUid.get(equips[c.uid]!) : undefined))}
+      {loose.map((c) => mini(c))}
+    </div>
+  );
+}
 
 export function OthersPanel() {
   const update = useStore((s) => s.update)!;
@@ -29,7 +70,7 @@ export function OthersPanel() {
               <div className="others-stats">
                 経験値 {p.exp}（総 {p.totalExp}）・撃破 {p.kills}・手札 {p.handCount}・山札 {p.deckCount}・捨て札 {p.discardCount}
               </div>
-              {!me && p.field.length > 0 && <div className="others-field">場：{p.field.map((c) => reg.get(c.defId).name).join("、")}</div>}
+              {!me && p.field.length > 0 && <FieldCards field={p.field} equips={view.currentPlayerId === p.id && view.turn?.action === "battle" ? view.turn.equips : {}} />}
             </li>
           );
         })}
