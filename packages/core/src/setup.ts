@@ -82,7 +82,8 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
   for (const heroId of stage.heroIds) {
     const stack: CardInstance[] = [];
     for (const def of reg.heroLevels(heroId)) {
-      const count = setup.heroStock.countsByLevel[String(def.level)] ?? 0;
+      const level = String(def.level);
+      const count = setup.heroStock.overrides[heroId]?.[level] ?? setup.heroStock.countsByLevel[level] ?? 0;
       for (let i = 0; i < count; i++) stack.push(newCard(s, def.id));
     }
     s.village.stacks[heroStackId(heroId)] = stack;

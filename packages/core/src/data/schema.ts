@@ -111,6 +111,8 @@ export const setupFileSchema = z.object({
   startingDeck: z.array(countEntry).min(1),
   heroStock: z.object({
     countsByLevel: z.record(z.string(), positive),
+    /** 英雄ごとの枚数の上書き（英雄ID → レベル → 枚数）。書いたレベルだけ上書きする */
+    overrides: z.record(z.string(), z.record(z.string(), positive)).default({}),
   }),
   itemStock: z.array(countEntry),
   enemyDeck: z.object({

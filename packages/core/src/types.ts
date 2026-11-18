@@ -155,7 +155,7 @@ export interface SetupData {
   curseStock: number;
   startingDeck: { id: CardId; count: number }[];
   /** 英雄在庫のレベルごとの枚数（登場する英雄はステージで決まる） */
-  heroStock: { countsByLevel: Record<string, number> };
+  heroStock: { countsByLevel: Record<string, number>; overrides: Record<string, Record<string, number>> };
   /** 食料・武器の在庫の枚数（登場するカードはステージで決まる） */
   itemStock: { id: CardId; count: number }[];
   enemyDeck: { bossGroupSize: number };

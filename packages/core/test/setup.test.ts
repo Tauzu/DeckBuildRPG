@@ -121,6 +121,12 @@ describe("ゲームの準備（仕様書 4章）", () => {
     expect(levels).toEqual([1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3]);
   });
 
+  it("民兵は在庫の枚数を上書きしている（Lv1が8、Lv2が5、Lv3は既定の3）", () => {
+    const s = createGame({ seed: 1, players: [{ id: "p1", name: "あ" }], stageId: "stage3" }, reg).state;
+    const levels = s.village.stacks["hero:militia"]!.map((c) => reg.hero(c.defId).level);
+    expect(levels).toEqual([...Array(8).fill(1), ...Array(5).fill(2), ...Array(3).fill(3)]);
+  });
+
   it("同じシード値なら同じ状態になる", () => {
     expect(start(3, 42)).toEqual(start(3, 42));
     expect(start(3, 42)).not.toEqual(start(3, 43));
