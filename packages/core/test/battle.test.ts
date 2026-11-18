@@ -320,9 +320,9 @@ describe("武器の能力（仕様書 3.2）", () => {
     expect(battlePreview(act(lv2.s, "p1", { type: "playHero", uid: uidOf(lv2.h, "hero_thief_2") }).state, reg)?.total).toBe(4);
   });
 
-  it("民兵：場に他の民兵がいると、1人につき物理+1（Lv3は+2）。数えるのは同じ英雄だけ", () => {
-    const total = (ids: string[]) => {
-      const { s: s0, h } = battle(["food_feast", ...ids], "enemy_goblin");
+  it("民兵：場か手札に他の民兵がいると、1人につき物理が加わる（Lv1は+1、Lv2・Lv3は+2）。数えるのは同じ英雄だけ", () => {
+    const total = (ids: string[], held: string[] = []) => {
+      const { s: s0, h } = battle(["food_feast", ...ids, ...held], "enemy_goblin");
       let s = act(s0, "p1", { type: "playFood", uid: uidOf(h, "food_feast") }).state;
       const seen = new Set<string>();
       for (const id of ids) {
@@ -335,8 +335,24 @@ describe("武器の能力（仕様書 3.2）", () => {
     expect(total(["hero_militia_1"])).toBe(2);
     expect(total(["hero_militia_1", "hero_militia_1"])).toBe(3 + 3);
     expect(total(["hero_militia_1", "hero_militia_1", "hero_militia_1"])).toBe(4 * 3);
+    // 手札に残している民兵も数える
+    expect(total(["hero_militia_1"], ["hero_militia_1"])).toBe(2 + 1);
+    expect(total(["hero_militia_2"], ["hero_militia_1", "hero_militia_1"])).toBe(3 + 2 * 2);
     expect(total(["hero_militia_1", "hero_militia_3"])).toBe(3 + (4 + 2));
     expect(total(["hero_militia_1", "hero_knight_1"])).toBe(2 + 3);
+  });
+
+  it("民兵Lv3：場に出すと、場と手札の他の民兵の数だけ引く（自分は数えない）。使うと戻せない", () => {
+    const solo = battle(["hero_militia_3"], "enemy_goblin");
+    const s1 = act(solo.s, "p1", { type: "playHero", uid: uidOf(solo.h, "hero_militia_3") }).state;
+    expect(hand(s1)).toHaveLength(0);
+    const duo = battle(["hero_militia_3", "hero_militia_1", "hero_militia_2"], "enemy_goblin");
+    const s2 = act(duo.s, "p1", { type: "playHero", uid: uidOf(duo.h, "hero_militia_3") }).state;
+    expect(hand(s2)).toHaveLength(2 + 2);
+    expect(errorOf(s2, "p1", { type: "undoBattleCard", uid: uidOf(duo.h, "hero_militia_3") })).toBe("CANNOT_UNDO");
+    // Lv1・Lv2 は引かない
+    const lv2 = battle(["hero_militia_2", "hero_militia_1"], "enemy_goblin");
+    expect(hand(act(lv2.s, "p1", { type: "playHero", uid: uidOf(lv2.h, "hero_militia_2") }).state)).toHaveLength(1);
   });
 
   it("狩人Lv3：出して撃破すると経験値+1。Lv2は+0。出した後も手札に戻せる", () => {

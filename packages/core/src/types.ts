@@ -12,6 +12,8 @@ export type PersistentDamage = "none" | "boss" | "all";
 
 export type Effect =
   | { kind: "draw"; count: number }
+  /** 使った英雄と同じ英雄が、手札と場に他にいる数だけ山札から引く（使った英雄自身は数えない） */
+  | { kind: "drawPack" }
   | { kind: "gold"; amount: number }
   | { kind: "exp"; amount: number }
   | { kind: "trash"; count: number }

@@ -63,7 +63,7 @@ export function affinityText(a: WeaponAffinity): string {
 /** 英雄の「群れ」ボーナスの説明 */
 export function packText(b: { physical: number; magic: number }, name: string): string {
   const parts = [b.physical > 0 && `物+${b.physical}`, b.magic > 0 && `魔+${b.magic}`].filter(Boolean).join("・");
-  return `場に他の${name}がいると、1人につき${parts}`;
+  return `場か手札に他の${name}がいると、1人につき${parts}`;
 }
 
 /** 敵の特性の説明 */
@@ -82,6 +82,8 @@ export function describeEffect(e: Effect): string {
   switch (e.kind) {
     case "draw":
       return `カードを${e.count}枚引く`;
+    case "drawPack":
+      return "手札と場の他の同じ英雄の数だけカードを引く";
     case "gold":
       return `金+${e.amount}`;
     case "exp":

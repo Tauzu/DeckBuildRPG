@@ -8,6 +8,7 @@ const positive = z.number().int().min(1);
 export const effectSchema: z.ZodType<Effect> = z.lazy(() =>
   z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("draw"), count: positive }),
+    z.object({ kind: z.literal("drawPack") }),
     z.object({ kind: z.literal("gold"), amount: positive }),
     z.object({ kind: z.literal("exp"), amount: positive }),
     z.object({ kind: z.literal("trash"), count: positive }),

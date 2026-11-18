@@ -26,6 +26,21 @@ const handlers: { [K in Effect["kind"]]: Handler<K> } = {
     return "done";
   },
 
+  drawPack(ctx, _e, q) {
+    const p = owner(ctx, q);
+    const all = [...p.field, ...p.hand];
+    const src = all.find((c) => c.uid === q.sourceUid);
+    if (!src) return "done";
+    const def = ctx.reg.get(src.defId);
+    if (def.type !== "hero") return "done";
+    const n = all.filter((c) => {
+      const d = ctx.reg.get(c.defId);
+      return c.uid !== src.uid && d.type === "hero" && d.heroId === def.heroId;
+    }).length;
+    drawCards(ctx, p, n);
+    return "done";
+  },
+
   gold(ctx, e) {
     if (ctx.s.turn?.action === "village") ctx.s.turn.bonusGold += e.amount;
     return "done";
