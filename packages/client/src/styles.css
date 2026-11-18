@@ -3060,3 +3060,41 @@ textarea {
     height: 56px;
   }
 }
+
+/* ---------- 他のプレイヤーが出したカード（戦闘・在庫の欄の中） ---------- */
+.played {
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border: 2px solid var(--accent);
+  background: rgb(224 164 58 / 0.08);
+}
+
+.battle-panel .played {
+  margin: 10px 0 0;
+}
+
+.played-title {
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.played-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.played-pair {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px dashed var(--edge-dim);
+}
+
+.played-plus {
+  color: var(--ink-soft);
+  font-weight: bold;
+}

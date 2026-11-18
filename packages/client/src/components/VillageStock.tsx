@@ -1,5 +1,6 @@
 import { findOption, reasonText, reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
+import { PlayedCards } from "./PlayedCards.js";
 
 export function VillageStock() {
   const update = useStore((s) => s.update)!;
@@ -43,6 +44,7 @@ export function VillageStock() {
 
   return (
     <section className="stock panel">
+      <PlayedCards />
       <h2>村の在庫</h2>
       <div className="stock-row">{heroes.map(renderStack)}</div>
       <div className="stock-row">{foods.map(renderStack)}</div>

@@ -2,6 +2,7 @@
 import { enemyHp } from "@deckbuild/core";
 import { reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
+import { PlayedCards } from "./PlayedCards.js";
 
 export function BattlePanel() {
   const update = useStore((s) => s.update)!;
@@ -16,6 +17,7 @@ export function BattlePanel() {
         <h2>{who}</h2>
         <p className="battle-result battle-win">撃破しました！</p>
         <p className="dialog-note">経験値で、場で戦った英雄や手札の英雄をレベルアップ・転職できます。終えると手番が終わります。</p>
+        <PlayedCards />
       </section>
     );
   }
@@ -66,6 +68,7 @@ export function BattlePanel() {
           {p && p.frozenBonus > 0 && <p className="dialog-note">凍結中なので ダメージ +{p.frozenBonus}</p>}
         </div>
       </div>
+      <PlayedCards />
     </section>
   );
 }
