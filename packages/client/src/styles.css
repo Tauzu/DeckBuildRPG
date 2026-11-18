@@ -2986,24 +2986,57 @@ textarea {
   color: var(--ink-soft);
 }
 
-.stamp-bubble {
-  display: inline-flex;
-  animation: stamp-pop 3.5s steps(8, end) both;
+/* 送られたスタンプ：スクロールしても動かない位置に、大きく出す */
+.stamp-layer {
+  position: fixed;
+  top: 76px;
+  right: 16px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  pointer-events: none;
 }
 
-.stamp-bubble-art {
-  width: 28px;
-  height: 28px;
+.stamp-toast {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 10px 4px;
+  background: #0b0e24;
+  border: 3px solid var(--accent);
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 0.5);
+  animation: stamp-pop 3.5s steps(10, end) both;
+}
+
+.stamp-toast-mine {
+  border-color: var(--edge-dim);
+}
+
+.stamp-toast-art {
+  width: 80px;
+  height: 80px;
+}
+
+.stamp-toast-name {
+  font-size: 0.8rem;
+  color: var(--ink);
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @keyframes stamp-pop {
   0% {
     opacity: 0;
-    transform: translateY(6px) scale(0.6);
+    transform: translateX(40px) scale(0.6);
   }
   8% {
     opacity: 1;
-    transform: translateY(0) scale(1.25);
+    transform: translateX(0) scale(1.2);
   }
   16% {
     transform: scale(1);
@@ -3013,5 +3046,17 @@ textarea {
   }
   100% {
     opacity: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .stamp-layer {
+    top: 56px;
+    right: 8px;
+  }
+
+  .stamp-toast-art {
+    width: 56px;
+    height: 56px;
   }
 }

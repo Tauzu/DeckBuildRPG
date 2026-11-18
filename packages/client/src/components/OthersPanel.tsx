@@ -2,7 +2,7 @@
 import type { CardInstance } from "@deckbuild/core";
 import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
-import { STAMPS, stampSprite } from "../art/stamps.js";
+import { STAMPS } from "../art/stamps.js";
 import { useState } from "react";
 import { reg, useStore } from "../store.js";
 import { cardTitle } from "../text.js";
@@ -85,7 +85,6 @@ function StampPicker() {
 }
 
 export function OthersPanel() {
-  const stamps = useStore((s) => s.stamps);
   const update = useStore((s) => s.update)!;
   const room = useStore((s) => s.room);
   const { view } = update;
@@ -108,11 +107,6 @@ export function OthersPanel() {
                   </span>
                 )}
                 {p.name}
-                {stamps[p.id] && stampSprite(stamps[p.id]!.id) && (
-                  <span key={stamps[p.id]!.n} className="stamp-bubble" aria-label="スタンプ">
-                    <PixelArt sprite={stampSprite(stamps[p.id]!.id)!} className="stamp-bubble-art" />
-                  </span>
-                )}
                 {me && <span className="others-you">あなた</span>}
                 {m && (m.auto || !m.connected) && <span className="others-off">{m.auto ? "自動" : "接続待ち"}</span>}
               </div>

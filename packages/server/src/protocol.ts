@@ -21,7 +21,7 @@ export const joinSchema = z.object({ code, name });
 export const resumeSchema = z.object({ code, token: z.string().min(1).max(128) });
 export const setStageSchema = z.object({ stageId, danger });
 /** 送れるスタンプ（固定の一覧。自由な文字は送れない） */
-export const STAMP_IDS = ["heart", "star", "smile", "shock", "cry", "fire", "sword", "wine"] as const;
+export const STAMP_IDS = ["smile", "laugh", "wink", "smug", "angry", "shock", "cry", "think", "heart", "star", "fire", "sword"] as const;
 export type StampId = (typeof STAMP_IDS)[number];
 export const stampMessageSchema = z.object({ stamp: z.enum(STAMP_IDS) });
 /** 同じ人が続けて送れる間隔（ミリ秒） */

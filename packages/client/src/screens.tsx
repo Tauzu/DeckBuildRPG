@@ -13,6 +13,7 @@ import { MobilePanels } from "./components/MobilePanels.js";
 import { useIsPhone } from "./hooks.js";
 import { Effects } from "./components/Effects.js";
 import { OthersPanel } from "./components/OthersPanel.js";
+import { StampLayer } from "./components/StampLayer.js";
 import { SoundControls } from "./components/SoundControls.js";
 import { TurnTimer } from "./components/TurnTimer.js";
 import { TutorialHint } from "./components/TutorialHint.js";
@@ -260,6 +261,7 @@ export function GameScreen() {
       {!phone && <PlayerArea />}
       <PendingDialog />
       <Effects />
+      <StampLayer />
       <CardDetail />
       <ResultOverlay />
       {toast && (
