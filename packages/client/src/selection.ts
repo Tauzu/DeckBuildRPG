@@ -13,6 +13,8 @@ export function keepSelection(current: string[], before: GameUpdate | null, afte
   if (a.kind === "discard" && b.kind === "discard" && a.count !== b.count) return [];
   if (a.kind === "trash" && b.kind === "trash" && a.max !== b.max) return [];
   const me = after.view.players.find((p) => p.id === after.view.viewerId);
-  const has = new Set([...(me?.hand ?? []), ...(me?.discard ?? [])].map((c) => c.uid));
+  // 手札を捨てる選択は手札のカードだけが対象。捨て札にあるカードは（直前に捨てたもの）残さない
+  const pool = a.kind === "discard" ? (me?.hand ?? []) : [...(me?.hand ?? []), ...(me?.discard ?? [])];
+  const has = new Set(pool.map((c) => c.uid));
   return current.every((uid) => has.has(uid)) ? current : [];
 }
