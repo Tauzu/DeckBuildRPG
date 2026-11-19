@@ -83,7 +83,7 @@ export function describeEffect(e: Effect): string {
     case "draw":
       return `カードを${e.count}枚引く`;
     case "drawPack":
-      return "手札と場の他の同じ英雄の数だけカードを引く";
+      return "手札と場の他の民兵の数だけカードを引く";
     case "gold":
       return `金+${e.amount}`;
     case "exp":

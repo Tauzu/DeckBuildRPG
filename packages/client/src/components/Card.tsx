@@ -116,7 +116,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
             <span className="stat-mag" title="魔法攻撃力">魔 {def.magic}</span>
           </div>
           {def.villageEffect && <div className="card-text">村：{describeEffect(def.villageEffect)}</div>}
-          {def.battleEffect && battleEffectText(def.battleEffect) && <div className="card-text">戦闘中も：{battleEffectText(def.battleEffect)}</div>}
+          {def.battleEffect && battleEffectText(def.battleEffect) && <div className="card-text">戦闘：{battleEffectText(def.battleEffect)}</div>}
           {def.goldAttackDiv > 0 && <div className="card-text">戦闘中：手札と場の金価値の合計の{def.goldAttackDiv === 2 ? "半分" : `1/${def.goldAttackDiv}`}（切り捨て）を物理に加える</div>}
           {def.packBonus && <div className="card-text">{packText(def.packBonus, def.name)}</div>}
           {def.defeatExp > 0 && <div className="card-text">戦闘中：撃破すると経験値+{def.defeatExp}</div>}
@@ -143,7 +143,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
             <span className="stat-food">食糧 {def.food}</span>
           </div>
           {def.effect && <div className="card-text">村：{describeEffect(def.effect)}</div>}
-          {def.effect && def.effectInBattle && <div className="card-text">戦闘中も：{describeEffect(def.effect)}</div>}
+          {def.effect && def.effectInBattle && <div className="card-text">戦闘：{describeEffect(def.effect)}</div>}
           <div className="card-note">英雄を追加で{def.food}人出せる</div>
         </div>
       );
