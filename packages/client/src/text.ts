@@ -93,7 +93,7 @@ export function describeEffect(e: Effect): string {
     case "multi":
       return e.effects.map(describeEffect).join("、");
     case "discardHand":
-      return e.target === "all" ? `全員が手札を${e.count}枚捨てる` : `次の手番のプレイヤーが手札を${e.count}枚捨てる`;
+      return e.target === "all" ? `全員が手札を${e.count}枚捨てる` : `ランダムな1人が手札を${e.count}枚捨てる`;
     case "addCurse":
       return `全員の捨て札に呪いを${e.count}枚加える`;
     case "freeze":
@@ -202,7 +202,7 @@ export function eventText(
       const src = lookup.get(e.sourceUid);
       if (!src) return null;
       const d = reg.get(src);
-      if (d.type === "enemy" && d.isBoss && e.effect.kind === "discardHand" && e.effect.target === "next") {
+      if (d.type === "enemy" && d.isBoss && e.effect.kind === "discardHand" && e.effect.target === "random") {
         return `${d.name}の威圧：${describeEffect(e.effect)}`;
       }
       if (d.type === "enemy" && e.effect.kind === "rally") return `${d.name}の号令：${describeEffect(e.effect)}`;

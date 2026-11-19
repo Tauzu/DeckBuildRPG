@@ -80,7 +80,7 @@ describe("敵の進軍（仕様書 5.4）", () => {
     expect(s.village.curses).toHaveLength(17);
   });
 
-  it("魔竜の進軍時：次の手番のプレイヤーだけが手札を1枚捨てる。公開された回は発動しない", () => {
+  it("魔竜の進軍時：ランダムな1人だけが手札を1枚捨てる。公開された回は発動しない", () => {
     let s = placeEnemy(start(2), 3, "enemy_orc").state;
     s = mutate(s, (d) => {
       d.enemyDeck.unshift(...cards("enemy_dragon"));
@@ -96,12 +96,12 @@ describe("敵の進軍（仕様書 5.4）", () => {
 
     expect(s.currentPlayer).toBe(0);
 
-    // 2ラウンド目の終わり → 進軍時：次の手番の p1 だけ
+    // 2ラウンド目の終わり → 進軍時：ランダムな1人だけ
     s = pass(s, "p1").state;
     expect(s.pending).toBeNull();
     s = pass(s, "p2").state;
     if (s.pending?.kind !== "discard") throw new Error("入力待ちになっていません");
-    expect(s.pending.requests.map((r) => r.playerId)).toEqual(["p1"]);
+    expect(s.pending.requests).toHaveLength(1);
   });
 
   it("2人以上では、敵は全員の手番が終わるごと（1ラウンドに1回）に進む", () => {

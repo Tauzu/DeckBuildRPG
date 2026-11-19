@@ -1,5 +1,6 @@
 // 村効果・敵の能力の処理（設計書 2.6、仕様書 5.5）
 import { type Ctx, drawCards, playerById } from "./context.js";
+import { randomInt } from "./rng.js";
 import { targetCandidates } from "./rules.js";
 import type { Effect, QueuedEffect } from "./types.js";
 
@@ -69,8 +70,10 @@ const handlers: { [K in Effect["kind"]]: Handler<K> } = {
 
   discardHand(ctx, e) {
     const s = ctx.s;
-    const targets =
-      e.target === "all" ? s.players : [s.players[(s.currentPlayer + 1) % s.players.length]].filter((p) => p !== undefined);
+    // "random"：手札のある誰か1人をランダムに選ぶ（手番順による不公平をなくす）
+    const holders = s.players.filter((p) => p.hand.length > 0);
+    const pick = e.target === "random" && holders.length > 0 ? holders[randomInt(s, holders.length)] : undefined;
+    const targets = e.target === "all" ? s.players : pick ? [pick] : [];
     const requests = targets
       .filter((p) => p.hand.length > 0)
       .map((p) => ({ playerId: p.id, count: Math.min(e.count, p.hand.length), done: false }));

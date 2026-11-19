@@ -18,7 +18,7 @@ export type Effect =
   | { kind: "exp"; amount: number }
   | { kind: "trash"; count: number }
   | { kind: "multi"; effects: Effect[] }
-  | { kind: "discardHand"; count: number; target: "all" | "next" }
+  | { kind: "discardHand"; count: number; target: "all" | "random" }
   | { kind: "addCurse"; count: number }
   /** 手番プレイヤーが敵を選んで凍結する（次の進軍で動かさない。ボス以外） */
   | { kind: "freeze"; count: number }

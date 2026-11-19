@@ -13,7 +13,7 @@ export const effectSchema: z.ZodType<Effect> = z.lazy(() =>
     z.object({ kind: z.literal("exp"), amount: positive }),
     z.object({ kind: z.literal("trash"), count: positive }),
     z.object({ kind: z.literal("multi"), effects: z.array(effectSchema).min(1) }),
-    z.object({ kind: z.literal("discardHand"), count: positive, target: z.enum(["all", "next"]) }),
+    z.object({ kind: z.literal("discardHand"), count: positive, target: z.enum(["all", "random"]) }),
     z.object({ kind: z.literal("addCurse"), count: positive }),
     z.object({ kind: z.literal("freeze"), count: positive }),
     z.object({ kind: z.literal("push"), count: positive }),
