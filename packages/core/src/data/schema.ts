@@ -40,6 +40,7 @@ export const heroDefSchema = z.object({
   villageEffect: effectSchema.nullable(),
   battleEffect: effectSchema.nullable().default(null),
   defeatExp: nonNeg.default(0),
+  ignoreHalfResist: z.boolean().default(false),
   goldAttackDiv: nonNeg.default(0),
   packBonus: z.object({ physical: nonNeg, magic: nonNeg }).nullable().default(null),
   nextLevelExp: positive.nullable(),

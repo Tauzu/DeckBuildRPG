@@ -141,11 +141,12 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   noAffinity: (d) => {
     for (const i of d.items) if (i.type === "weapon") i.affinity = null;
   },
-  /** 狩人を変更前（Lv3 の村で経験値+1のみ、戦闘の撃破ボーナスなし）に戻す */
+  /** 狩人を 2026-11-22 の変更前（Lv2 物3・魔2・村で経験値+1、Lv3 村で経験値+1・撃破で経験値+1・半減無視なし）に戻す */
   hunterOld: (d) => {
+    const exp = { kind: "exp", amount: 1 };
     for (const h of d.heroes) {
-      if (h.id === "hero_hunter_2") h.villageEffect = null;
-      if (h.id === "hero_hunter_3") h.defeatExp = 0;
+      if (h.id === "hero_hunter_2") Object.assign(h, { physical: 3, magic: 2, villageEffect: exp, defeatExp: 0 });
+      if (h.id === "hero_hunter_3") Object.assign(h, { physical: 5, magic: 3, villageEffect: exp, defeatExp: 1, ignoreHalfResist: false });
     }
   },
   /** 敵を撃破した直後にもレベルアップ・転職できる */

@@ -35,7 +35,7 @@ function factor(r: EnemyDef["resistPhysical"]): number {
 
 function attackOf(reg: CardRegistry, c: CardInstance) {
   const d = reg.get(c.defId);
-  if (d.type === "hero") return { physical: d.physical, magic: d.magic };
+  if (d.type === "hero") return { physical: d.physical, magic: d.magic, ignoreHalf: d.ignoreHalfResist };
   if (d.type === "weapon") {
     // レベルで伸びる武器は Lv1 の英雄が持つとして見積もる
     const ab = d.ability;
@@ -53,6 +53,10 @@ function isSolo(reg: CardRegistry, c: CardInstance): boolean {
 function valueAgainst(reg: CardRegistry, c: CardInstance, e: EnemyDef): number {
   const a = attackOf(reg, c);
   if ("pierce" in a && a.pierce) return a.physical + a.magic;
+  if ("ignoreHalf" in a && a.ignoreHalf) {
+    const f = (r: EnemyDef["resistPhysical"]) => (r === "immune" ? 0 : 1);
+    return a.physical * f(e.resistPhysical) + a.magic * f(e.resistMagic);
+  }
   return a.physical * factor(e.resistPhysical) + a.magic * factor(e.resistMagic);
 }
 

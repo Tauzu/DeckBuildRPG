@@ -45,11 +45,12 @@ function applyResist(value: number, resist: Resist): number {
   return value;
 }
 
-/** 攻撃に加わる1人（または英雄なしの武器1枚）の攻撃力。pierce なら耐性を受けない */
+/** 攻撃に加わる1人（または英雄なしの武器1枚）の攻撃力。pierce なら耐性を受けない。ignoreHalf なら「半減」だけ受けない */
 export interface Attacker {
   physical: number;
   magic: number;
   pierce?: boolean;
+  ignoreHalf?: boolean;
 }
 
 /** ダメージの計算（仕様書 5.3.1）。耐性は、耐性を受ける攻撃の合計にかける */
@@ -58,20 +59,26 @@ export function calcDamage(attackers: Attacker[], target: Pick<EnemyDef, "resist
   let magic = 0;
   let piercePhysical = 0;
   let pierceMagic = 0;
+  let halfPhysical = 0;
+  let halfMagic = 0;
   for (const a of attackers) {
     if (a.pierce) {
       piercePhysical += a.physical;
       pierceMagic += a.magic;
+    } else if (a.ignoreHalf) {
+      halfPhysical += a.physical;
+      halfMagic += a.magic;
     } else {
       physical += a.physical;
       magic += a.magic;
     }
   }
-  const physicalAfter = applyResist(physical, target.resistPhysical) + piercePhysical;
-  const magicAfter = applyResist(magic, target.resistMagic) + pierceMagic;
+  const ignoringHalf = (value: number, resist: Resist) => (resist === "immune" ? 0 : value);
+  const physicalAfter = applyResist(physical, target.resistPhysical) + ignoringHalf(halfPhysical, target.resistPhysical) + piercePhysical;
+  const magicAfter = applyResist(magic, target.resistMagic) + ignoringHalf(halfMagic, target.resistMagic) + pierceMagic;
   return {
-    physical: physical + piercePhysical,
-    magic: magic + pierceMagic,
+    physical: physical + halfPhysical + piercePhysical,
+    magic: magic + halfMagic + pierceMagic,
     physicalAfter,
     magicAfter,
     total: physicalAfter + magicAfter,
@@ -101,7 +108,7 @@ export function equippedAttack(hero: HeroDef, weapon: WeaponDef | null, packCoun
     }
     if (ab?.kind === "pierce") pierce = true;
   }
-  return { physical, magic, pierce };
+  return { physical, magic, pierce, ignoreHalf: hero.ignoreHalfResist };
 }
 
 /** 戦闘中の場の英雄と武器から攻撃力の一覧を作る。装備していない武器は、英雄なしで使える武器だけが加わる */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { battlePreview, calcDamage } from "../src/index.js";
+import { battlePreview, calcDamage, equippedAttack } from "../src/index.js";
 import { act, errorOf, hand, mutate, placeEnemy, reg, setHand, start, uidOf } from "./helpers.js";
 
 describe("ダメージの計算（仕様書 5.3.1）", () => {
@@ -23,6 +23,24 @@ describe("ダメージの計算（仕様書 5.3.1）", () => {
       reg.enemy("enemy_ghost"),
     );
     expect(d).toEqual({ physical: 9, magic: 0, physicalAfter: 6, magicAfter: 0, total: 6 });
+  });
+
+  it("半減を受けない攻撃（狩人Lv3）は、半減の耐性をかけずに足す。無効は受ける", () => {
+    const d = calcDamage(
+      [
+        { physical: 5, magic: 3, ignoreHalf: true },
+        { physical: 3, magic: 0 },
+      ],
+      reg.enemy("enemy_skeleton"),
+    );
+    expect(d).toEqual({ physical: 8, magic: 3, physicalAfter: 1 + 5, magicAfter: 3, total: 9 });
+    expect(calcDamage([{ physical: 5, magic: 3, ignoreHalf: true }], reg.enemy("enemy_ghost")).total).toBe(3);
+  });
+
+  it("狩人Lv3は装備した武器の分も半減を受けない", () => {
+    const a = equippedAttack(reg.hero("hero_hunter_3"), reg.weapon("weapon_sword"));
+    expect(a.ignoreHalf).toBe(true);
+    expect(equippedAttack(reg.hero("hero_hunter_2"), null).ignoreHalf).toBe(false);
   });
 
   it("無効の耐性は0にする", () => {
@@ -355,8 +373,8 @@ describe("武器の能力（仕様書 3.2）", () => {
     expect(hand(act(lv2.s, "p1", { type: "playHero", uid: uidOf(lv2.h, "hero_militia_2") }).state)).toHaveLength(1);
   });
 
-  it("狩人Lv3：出して撃破すると経験値+1。Lv2は+0。出した後も手札に戻せる", () => {
-    for (const [id, bonus] of [["hero_hunter_3", 1], ["hero_hunter_2", 0]] as const) {
+  it("狩人Lv2・Lv3：出して撃破すると経験値+1。Lv1は+0。出した後も手札に戻せる", () => {
+    for (const [id, bonus] of [["hero_hunter_3", 1], ["hero_hunter_2", 1], ["hero_hunter_1", 0]] as const) {
       const { s: s0, h } = battle([id], "enemy_goblin");
       const hunter = uidOf(h, id);
       let s = act(s0, "p1", { type: "playHero", uid: hunter }).state;

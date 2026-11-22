@@ -120,6 +120,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
           {def.goldAttackDiv > 0 && <div className="card-text">戦闘中：手札と場の金価値の合計の{def.goldAttackDiv === 2 ? "半分" : `1/${def.goldAttackDiv}`}（切り捨て）を物理に加える</div>}
           {def.packBonus && <div className="card-text">{packText(def.packBonus, def.name)}</div>}
           {def.defeatExp > 0 && <div className="card-text">戦闘中：撃破すると経験値+{def.defeatExp}</div>}
+          {def.ignoreHalfResist && <div className="card-text">戦闘中：この英雄の攻撃は、敵の「半減」の耐性を受けない</div>}
           {def.nextLevelExp !== null && <div className="card-note">次のLvまで 経験値{def.nextLevelExp}</div>}
           {def.level === 0 && <div className="card-note">経験値2で転職できる</div>}
         </div>

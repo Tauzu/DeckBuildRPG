@@ -48,6 +48,8 @@ export interface HeroDef extends BaseDef {
   battleEffect: Effect | null;
   /** 戦闘で場に出ているとき、敵を撃破すると増える経験値（出した後も手札に戻せる） */
   defeatExp: number;
+  /** この英雄の攻撃（装備した武器を含む）は、敵の「半減」の耐性を受けない。「無効」は受ける */
+  ignoreHalfResist: boolean;
   /** 場に出ている他の同じ英雄1体につき加わる攻撃力（なければ null） */
   /** 戦闘で場に出ているとき、手札と場の金価値の合計をこの数で割って（切り捨て）物理攻撃に加える（0 ならなし） */
   goldAttackDiv: number;
