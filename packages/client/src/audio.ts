@@ -1,4 +1,5 @@
-// 効果音とBGM。音のファイルは使わず、Web Audio でその場で合成する（ピコピコ音）
+// 効果音とBGM。効果音とゲーム中のBGMは Web Audio でその場で合成する（ピコピコ音）。
+// タイトルなどメニュー画面のBGMだけは音のファイル（public/audio/bgm/）を鳴らす
 // ブラウザは、利用者が一度画面を操作するまで音を出させないので、最初のクリックで準備する
 
 export type Sfx =
@@ -21,8 +22,8 @@ export type Sfx =
 
 const SETTINGS_KEY = "deckbuild.audio.v1";
 
-/** 音を使うか。いったん音なしにしている（テストプレイの要望）。true にすると効果音・BGMと設定の表示が戻る */
-export const AUDIO_ENABLED = false;
+/** 音を使うか。false にすると効果音・BGMと設定の表示が消える（テストプレイの要望でいったん止めていた） */
+export const AUDIO_ENABLED = true;
 
 export interface AudioSettings {
   sfx: boolean;
@@ -94,6 +95,17 @@ export function setAudioSettings(s: AudioSettings): void {
   applySettings();
   if (s.bgm) startBgm();
   else stopBgm();
+}
+
+/** 今どの画面のBGMを鳴らすか。menu はタイトル・ステージ選択などゲーム以外の画面 */
+export type BgmScene = "menu" | "game";
+let bgmScene: BgmScene = "menu";
+
+export function setBgmScene(scene: BgmScene): void {
+  if (scene === bgmScene) return;
+  stopBgm();
+  bgmScene = scene;
+  if (settings.bgm) startBgm();
 }
 
 export function getAudioSettings(): AudioSettings {
@@ -268,6 +280,10 @@ export function setBgmMood(mood: "calm" | "tense"): void {
 
 function startBgm(): void {
   if (!AUDIO_ENABLED) return;
+  if (bgmScene === "menu") {
+    startFileBgm(MENU_BGM);
+    return;
+  }
   const c = ensure();
   if (!c || bgmTimer) return;
   bgmNext = c.currentTime + 0.1;
@@ -295,4 +311,70 @@ function startBgm(): void {
 function stopBgm(): void {
   if (bgmTimer) clearInterval(bgmTimer);
   bgmTimer = null;
+  stopFileBgm();
+}
+
+// ---------------------------------------------------------------------------
+// 音のファイルのBGM。読み込んでから Web Audio でループさせる（<audio loop> より継ぎ目が出にくい）
+
+interface FileBgm {
+  url: string;
+  /** ループの長さ（秒）。曲の小節の長さに合わせ、符号化で後ろに付く余白を飛ばす */
+  loopSec: number;
+  /** 合成のBGMと聞こえ方をそろえる音量 */
+  vol: number;
+}
+
+/** タイトル画面のBGM（Pyxel の作曲ツールで作った曲。テンポ92・8小節） */
+const MENU_BGM: FileBgm = { url: `${import.meta.env.BASE_URL}audio/bgm/title.ogg`, loopSec: 920364 / 44100, vol: 0.35 };
+
+const fileBuffers = new Map<string, Promise<AudioBuffer | null>>();
+let fileSource: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+/** 読み込み中に止められたときに、読み込み後に鳴らさないための番号 */
+let fileBgmToken = 0;
+
+function loadBuffer(c: AudioContext, url: string): Promise<AudioBuffer | null> {
+  let p = fileBuffers.get(url);
+  if (!p) {
+    p = fetch(url)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+      .then((b) => c.decodeAudioData(b))
+      .catch(() => {
+        fileBuffers.delete(url); // 読めなければ次の機会にもう一度試す
+        return null;
+      });
+    fileBuffers.set(url, p);
+  }
+  return p;
+}
+
+function startFileBgm(bgm: FileBgm): void {
+  const c = ensure();
+  if (!c || !bgmBus || fileSource) return;
+  const token = ++fileBgmToken;
+  void loadBuffer(c, bgm.url).then((buf) => {
+    if (!buf || !ctx || !bgmBus || token !== fileBgmToken || fileSource) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.loopStart = 0;
+    src.loopEnd = Math.min(bgm.loopSec, buf.duration);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(bgm.vol, ctx.currentTime + 0.3);
+    src.connect(gain);
+    gain.connect(bgmBus);
+    src.start();
+    fileSource = { src, gain };
+  });
+}
+
+function stopFileBgm(): void {
+  fileBgmToken++;
+  if (!fileSource || !ctx) return;
+  const { src, gain } = fileSource;
+  fileSource = null;
+  const t = ctx.currentTime;
+  gain.gain.setTargetAtTime(0.0001, t, 0.1);
+  src.stop(t + 0.5);
 }

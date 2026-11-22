@@ -1,16 +1,18 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { LobbyScreen } from "./components/LobbyScreen.js";
 import { RecordsScreen } from "./components/RecordsScreen.js";
 import { CodexScreen } from "./components/CodexScreen.js";
 import { GameScreen, RulesScreen, StageSelectScreen, TitleScreen } from "./screens.js";
-import { playSfx, unlockAudio } from "./audio.js";
+import { playSfx, setBgmScene, unlockAudio } from "./audio.js";
 import { useStore } from "./store.js";
 import "@fontsource/dotgothic16/400.css";
 import "./styles.css";
 
 function App() {
   const screen = useStore((s) => s.screen);
+  // ゲーム以外の画面ではタイトルのBGM、ゲーム中は合成のBGM
+  useEffect(() => setBgmScene(screen === "game" ? "game" : "menu"), [screen]);
   if (screen === "game") return <GameScreen />;
   if (screen === "rules") return <RulesScreen />;
   if (screen === "stages") return <StageSelectScreen />;
