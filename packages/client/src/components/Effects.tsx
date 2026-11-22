@@ -160,7 +160,10 @@ function FxCard({ item }: { item: FxItem }) {
 export function soundsFrom(events: GameEvent[], viewerId: string): { name: Sfx; delay: number }[] {
   const out: { name: Sfx; delay: number }[] = [];
   let order = 0;
+  /** 手番の終わりに手札を引き直した分は鳴らさない（効果で引いたときだけ鳴らす） */
+  let refill = false;
   const staged = (name: Sfx) => out.push({ name, delay: order++ * FX_STAGGER });
+  const now = (name: Sfx) => out.push({ name, delay: order * FX_STAGGER });
   for (const ev of events) {
     switch (ev.type) {
       case "cardPlayed":
@@ -187,6 +190,31 @@ export function soundsFrom(events: GameEvent[], viewerId: string): { name: Sfx; 
         break;
       case "turnEnded":
         order++;
+        refill = true;
+        break;
+      case "cardsDrawn":
+        if (!refill && ev.count > 0) now("draw");
+        break;
+      case "cardTrashed":
+        now("trash");
+        break;
+      case "lootSold":
+        if (ev.uids.length > 0) now("sell");
+        break;
+      case "enemyFrozen":
+        staged("freeze");
+        break;
+      case "enemyPushed":
+        staged("push");
+        break;
+      case "enemySplit":
+        staged("split");
+        break;
+      case "cardsDiscarded":
+        if (ev.uids.length > 0) staged("discard");
+        break;
+      case "curseAdded":
+        staged("curse");
         break;
       case "enemyMoved":
         if (ev.moves.length > 0) staged("march");

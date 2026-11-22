@@ -297,6 +297,7 @@ export const useStore = create<Store>()((set, get) => {
         if (st.hideStamps && from !== st.myId) return;
         const n = ++stampCount;
         set({ stamps: { ...st.stamps, [from]: { id, n } } });
+        playSfx("stamp");
         setTimeout(() => {
           const cur = get().stamps[from];
           if (cur?.n === n) {

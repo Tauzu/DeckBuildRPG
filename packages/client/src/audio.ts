@@ -18,7 +18,16 @@ export type Sfx =
   | "skip"
   | "win"
   | "lose"
-  | "error";
+  | "error"
+  | "freeze"
+  | "push"
+  | "split"
+  | "trash"
+  | "draw"
+  | "curse"
+  | "discard"
+  | "sell"
+  | "stamp";
 
 const SETTINGS_KEY = "deckbuild.audio.v1";
 
@@ -256,6 +265,51 @@ export function playSfx(name: Sfx, delayMs = 0): void {
     case "error":
       tone(120, t, 0.12, { vol: 0.15, type: "square" });
       tone(100, t + 0.12, 0.15, { vol: 0.15, type: "square" });
+      break;
+    case "freeze":
+      // きらきらと下がる高い音と、冷たい風
+      [C6 + 12, G5 + 12, E5 + 12, C6].forEach((n, i) => tone(hz(n), t + i * 0.05, 0.22, { vol: 0.08, type: "triangle" }));
+      noise(t, 0.35, 0.1, 9000);
+      break;
+    case "push":
+      // 押し戻す風の音
+      noise(t, 0.28, 0.25, 4000);
+      tone(500, t, 0.25, { to: 160, vol: 0.1, type: "triangle" });
+      break;
+    case "split":
+      // ぷるんと分かれる
+      tone(260, t, 0.08, { to: 520, vol: 0.14, type: "square" });
+      tone(300, t + 0.09, 0.1, { to: 640, vol: 0.12, type: "square" });
+      break;
+    case "trash":
+      // ぽふっと消える
+      noise(t, 0.22, 0.25, 2200);
+      tone(hz(E5), t, 0.18, { to: hz(E5 - 12), vol: 0.08, type: "triangle" });
+      break;
+    case "draw":
+      // カードをめくる
+      noise(t, 0.05, 0.12, 7000);
+      noise(t + 0.06, 0.05, 0.1, 7000);
+      break;
+    case "curse":
+      // にごった低い和音
+      tone(hz(-14), t, 0.5, { vol: 0.12, type: "sawtooth" });
+      tone(hz(-13), t, 0.5, { vol: 0.12, type: "sawtooth" });
+      tone(hz(-20), t + 0.1, 0.5, { vol: 0.1, type: "triangle" });
+      break;
+    case "discard":
+      tone(hz(G5), t, 0.08, { vol: 0.1, type: "triangle" });
+      tone(hz(C5), t + 0.08, 0.14, { vol: 0.1, type: "triangle" });
+      noise(t, 0.06, 0.08, 5000);
+      break;
+    case "sell":
+      // 小銭の音
+      tone(hz(A5 + 2), t, 0.06, { vol: 0.1 });
+      tone(hz(C6 + 4), t + 0.06, 0.2, { vol: 0.1 });
+      break;
+    case "stamp":
+      tone(hz(C5), t, 0.08, { to: hz(C6), vol: 0.12, type: "triangle" });
+      tone(hz(G5), t + 0.08, 0.1, { vol: 0.08, type: "triangle" });
       break;
   }
 }
