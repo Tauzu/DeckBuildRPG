@@ -149,6 +149,15 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
       if (h.id === "hero_hunter_3") Object.assign(h, { physical: 5, magic: 3, villageEffect: exp, defeatExp: 1, ignoreHalfResist: false });
     }
   },
+  // --- 危険度+4 ---
+  /** +4 を 2026-11-22 の変更前（魔物の生命力 さらに +1 つき）に戻す */
+  d4Old: (d) => {
+    d.dangers[3].add.enemyHp = 1;
+  },
+  /** +4 の集落の耐久値 −3 をなくす */
+  d4noVillage: (d) => {
+    delete d.dangers[3].add.villageHp;
+  },
   /** 敵を撃破した直後にもレベルアップ・転職できる */
   lvBattle: (d) => {
     d.setup.levelUpAfterBattle = true;
