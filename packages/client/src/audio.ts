@@ -372,7 +372,8 @@ function stopBgm(): void {
 // 音のファイルのBGM。読み込んでから Web Audio でループさせる（<audio loop> より継ぎ目が出にくい）
 
 interface FileBgm {
-  url: string;
+  /** 読み込む順。前のものが読めない（その形式に対応していないブラウザ）ときは次を試す */
+  urls: string[];
   /** ループの長さ（秒）。曲の小節の長さに合わせ、符号化で後ろに付く余白を飛ばす */
   loopSec: number;
   /** 合成のBGMと聞こえ方をそろえる音量 */
@@ -380,7 +381,12 @@ interface FileBgm {
 }
 
 /** タイトル画面のBGM（Pyxel の作曲ツールで作った曲。テンポ92・8小節） */
-const MENU_BGM: FileBgm = { url: `${import.meta.env.BASE_URL}audio/bgm/title.ogg`, loopSec: 920364 / 44100, vol: 0.35 };
+const MENU_BGM: FileBgm = {
+  // OGG を再生できない古い Safari のために MP3 も置く（MP3 は前後に少し余白が付くので、ループのつなぎ目が OGG ほどきれいではない）
+  urls: ["ogg", "mp3"].map((ext) => `${import.meta.env.BASE_URL}audio/bgm/title.${ext}`),
+  loopSec: 920364 / 44100,
+  vol: 0.35,
+};
 
 const fileBuffers = new Map<string, Promise<AudioBuffer | null>>();
 let fileSource: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
@@ -392,11 +398,19 @@ function loadBuffer(c: AudioContext, url: string): Promise<AudioBuffer | null> {
   if (!p) {
     p = fetch(url)
       .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
-      .then((b) => c.decodeAudioData(b))
-      .catch(() => {
-        fileBuffers.delete(url); // 読めなければ次の機会にもう一度試す
+      .catch((e: unknown) => {
+        console.warn("BGMを読み込めませんでした", url, e);
+        fileBuffers.delete(url); // 通信の失敗なら、次の機会にもう一度試す
         return null;
-      });
+      })
+      .then((b) =>
+        b
+          ? c.decodeAudioData(b).catch((e: unknown) => {
+              console.warn("BGMを再生できない形式でした", url, e); // 形式に対応していないので、もう試さない
+              return null;
+            })
+          : null,
+      );
     fileBuffers.set(url, p);
   }
   return p;
@@ -406,7 +420,14 @@ function startFileBgm(bgm: FileBgm): void {
   const c = ensure();
   if (!c || !bgmBus || fileSource) return;
   const token = ++fileBgmToken;
-  void loadBuffer(c, bgm.url).then((buf) => {
+  const loadFirst = async (): Promise<AudioBuffer | null> => {
+    for (const url of bgm.urls) {
+      const buf = await loadBuffer(c, url);
+      if (buf) return buf;
+    }
+    return null;
+  };
+  void loadFirst().then((buf) => {
     if (!buf || !ctx || !bgmBus || token !== fileBgmToken || fileSource) return;
     const src = ctx.createBufferSource();
     src.buffer = buf;

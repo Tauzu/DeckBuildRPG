@@ -23,6 +23,8 @@ const MIME: Record<string, string> = {
   ".woff": "font/woff",
   ".webp": "image/webp",
   ".txt": "text/plain; charset=utf-8",
+  ".ogg": "audio/ogg",
+  ".mp3": "audio/mpeg",
 };
 
 /** どの応答にも付ける、安全のためのヘッダー */
