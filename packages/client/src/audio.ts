@@ -405,7 +405,7 @@ interface FileBgm {
   urls: string[];
   /** ループの長さ（秒）。曲の小節の長さに合わせ、符号化で後ろに付く余白を飛ばす */
   loopSec: number;
-  /** 合成のBGMと聞こえ方をそろえる音量 */
+  /** 曲のファイルの音量（全体の音量・BGMの音量に掛ける） */
   vol: number;
 }
 
@@ -415,7 +415,8 @@ function fileBgm(name: string, samples: number): FileBgm {
     // OGG を再生できない古い Safari のために MP3 も置く（MP3 は前後に少し余白が付くので、ループのつなぎ目が OGG ほどきれいではない）
     urls: ["ogg", "mp3"].map((ext) => `${import.meta.env.BASE_URL}audio/bgm/${name}.${ext}`),
     loopSec: samples / 44100,
-    vol: 0.35,
+    // 曲のファイルは大きさを揃えてあるので、そのままの大きさで鳴らす（0.35 では効果音より小さく聞こえた）
+    vol: 1,
   };
 }
 
