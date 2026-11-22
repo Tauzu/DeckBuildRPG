@@ -188,8 +188,11 @@ export const useStore = create<Store>()((set, get) => {
         set({ update: u, toast: u.error });
         return;
       }
-      for (const s of soundsFrom(u.events, u.view.viewerId)) playSfx(s.name, s.delay);
-      setBgmMood(u.view.route.flat().some((c) => reg.enemy(c.defId).isBoss) ? "tense" : "calm");
+      const sounds = soundsFrom(u.events, u.view.viewerId);
+      for (const s of sounds) playSfx(s.name, s.delay);
+      // ボスが出たら、登場の効果音に合わせてBGMを切り替える
+      const bossSfx = sounds.find((s) => s.name === "boss");
+      setBgmMood(u.view.route.flat().some((c) => reg.enemy(c.defId).isBoss) ? "tense" : "calm", bossSfx?.delay ?? 0);
       const fx = effectsFrom(u.events, u.view.viewerId, nameOf).map((f, i) => ({ ...f, id: nextFxId(), delay: i * FX_STAGGER }));
       const hits = u.events.filter((e) => e.type === "enemyArrived" && e.damage > 0).length;
       const marched = u.events.some((e) => e.type === "enemyMoved" && e.moves.length > 0);

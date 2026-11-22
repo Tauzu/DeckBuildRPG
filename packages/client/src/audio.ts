@@ -328,8 +328,30 @@ const CALM_BASS = [-21, -21, -14, -14, -16, -16, -11, -11];
 const TENSE_MELODY = [0, 3, 6, 3, 0, 3, 7, 6, 0, 3, 6, 3, 8, 7, 6, 3, 0, 3, 6, 3, 0, 3, 7, 6, 10, 8, 7, 6, 3, 2, 1, null];
 const TENSE_BASS = [-24, -24, -24, -24, -22, -22, -23, -23];
 
-export function setBgmMood(mood: "calm" | "tense"): void {
+/** ボスがいるあいだのステージの曲の再生速度（半音2つ上。キーとテンポが一緒に上がる） */
+const TENSE_RATE = 2 ** (2 / 12);
+
+function fileRate(): number {
+  return bgmScene !== "menu" && bgmMood === "tense" ? TENSE_RATE : 1;
+}
+
+/**
+ * ボスが進軍ルートにいるか（tense）どうか。変わったら、ステージの曲をいったん小さくして再生速度を切り替える
+ * （小さくしているあいだに切り替えるので、音程が滑るようには聞こえない）。
+ * delayMs はボス登場の効果音が鳴るまでの時間で、それに合わせて曲を小さくする。
+ */
+export function setBgmMood(mood: "calm" | "tense", delayMs = 0): void {
+  if (mood === bgmMood) return;
   bgmMood = mood;
+  if (!ctx || !fileSource || bgmScene === "menu") return;
+  const { src, gain, vol } = fileSource;
+  const t = ctx.currentTime + delayMs / 1000;
+  // 登場の効果音（約1.6秒）のあいだは小さくしておく。ボスがいなくなったときは短く
+  const hold = mood === "tense" ? 1.4 : 0.2;
+  gain.gain.cancelScheduledValues(t);
+  gain.gain.setTargetAtTime(vol * 0.05, t, 0.04);
+  src.playbackRate.setValueAtTime(fileRate(), t + 0.2);
+  gain.gain.setTargetAtTime(vol, t + hold, 0.3);
 }
 
 function startBgm(): void {
@@ -411,7 +433,7 @@ const STAGE_BGM: Record<string, FileBgm> = {
 };
 
 const fileBuffers = new Map<string, Promise<AudioBuffer | null>>();
-let fileSource: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+let fileSource: { src: AudioBufferSourceNode; gain: GainNode; vol: number } | null = null;
 /** 読み込み中に止められたときに、読み込み後に鳴らさないための番号 */
 let fileBgmToken = 0;
 
@@ -457,13 +479,14 @@ function startFileBgm(bgm: FileBgm, onFail: () => void): void {
     src.loop = true;
     src.loopStart = 0;
     src.loopEnd = Math.min(bgm.loopSec, buf.duration);
+    src.playbackRate.value = fileRate();
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(bgm.vol, ctx.currentTime + 0.3);
     src.connect(gain);
     gain.connect(bgmBus);
     src.start();
-    fileSource = { src, gain };
+    fileSource = { src, gain, vol: bgm.vol };
   });
 }
 
@@ -473,6 +496,7 @@ function stopFileBgm(): void {
   const { src, gain } = fileSource;
   fileSource = null;
   const t = ctx.currentTime;
+  gain.gain.cancelScheduledValues(t);
   gain.gain.setTargetAtTime(0.0001, t, 0.1);
   src.stop(t + 0.5);
 }

@@ -20,9 +20,13 @@ export function RouteView() {
   const squaresRef = useRef<HTMLDivElement>(null);
   useMarchMotion(squaresRef, view.route, marches);
 
+  // ボスが進軍ルートにいるあいだは、背景を暗く赤くして緊張感を出す
+  const bossOnRoute = view.route.some((square) => square.some((c) => reg.enemy(c.defId).isBoss));
+
   return (
-    <section className="route panel">
+    <section className={`route panel${bossOnRoute ? " route-boss" : ""}`}>
       <StageBackdrop name={reg.stage(view.config.stageId).backdrop ?? "plains"} />
+      <div className="route-boss-veil" aria-hidden="true" />
       <div className="route-end route-fort">
         <PixelArt sprite={fortSprite} className="route-end-art" />
         <div className="route-end-title">魔物の砦</div>
