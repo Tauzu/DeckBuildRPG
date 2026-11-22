@@ -154,6 +154,19 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   d4Old: (d) => {
     d.dangers[3].add.enemyHp = 1;
   },
+  // --- 危険度+5 ---
+  /** +5 を 2026-11-22 の変更前（魔物の生命力 +1 なし）に戻す */
+  d5Old: (d) => {
+    delete d.dangers[4].add.enemyHp;
+  },
+  /** +5 に手札 −1 */
+  d5hand: (d) => {
+    d.dangers[4].add.handSize = -1;
+  },
+  /** +5 のボスの生命力を +20% に */
+  d5boss20: (d) => {
+    d.dangers[4].add.bossHpPct = 20;
+  },
   /** +4 の集落の耐久値 −3 をなくす */
   d4noVillage: (d) => {
     delete d.dangers[3].add.villageHp;
