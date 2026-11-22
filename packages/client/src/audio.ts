@@ -106,8 +106,8 @@ export function setAudioSettings(s: AudioSettings): void {
   else stopBgm();
 }
 
-/** 今どの画面のBGMを鳴らすか。menu はタイトル・ステージ選択などゲーム以外の画面 */
-export type BgmScene = "menu" | "game";
+/** 今どの画面のBGMを鳴らすか。"menu" はタイトル・ステージ選択などゲーム以外の画面、それ以外はゲーム中のステージのID */
+export type BgmScene = "menu" | (string & {});
 let bgmScene: BgmScene = "menu";
 
 export function setBgmScene(scene: BgmScene): void {
@@ -334,10 +334,17 @@ export function setBgmMood(mood: "calm" | "tense"): void {
 
 function startBgm(): void {
   if (!AUDIO_ENABLED) return;
-  if (bgmScene === "menu") {
-    startFileBgm(MENU_BGM);
+  const file = bgmScene === "menu" ? MENU_BGM : STAGE_BGM[bgmScene];
+  if (file) {
+    // 読み込めなかったら、合成のBGMにする
+    startFileBgm(file, () => startSynthBgm());
     return;
   }
+  startSynthBgm();
+}
+
+/** 合成のBGM（音のファイルがないステージ用、または読み込めなかったときの予備） */
+function startSynthBgm(): void {
   const c = ensure();
   if (!c || bgmTimer) return;
   bgmNext = c.currentTime + 0.1;
@@ -380,12 +387,27 @@ interface FileBgm {
   vol: number;
 }
 
+/** audio/bgm/ に置いた曲。samples は曲の長さ（44.1kHz のサンプル数）で、ループの長さになる */
+function fileBgm(name: string, samples: number): FileBgm {
+  return {
+    // OGG を再生できない古い Safari のために MP3 も置く（MP3 は前後に少し余白が付くので、ループのつなぎ目が OGG ほどきれいではない）
+    urls: ["ogg", "mp3"].map((ext) => `${import.meta.env.BASE_URL}audio/bgm/${name}.${ext}`),
+    loopSec: samples / 44100,
+    vol: 0.35,
+  };
+}
+
 /** タイトル画面のBGM（Pyxel の作曲ツールで作った曲。テンポ92・8小節） */
-const MENU_BGM: FileBgm = {
-  // OGG を再生できない古い Safari のために MP3 も置く（MP3 は前後に少し余白が付くので、ループのつなぎ目が OGG ほどきれいではない）
-  urls: ["ogg", "mp3"].map((ext) => `${import.meta.env.BASE_URL}audio/bgm/title.${ext}`),
-  loopSec: 920364 / 44100,
-  vol: 0.35,
+const MENU_BGM = fileBgm("title", 920364);
+
+/** ステージごとのBGM（どれも Pyxel の作曲ツールで作った曲）。ここにないステージは合成のBGM */
+const STAGE_BGM: Record<string, FileBgm> = {
+  tutorial: fileBgm("forest", 920364), // 村はずれの森
+  stage1: fileBgm("road", 636625), // 古い街道
+  stage2: fileBgm("cemetery", 814165), // 忘れられた墓地
+  stage3: fileBgm("mountain", 564489), // 山の砦
+  stage4: fileBgm("dragon", 705582), // 魔竜の巣
+  stage5: fileBgm("frozen", 705582), // 凍てつく峠
 };
 
 const fileBuffers = new Map<string, Promise<AudioBuffer | null>>();
@@ -416,7 +438,7 @@ function loadBuffer(c: AudioContext, url: string): Promise<AudioBuffer | null> {
   return p;
 }
 
-function startFileBgm(bgm: FileBgm): void {
+function startFileBgm(bgm: FileBgm, onFail: () => void): void {
   const c = ensure();
   if (!c || !bgmBus || fileSource) return;
   const token = ++fileBgmToken;
@@ -428,6 +450,7 @@ function startFileBgm(bgm: FileBgm): void {
     return null;
   };
   void loadFirst().then((buf) => {
+    if (!buf && token === fileBgmToken) onFail();
     if (!buf || !ctx || !bgmBus || token !== fileBgmToken || fileSource) return;
     const src = ctx.createBufferSource();
     src.buffer = buf;

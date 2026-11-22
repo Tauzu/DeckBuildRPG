@@ -11,8 +11,9 @@ import "./styles.css";
 
 function App() {
   const screen = useStore((s) => s.screen);
-  // ゲーム以外の画面ではタイトルのBGM、ゲーム中は合成のBGM
-  useEffect(() => setBgmScene(screen === "game" ? "game" : "menu"), [screen]);
+  const stageId = useStore((s) => s.update?.view.config.stageId);
+  // ゲーム以外の画面ではタイトルのBGM、ゲーム中はステージのBGM
+  useEffect(() => setBgmScene(screen === "game" && stageId ? stageId : "menu"), [screen, stageId]);
   if (screen === "game") return <GameScreen />;
   if (screen === "rules") return <RulesScreen />;
   if (screen === "stages") return <StageSelectScreen />;
