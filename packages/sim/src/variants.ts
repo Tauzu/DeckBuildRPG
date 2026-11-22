@@ -155,9 +155,13 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
     d.dangers[3].add.enemyHp = 1;
   },
   // --- 危険度+5 ---
-  /** +5 を 2026-11-22 の変更前（魔物の生命力 +1 なし）に戻す */
+  /** +5 を 2026-11-22 の最初の形（ボスの生命力 +10%、呪い +1。魔物の生命力 +1 なし）に戻す */
   d5Old: (d) => {
-    delete d.dangers[4].add.enemyHp;
+    d.dangers[4].add = { bossHpPct: 10, startCurses: 1 };
+  },
+  /** +5 を、魔物の生命力 +1 にボスの生命力 +10%・呪い +1 も加えた形に戻す（3fabb78） */
+  d5All: (d) => {
+    d.dangers[4].add = { enemyHp: 1, bossHpPct: 10, startCurses: 1 };
   },
   /** +5 に手札 −1 */
   d5hand: (d) => {
