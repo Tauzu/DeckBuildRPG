@@ -3009,6 +3009,7 @@ textarea {
   border: 3px solid var(--accent);
   box-shadow: 4px 4px 0 rgb(0 0 0 / 0.5);
   animation: stamp-pop 3.5s steps(10, end) both;
+  --stamp-from: 40px;
 }
 
 .stamp-toast-mine {
@@ -3032,7 +3033,7 @@ textarea {
 @keyframes stamp-pop {
   0% {
     opacity: 0;
-    transform: translateX(40px) scale(0.6);
+    transform: translateX(var(--stamp-from)) scale(0.6);
   }
   8% {
     opacity: 1;
@@ -3049,10 +3050,19 @@ textarea {
   }
 }
 
+/* スマートフォンでは上に操作欄（「集落を訪れる」など）が固定で出るので、重ならないよう左下に出す */
 @media (max-width: 700px) {
   .stamp-layer {
-    top: 56px;
-    right: 8px;
+    top: auto;
+    right: auto;
+    bottom: 12px;
+    left: 8px;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+
+  .stamp-toast {
+    --stamp-from: -40px;
   }
 
   .stamp-toast-art {
