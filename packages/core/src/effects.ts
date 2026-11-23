@@ -104,6 +104,7 @@ const handlers: { [K in Effect["kind"]]: Handler<K> } = {
       s.route[i + 1]!.push(...go);
     }
     s.frozen = [];
+    s.thawing = [];
     if (moves.length > 0) ctx.events.push({ type: "enemyMoved", moves });
     return "done";
   },

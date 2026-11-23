@@ -74,6 +74,7 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
     enemyDamage: {},
     roundDefeats: 0,
     frozen: [],
+    thawing: [],
     result: null,
   };
   const ctx: Ctx = { s, reg, events: [] };

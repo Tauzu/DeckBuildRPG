@@ -171,7 +171,8 @@ export function targetCandidates(s: GameState, reg: CardRegistry, mode: "freeze"
   s.route.forEach((square, i) => {
     for (const c of square) {
       if (reg.enemy(c.defId).isBoss) continue;
-      if (mode === "freeze" && s.frozen.includes(c.uid)) continue;
+      // 解けかけの敵は、凍結し直せる
+      if (mode === "freeze" && s.frozen.includes(c.uid) && !s.thawing.includes(c.uid)) continue;
       if (mode === "push" && i === 0) continue;
       list.push(c.uid);
     }

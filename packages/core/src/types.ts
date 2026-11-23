@@ -351,8 +351,10 @@ export interface GameState {
   enemyDamage: Record<string, number>;
   /** 今の進軍の回（ラウンド）で、敵を撃破した手番の数 */
   roundDefeats: number;
-  /** 凍結中の敵の uid（次の進軍で動かない。仕様書 5.4） */
+  /** 凍結中の敵の uid（攻撃するとダメージ +2。仕様書 5.4） */
   frozen: string[];
+  /** frozen のうち、すでに進軍を1回動かずに過ごした敵の uid。次の進軍で凍結が解けて動く */
+  thawing: string[];
   result: GameResult | null;
 }
 

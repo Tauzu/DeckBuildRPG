@@ -77,6 +77,18 @@ export function drawCards(ctx: Ctx, player: PlayerState, n: number): string[] {
 /** 敵が取り除かれたとき、凍結の記録を消す */
 export function forgetEnemy(s: GameState, uid: string): void {
   s.frozen = s.frozen.filter((u) => u !== uid);
+  s.thawing = s.thawing.filter((u) => u !== uid);
+}
+
+/** 敵を凍結する。解けかけの敵なら、凍結し直す（次の進軍でまた動かない） */
+export function freezeEnemy(s: GameState, uid: string): void {
+  if (!s.frozen.includes(uid)) s.frozen.push(uid);
+  s.thawing = s.thawing.filter((u) => u !== uid);
+}
+
+/** 凍結したばかりで、次の進軍で動かない敵か */
+export function isFreshlyFrozen(s: GameState, uid: string): boolean {
+  return s.frozen.includes(uid) && !s.thawing.includes(uid);
 }
 
 export function heroStackId(heroId: string): string {

@@ -4,7 +4,7 @@ import { enemyHp, guardedUids } from "@deckbuild/core";
 import { PixelArt } from "../art/PixelArt.js";
 import { fortSprite, villageSprite } from "../art/sprites.js";
 import { StageBackdrop } from "../art/StageBackdrop.js";
-import { Card } from "./Card.js";
+import { Card, FROZEN_TEXT, type FrozenState } from "./Card.js";
 
 export function RouteView() {
   const update = useStore((s) => s.update)!;
@@ -41,6 +41,8 @@ export function RouteView() {
               {square.map((c) => {
                 const def = reg.enemy(c.defId);
                 const opt = findOption(legal.options, (a) => a.type === "chooseBattle" && a.targetUid === c.uid);
+                const frozen: FrozenState | undefined = view.frozen.includes(c.uid) ? (view.thawing.includes(c.uid) ? "thawing" : "fresh") : undefined;
+                const frozenNote = frozen ? `（${FROZEN_TEXT[frozen]}）` : "";
                 return (
                   <Card
                     key={c.uid}
@@ -49,7 +51,7 @@ export function RouteView() {
                     uid={c.uid}
                     hp={enemyHp(view, def)}
                     damage={view.enemyDamage[c.uid]}
-                    frozen={view.frozen.includes(c.uid)}
+                    frozen={frozen}
                     guarded={guarded.has(c.uid)}
                     highlight={target === c.uid ? "target" : picking?.uids.includes(c.uid) ? "selected" : undefined}
                     onClick={
@@ -63,18 +65,22 @@ export function RouteView() {
                     }
                     hint={
                       target === c.uid
-                        ? "戦闘中の相手"
+                        ? `戦闘中の相手${frozenNote}`
                         : picking
                           ? picking.uids.includes(c.uid)
                             ? picking.mode === "freeze"
-                              ? "クリックで凍結する（次の進軍で動かない）"
+                              ? frozen === "thawing"
+                                ? "クリックで凍結し直す（次の進軍でまた動かない）"
+                                : "クリックで凍結する（次の進軍で動かない）"
                               : "クリックで1マス戻す"
                             : "この敵は選べません"
                           : choosing
                           ? def.isBoss
                             ? "クリックでこのボスと戦う（与えたダメージは次の手番も残る）"
-                            : "クリックでこの魔物と戦う"
-                          : null
+                            : `クリックでこの魔物と戦う${frozenNote}`
+                          : frozen
+                            ? FROZEN_TEXT[frozen]
+                            : null
                     }
                     disabledReason={picking ? (picking.uids.includes(c.uid) ? null : "この敵は選べません") : choosing ? reasonText(opt) : null}
                   />

@@ -2905,6 +2905,11 @@ textarea {
   color: #0c4a5c;
 }
 
+.card-state-thawing {
+  background: #eef8fa;
+  color: #3d6470;
+}
+
 .card-state-guarded {
   background: #e4e6ec;
   color: #3a4256;

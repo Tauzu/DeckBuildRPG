@@ -16,8 +16,8 @@ interface Props {
   hp?: number | undefined;
   /** 敵に残っているダメージ */
   damage?: number | undefined;
-  /** 凍結中の敵（次の進軍で動かない） */
-  frozen?: boolean | undefined;
+  /** 凍結中の敵。fresh は次の進軍で動かない、thawing は次の進軍で解けて動く */
+  frozen?: FrozenState | undefined;
   /** 護衛に守られていて選べない敵 */
   guarded?: boolean | undefined;
   small?: boolean;
@@ -35,6 +35,14 @@ const TYPE_LABEL: Record<CardDef["type"], string> = {
   food: "食料",
   enemy: "敵",
   curse: "呪い",
+};
+
+export type FrozenState = "fresh" | "thawing";
+
+/** 凍結中の敵の説明（カードのマークと、カードを指したときの説明に使う） */
+export const FROZEN_TEXT: Record<FrozenState, string> = {
+  fresh: "凍結中：次の進軍では動かない（進軍時の能力も使わない）。凍結中に攻撃するとダメージ +2",
+  thawing: "凍結中（解けかけ）：次の進軍で凍結が解けて動く。それまでに攻撃するとダメージ +2",
 };
 
 export function Card({ defId, onClick, disabledReason, highlight, hp, damage, frozen, guarded, small, uid, hint, badge, children }: Props) {
@@ -90,7 +98,11 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, fr
           <span className="card-gold" title="金価値">
             金 {def.gold}
           </span>
-          {frozen && <span className="card-state card-state-frozen" title="次の進軍で動かない">❄凍結</span>}
+          {frozen && (
+            <span className={`card-state card-state-frozen${frozen === "thawing" ? " card-state-thawing" : ""}`} title={FROZEN_TEXT[frozen]}>
+              {frozen === "thawing" ? "❄解けかけ" : "❄凍結"}
+            </span>
+          )}
           {guarded && <span className="card-state card-state-guarded" title="護衛を倒すまで選べない">🛡守られ</span>}
           {badge}
         </div>

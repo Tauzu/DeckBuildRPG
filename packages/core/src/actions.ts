@@ -6,7 +6,9 @@ import {
   fail,
   findCard,
   forgetEnemy,
+  freezeEnemy,
   heroStackId,
+  isFreshlyFrozen,
   newCard,
   playerById,
   takeCard,
@@ -282,8 +284,8 @@ function confirmAttack(ctx: Ctx): void {
 
   if (!defeated) {
     // 撃破に失敗したときの効果：chill の武器で凍結（仕様書 5.3.3）
-    if (!def.isBoss && hasChill(s, ctx.reg) && !s.frozen.includes(target.uid)) {
-      s.frozen.push(target.uid);
+    if (!def.isBoss && hasChill(s, ctx.reg) && !isFreshlyFrozen(s, target.uid)) {
+      freezeEnemy(s, target.uid);
       ctx.events.push({ type: "enemyFrozen", uid: target.uid, defId: target.defId });
     }
   }
@@ -453,7 +455,7 @@ function chooseTarget(ctx: Ctx, playerId: string, targetUid: string): void {
   const index = s.route.findIndex((sq) => sq.some((c) => c.uid === targetUid));
   const card = findCard(s.route[index]!, targetUid)!;
   if (pending.mode === "freeze") {
-    s.frozen.push(targetUid);
+    freezeEnemy(s, targetUid);
     ctx.events.push({ type: "enemyFrozen", uid: targetUid, defId: card.defId });
   } else {
     takeCard(s.route[index]!, targetUid);

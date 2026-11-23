@@ -1,5 +1,5 @@
 // 自動進行：手番の終了、敵の進軍、次の手番、勝敗（設計書 2.4、仕様書 5.1・5.4・7章）
-import { type Ctx, currentPlayer, drawCards, forgetEnemy } from "./context.js";
+import { type Ctx, currentPlayer, drawCards, forgetEnemy, isFreshlyFrozen } from "./context.js";
 import { enqueueEffect, processNextEffect } from "./effects.js";
 import type { GameResult, GameState, Rank } from "./types.js";
 
@@ -58,8 +58,6 @@ export function advance(ctx: Ctx): void {
           s.step = { kind: "march", phase: "reveal" };
         } else {
           revealEnemy(ctx);
-          // 凍結は、この進軍で動かなかったところで解ける
-          s.frozen = [];
           s.step = { kind: "nextTurn" };
         }
         break;
@@ -85,7 +83,11 @@ function endTurn(ctx: Ctx): void {
   drawCards(ctx, p, s.config.handSize);
 }
 
-/** 移動と集落への到達（仕様書 5.4 の1・2）。疾走は2マス、凍結中は動かない */
+/**
+ * 移動と集落への到達（仕様書 5.4 の1・2）。疾走は2マス。
+ * 凍結したばかりの敵は動かず、凍結したまま「解けかけ」になる（次の手番も攻撃するとダメージ +2）。
+ * 解けかけの敵は、凍結が解けて動く。
+ */
 function moveEnemies(ctx: Ctx): void {
   const s = ctx.s;
   const last = s.route.length - 1;
@@ -95,7 +97,7 @@ function moveEnemies(ctx: Ctx): void {
   // 集落に近いマスから順に処理する（到達の順番もその順）
   for (let i = last; i >= 0; i--) {
     for (const c of s.route[i] ?? []) {
-      const steps = s.frozen.includes(c.uid) ? 0 : ctx.reg.enemy(c.defId).traits.includes("sprint") ? 2 : 1;
+      const steps = isFreshlyFrozen(s, c.uid) ? 0 : ctx.reg.enemy(c.defId).traits.includes("sprint") ? 2 : 1;
       const to = i + steps;
       if (steps > 0) moves.push({ uid: c.uid, from: i, to });
       if (to > last) arrived.push(c);
@@ -104,6 +106,9 @@ function moveEnemies(ctx: Ctx): void {
   }
   s.route = newRoute;
   if (moves.length > 0) ctx.events.push({ type: "enemyMoved", moves });
+  // 解けかけの敵は凍結が解け、動かなかった敵は解けかけになる
+  s.frozen = s.frozen.filter((u) => !s.thawing.includes(u));
+  s.thawing = [...s.frozen];
 
   for (const enemy of arrived) {
     const def = ctx.reg.enemy(enemy.defId);
@@ -131,6 +136,7 @@ function queueOnMarch(ctx: Ctx): void {
   for (let i = s.route.length - 1; i >= 0; i--) {
     for (const c of s.route[i] ?? []) {
       const def = ctx.reg.enemy(c.defId);
+      // 動かなかった（凍結したばかりだった）敵は、進軍時の能力も使わない
       if (def.onMarch && !s.frozen.includes(c.uid)) enqueueEffect(ctx, def.onMarch, c.uid, null);
     }
   }

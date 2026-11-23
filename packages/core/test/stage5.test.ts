@@ -20,7 +20,7 @@ function square(s: ReturnType<typeof start>, uid: string): number {
 }
 
 describe("凍結（仕様書 5.4・5.5）", () => {
-  it("氷術師Lv2の村効果で敵を選んで凍結する。凍結した敵は次の進軍で動かず、進軍のあと解ける", () => {
+  it("氷術師Lv2の村効果で敵を選んで凍結する。凍結した敵は次の進軍で動かず、その次の進軍で解けて動く", () => {
     const a = placeEnemy(start(), 1, "enemy_goblin");
     const b = placeEnemy(a.state, 2, "enemy_orc");
     let s = playFrost(b.state, "hero_frost_2");
@@ -33,7 +33,28 @@ describe("凍結（仕様書 5.4・5.5）", () => {
     s = act(s, "p1", { type: "endVisit" }).state;
     expect(square(s, b.uid)).toBe(2); // 動かない
     expect(square(s, a.uid)).toBe(2); // 凍結していない敵は進む
+    // 1人でも次の手番に凍結中の敵を攻撃できるよう、進軍のあとも凍結は残る（解けかけ）
+    expect(s.frozen).toEqual([b.uid]);
+    expect(s.thawing).toEqual([b.uid]);
+
+    s = pass(s).state;
+    expect(square(s, b.uid)).toBe(3); // 解けて動く
     expect(s.frozen).toEqual([]);
+    expect(s.thawing).toEqual([]);
+  });
+
+  it("解けかけの敵は凍結し直せる（次の進軍でまた動かない）", () => {
+    const a = placeEnemy(start(), 1, "enemy_orc");
+    const thawing = mutate(a.state, (d) => {
+      d.frozen.push(a.uid);
+      d.thawing.push(a.uid);
+    });
+    let s = playFrost(thawing, "hero_frost_2");
+    s = act(s, "p1", { type: "chooseTarget", targetUid: a.uid }).state;
+    expect(s.frozen).toEqual([a.uid]);
+    expect(s.thawing).toEqual([]);
+    s = act(s, "p1", { type: "endVisit" }).state;
+    expect(square(s, a.uid)).toBe(1);
   });
 
   it("凍結中の敵は5マス目にいても集落に着かない", () => {

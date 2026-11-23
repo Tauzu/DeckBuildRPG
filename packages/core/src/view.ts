@@ -47,8 +47,10 @@ export interface PlayerView {
   enemyDamage: Record<string, number>;
   /** 今のラウンドで敵を撃破した手番の数 */
   roundDefeats: number;
-  /** 凍結中の敵の uid（次の進軍で動かない） */
+  /** 凍結中の敵の uid（攻撃するとダメージ +2） */
   frozen: string[];
+  /** frozen のうち、次の進軍で凍結が解けて動く敵の uid（それ以外の凍結中の敵は、次の進軍で動かない） */
+  thawing: string[];
   trashCount: number;
   result: GameResult | null;
 }
@@ -91,6 +93,7 @@ export function viewFor(s: GameState, viewerId: string): PlayerView {
     enemyDamage: s.enemyDamage,
     roundDefeats: s.roundDefeats,
     frozen: s.frozen,
+    thawing: s.thawing,
     trashCount: s.trash.length,
     result: s.result,
   };
