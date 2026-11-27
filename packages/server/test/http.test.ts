@@ -59,6 +59,17 @@ describe("配信", () => {
     expect(html).not.toContain("<!--ogp-->");
   });
 
+  it("?lang=en なら英語のリンクカード（招待リンクのアドレスにも言語を残す）", async () => {
+    const r = await fetch(url("/?room=abc123&lang=en"), { headers: { "x-forwarded-proto": "https", host: `localhost:${server.port}` } });
+    const html = await r.text();
+    expect(html).toContain('property="og:title" content="[Invite] Join room ABC123! – FOODIE QUEST"');
+    expect(html).toContain(`content="https://localhost:${server.port}/?room=ABC123&#38;lang=en"`);
+    expect(html).toContain("<title>[Invite] Room ABC123 – FOODIE QUEST</title>");
+    const top = await (await fetch(url("/?lang=en"))).text();
+    expect(top).toContain("The Hungry Heroes of Elm Village");
+    expect(top).not.toContain("招待");
+  });
+
   it("ふつうのアドレスには、ゲームの紹介のリンクカード。形が違うコードは招待にしない", async () => {
     for (const path of ["/", "/?room=zzz", '/?room="><script>']) {
       const html = await (await fetch(url(path))).text();

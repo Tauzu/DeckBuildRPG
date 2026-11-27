@@ -21,12 +21,39 @@ export function roomCodeOf(search: URLSearchParams): string | null {
   return CODE.test(v) ? v.toUpperCase() : null;
 }
 
-export function cardTags(origin: string, path: string, code: string | null): string {
-  const title = code ? `【招待】ルーム ${code} に参加しよう！ – FOODIE QUEST` : "FOODIE QUEST – エルムの村のはらぺこ英雄たち";
-  const desc = code
-    ? "協力プレイに招待されています。リンクを開いて名前を入れるだけで、すぐ参加できます。"
-    : "食料で英雄を呼び集め、魔竜の軍勢から村を守る。デッキビルド×RPG。1人でも、みんなでも遊べます。";
-  const url = code ? `${origin}${path}?room=${code}` : `${origin}${path}`;
+export type CardLang = "ja" | "en";
+
+/** ?lang=en なら英語のリンクカードにする（招待リンクは、作った人の言語を付けて配る） */
+export function langOf(search: URLSearchParams): CardLang {
+  return search.get("lang") === "en" ? "en" : "ja";
+}
+
+const TEXT = {
+  ja: {
+    title: "FOODIE QUEST – エルムの村のはらぺこ英雄たち",
+    inviteTitle: (code: string) => `【招待】ルーム ${code} に参加しよう！ – FOODIE QUEST`,
+    inviteDocTitle: (code: string) => `【招待】ルーム ${code} – FOODIE QUEST`,
+    desc: "食料で英雄を呼び集め、魔竜の軍勢から村を守る。デッキビルド×RPG。1人でも、みんなでも遊べます。",
+    inviteDesc: "協力プレイに招待されています。リンクを開いて名前を入れるだけで、すぐ参加できます。",
+  },
+  en: {
+    title: "FOODIE QUEST – The Hungry Heroes of Elm Village",
+    inviteTitle: (code: string) => `[Invite] Join room ${code}! – FOODIE QUEST`,
+    inviteDocTitle: (code: string) => `[Invite] Room ${code} – FOODIE QUEST`,
+    desc: "Feed your heroes, rally them, and save the village from the Dread Dragon's army. A co-op deckbuilder RPG for 1–4 players.",
+    inviteDesc: "You've been invited to play together. Open the link and enter your name to join right away.",
+  },
+};
+
+export function cardTags(origin: string, path: string, code: string | null, lang: CardLang = "ja"): string {
+  const tx = TEXT[lang];
+  const title = code ? tx.inviteTitle(code) : tx.title;
+  const desc = code ? tx.inviteDesc : tx.desc;
+  const q = new URLSearchParams();
+  if (code) q.set("room", code);
+  if (lang !== "ja") q.set("lang", lang);
+  const query = q.toString();
+  const url = query ? `${origin}${path}?${query}` : `${origin}${path}`;
   const image = `${origin}/${code ? "og-invite.png" : "og-default.png"}`;
   return [
     `<meta property="og:type" content="website" />`,
@@ -43,9 +70,11 @@ export function cardTags(origin: string, path: string, code: string | null): str
 }
 
 /** index.html にリンクカードの指定を差し込む（招待ならタイトルも招待に変える） */
-export function withCard(html: string, origin: string, path: string, code: string | null): string {
-  const tags = cardTags(origin, path, code);
+export function withCard(html: string, origin: string, path: string, code: string | null, lang: CardLang = "ja"): string {
+  const tags = cardTags(origin, path, code, lang);
   let out = html.includes(MARKER) ? html.replace(MARKER, () => tags) : html.replace("</head>", () => `${tags}\n  </head>`);
-  if (code) out = out.replace(/<title>[^<]*<\/title>/, () => `<title>【招待】ルーム ${code} – FOODIE QUEST</title>`);
+  if (code) out = out.replace(/<title>[^<]*<\/title>/, () => `<title>${esc(TEXT[lang].inviteDocTitle(code))}</title>`);
+  else if (lang !== "ja") out = out.replace(/<title>[^<]*<\/title>/, () => `<title>${esc(TEXT[lang].title)}</title>`);
+  if (lang !== "ja") out = out.replace(`<html lang="ja">`, `<html lang="${lang}">`);
   return out;
 }

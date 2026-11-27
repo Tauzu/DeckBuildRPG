@@ -2,11 +2,13 @@
 const CODE = /^[A-Za-z0-9]{6}$/;
 
 /** ルームの招待リンクを作る。base は今開いているページのアドレス */
-export function inviteUrl(base: string, code: string): string {
+export function inviteUrl(base: string, code: string, lang = "ja"): string {
   const u = new URL(base);
   u.search = "";
   u.hash = "";
   u.searchParams.set("room", code.toUpperCase());
+  // 日本語以外なら言語も付ける（リンクカードと、開いたときの画面がその言語になる）
+  if (lang !== "ja") u.searchParams.set("lang", lang);
   return u.toString();
 }
 

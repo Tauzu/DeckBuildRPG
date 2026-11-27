@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
 import { type CardRegistry, defaultRegistry } from "@deckbuild/core";
 import { Server } from "socket.io";
-import { originOf, roomCodeOf, withCard } from "./ogp.js";
+import { langOf, originOf, roomCodeOf, withCard } from "./ogp.js";
 import type { ClientToServer, ServerToClient } from "./protocol.js";
 import type { RoomTimings } from "./Room.js";
 import { RoomManager } from "./RoomManager.js";
@@ -105,7 +105,7 @@ export async function startServer(opts: StartOptions = {}): Promise<RunningServe
     // 画面（index.html）には、リンクカード用の指定を差し込む。招待リンクなら招待とわかる内容にする
     const origin = extname(file) === ".html" ? originOf(req.headers) : null;
     if (origin) {
-      const html = withCard(readFileSync(file, "utf8"), origin, "/", roomCodeOf(url.searchParams));
+      const html = withCard(readFileSync(file, "utf8"), origin, "/", roomCodeOf(url.searchParams), langOf(url.searchParams));
       res.writeHead(200, { ...SECURITY_HEADERS, "content-type": MIME[".html"]!, "cache-control": "no-cache" });
       res.end(req.method === "HEAD" ? undefined : html);
       return;

@@ -6,6 +6,10 @@ describe("招待リンク", () => {
     expect(inviteUrl("https://x.example/?a=1#top", "abc123")).toBe("https://x.example/?room=ABC123");
     expect(inviteUrl("http://localhost:5173/", "ZZ9999")).toBe("http://localhost:5173/?room=ZZ9999");
   });
+  it("日本語以外なら、言語も付ける", () => {
+    expect(inviteUrl("https://x.example/?lang=en", "abc123", "en")).toBe("https://x.example/?room=ABC123&lang=en");
+    expect(inviteUrl("https://x.example/", "abc123", "ja")).toBe("https://x.example/?room=ABC123");
+  });
   it("アドレスからコードを取り出す", () => {
     expect(inviteCodeFrom("?room=abc123")).toBe("ABC123");
     expect(inviteCodeFrom("?x=1&room=QWER12")).toBe("QWER12");
