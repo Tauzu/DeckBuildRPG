@@ -3,6 +3,8 @@ node_modules/
 
 # ビルド結果
 dist/
+dist-itch/
+*.zip
 build/
 *.tsbuildinfo
 

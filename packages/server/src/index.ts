@@ -7,6 +7,7 @@ import { gzipSync } from "node:zlib";
 import { type CardRegistry, defaultRegistry } from "@deckbuild/core";
 import { Server } from "socket.io";
 import { langOf, originOf, roomCodeOf, withCard } from "./ogp.js";
+import { extraOrigins, originAllowed } from "./origins.js";
 import type { ClientToServer, ServerToClient } from "./protocol.js";
 import type { RoomTimings } from "./Room.js";
 import { RoomManager } from "./RoomManager.js";
@@ -128,9 +129,13 @@ export async function startServer(opts: StartOptions = {}): Promise<RunningServe
     if (body) res.end(body);
     else createReadStream(file).pipe(res);
   });
-  // 画面と同じアドレスから接続する（開発中は Vite が中継する）ので、他のサイトからの接続は受け付けない
+  // ふだんは画面と同じアドレスから接続する（開発中は Vite が中継する）。
+  // itch.io に置いた画面からの接続も受け付け、それ以外のサイトからの接続は断る（origins.ts）
+  const extra = extraOrigins(process.env.ALLOWED_ORIGINS);
   const io = new Server<ClientToServer, ServerToClient>(http, {
     maxHttpBufferSize: 64 * 1024,
+    allowRequest: (req, ok) => ok(null, originAllowed(req.headers.origin, req.headers.host, extra)),
+    cors: { origin: (origin, ok) => ok(null, originAllowed(origin, undefined, extra)) },
   });
   const manager = new RoomManager(io, opts.reg ?? defaultRegistry(), opts.timings, opts.log, opts.maxRooms);
   await new Promise<void>((ok) => http.listen(opts.port ?? 0, ok));

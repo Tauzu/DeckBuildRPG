@@ -6,6 +6,7 @@ import { reg, useStore } from "../store.js";
 import { DangerPicker, dangerTexts } from "./DangerPicker.js";
 import { cardName, stageName } from "../text.js";
 import { getLang, t, tParts } from "../i18n.js";
+import { inviteBase } from "../deploy.js";
 
 export function LobbyScreen() {
   const room = useStore((s) => s.room);
@@ -138,7 +139,7 @@ function RoomView() {
   const countOk = !!stage.playerCounts[String(n) as "1"];
   const counts = Object.keys(stage.playerCounts).join(t("list.dot"));
 
-  const link = inviteUrl(location.href, room.code, getLang());
+  const link = inviteUrl(inviteBase(), room.code, getLang());
   const copy = async (text: string, what: "code" | "link") => {
     try {
       await navigator.clipboard.writeText(text);

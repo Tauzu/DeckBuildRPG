@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:itch": "vite build --mode itch --base ./ --outDir dist-itch --emptyOutDir",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",
     "dev:lan": "vite --host",

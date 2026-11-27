@@ -2,6 +2,7 @@
 import type { Action, GameUpdate } from "@deckbuild/core";
 import { io, type Socket } from "socket.io-client";
 import { t } from "./i18n.js";
+import { SERVER_URL } from "./deploy.js";
 
 export interface MemberInfo {
   id: string;
@@ -70,8 +71,9 @@ export class Online {
   session: Session | null = loadSession();
 
   constructor(private readonly h: OnlineHandlers) {
-    // 開発中も本番も、画面を配信しているのと同じ場所につなぐ（開発中は Vite が中継する）
-    this.socket = io({ transports: ["websocket", "polling"] });
+    // ふだんは画面を配信しているのと同じ場所につなぐ（開発中は Vite が中継する）。itch.io 用は Render のサーバーへ
+    const opts = { transports: ["websocket", "polling"] };
+    this.socket = SERVER_URL ? io(SERVER_URL, opts) : io(opts);
     this.socket.on("room:update", (r: RoomInfo) => h.room(r));
     this.socket.on("game:state", (u: GameUpdate) => h.state(u));
     this.socket.on("game:error", (m: string) => h.error(m));
