@@ -415,7 +415,7 @@ export const useStore = create<Store>()((set, get) => {
         set({ progress });
         return null;
       } catch (e) {
-        return e instanceof Error ? e.message : "読み込めませんでした";
+        return e instanceof Error ? e.message : t("transfer.failed");
       }
     },
 

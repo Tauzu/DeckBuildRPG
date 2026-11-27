@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { nextStage } from "../progress.js";
 import { isRemote, reg, useStore } from "../store.js";
-import { cardName, resultReason, stageName } from "../text.js";
+import { cardName, rankTitle, resultReason, stageName } from "../text.js";
 import { ReviewPanel } from "./ReviewPanel.js";
+import { achievementName, achievementText } from "../achievements.js";
+import { t } from "../i18n.js";
 
 export function ResultOverlay() {
   const update = useStore((s) => s.update)!;
@@ -44,12 +46,12 @@ export function ResultOverlay() {
   if (reviewing) {
     return (
       <div className="overlay">
-        <div className="dialog panel result result-review" role="dialog" aria-modal="true" aria-label="ゲームの振り返り">
-          <h2>ゲームの振り返り</h2>
+        <div className="dialog panel result result-review" role="dialog" aria-modal="true" aria-label={t("result.reviewTitle")}>
+          <h2>{t("result.reviewTitle")}</h2>
           <ReviewPanel review={review} />
           <div className="dialog-buttons">
             <button type="button" className="primary" onClick={() => setReviewing(false)}>
-              結果にもどる
+              {t("result.backToResult")}
             </button>
           </div>
         </div>
@@ -60,47 +62,50 @@ export function ResultOverlay() {
   return (
     <div className="overlay">
       <div className={`dialog panel result ${win ? "result-win" : "result-lose"}`} role="dialog" aria-modal="true">
-        <h2 className="result-title">{win ? "勝利" : "敗北"}</h2>
+        <h2 className="result-title">{win ? t("result.win") : t("result.lose")}</h2>
         <p>
-          {stageName(stage)}
-          {danger > 0 && `（危険度+${danger}）`}：{resultReason(result.reason, cardName(reg.enemy(stage.bossId)))}
+          {t("result.line", {
+            stage: stageName(stage),
+            danger: danger > 0 ? t("result.dangerSuffix", { n: danger }) : "",
+            reason: resultReason(result.reason, cardName(reg.enemy(stage.bossId))),
+          })}
         </p>
         {newlyCleared?.stage && (
           <p className="result-unlock">
             {stage.tutorial
-              ? "ステージ選択が解放されました！"
+              ? t("result.stageSelectUnlocked")
               : next
-                ? `次のステージ「${stageName(next)}」が解放されました！`
-                : "すべてのステージをクリアしました！"}
+                ? t("result.nextUnlocked", { stage: stageName(next) })
+                : t("result.allCleared")}
           </p>
         )}
-        {nextDanger !== null && <p className="result-unlock">このステージの危険度+{nextDanger}が解放されました！</p>}
+        {nextDanger !== null && <p className="result-unlock">{t("result.dangerUnlocked", { n: nextDanger })}</p>}
         {newlyCleared?.danger && !stage.tutorial && danger === reg.maxDanger && (
-          <p className="result-unlock">このステージを最高の危険度で制覇しました！</p>
+          <p className="result-unlock">{t("result.maxDanger")}</p>
         )}
         {unlockedNow.length > 0 && (
-          <ul className="result-achievements" aria-label="達成した実績">
+          <ul className="result-achievements" aria-label={t("result.achievementsLabel")}>
             {unlockedNow.map((a) => (
               <li key={a.id}>
-                <span className="achievement-mark">★</span> 実績「{a.name}」を達成！
-                <span className="achievement-text">{a.text}</span>
+                <span className="achievement-mark">★</span> {t("result.achievement", { name: achievementName(a) })}
+                <span className="achievement-text">{achievementText(a)}</span>
               </li>
             ))}
           </ul>
         )}
         <div className="result-rank">
-          チーム評価 <strong>{result.rank}</strong>
+          {t("result.rank")} <strong>{result.rank}</strong>
         </div>
         <div className="result-sub">
-          集落の耐久値 {result.villageHp} / {update.view.config.villageHp} ・ 手番 {update.view.turnCount}
+          {t("result.sub", { hp: result.villageHp, max: update.view.config.villageHp, turns: update.view.turnCount })}
         </div>
         <table className="result-table">
           <thead>
             <tr>
-              <th>プレイヤー</th>
-              <th>総獲得経験値</th>
-              <th>撃破数</th>
-              {multi && <th>称号</th>}
+              <th>{t("result.player")}</th>
+              <th>{t("result.totalExp")}</th>
+              <th>{t("result.kills")}</th>
+              {multi && <th>{t("result.titleCol")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -112,20 +117,20 @@ export function ResultOverlay() {
                 </td>
                 <td>{p.totalExp}</td>
                 <td>{p.kills}</td>
-                {multi && <td>{result.titles[p.id]}</td>}
+                {multi && <td>{rankTitle(result.titles[p.id] ?? "")}</td>}
               </tr>
             ))}
           </tbody>
         </table>
         <div className="dialog-buttons">
           <button type="button" onClick={() => setReviewing(true)}>
-            ゲームを振り返る
+            {t("result.review")}
           </button>
         </div>
         {remote ? (
           <div className="dialog-buttons">
             <button type="button" className="ghost" onClick={leaveRoom}>
-              ルームを出る
+              {t("result.leaveRoom")}
             </button>
             {room?.hostId === myId ? (
               <button
@@ -136,31 +141,31 @@ export function ResultOverlay() {
                   if (err) showToast(err);
                 }}
               >
-                ルームに戻って次のゲームへ
+                {t("result.backToLobby")}
               </button>
             ) : (
-              <span className="dialog-note">ホストがルームに戻すと、次のゲームを始められます</span>
+              <span className="dialog-note">{t("result.waitHost")}</span>
             )}
           </div>
         ) : (
           <div className="dialog-buttons">
             <button type="button" className="ghost" onClick={download}>
-              記録を保存
+              {t("result.saveRecord")}
             </button>
             <button type="button" className="ghost" onClick={() => go("title")}>
-              タイトルへ
+              {t("result.toTitle")}
             </button>
             <button type="button" className={next || nextDanger !== null ? "ghost" : "primary"} onClick={() => startSolo(stage.id, undefined, danger)}>
-              もう一度
+              {t("result.again")}
             </button>
             {nextDanger !== null && (
               <button type="button" className={next && newlyCleared?.stage ? "" : "primary"} onClick={() => startSolo(stage.id, undefined, nextDanger)}>
-                危険度+{nextDanger}に挑む
+                {t("result.tryDanger", { n: nextDanger })}
               </button>
             )}
             {next && (
               <button type="button" className={newlyCleared?.stage || nextDanger === null ? "primary" : ""} onClick={() => startSolo(next.id)}>
-                次のステージへ
+                {t("result.nextStage")}
               </button>
             )}
           </div>

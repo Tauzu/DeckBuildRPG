@@ -2,6 +2,7 @@
 import type { CardRegistry, GameEvent, GameResult, PlayerPublicView, StageDef } from "@deckbuild/core";
 import { codexIds } from "./codex.js";
 import type { Progress } from "./progress.js";
+import { format, type MessageKey, t, td } from "./i18n.js";
 
 /** 1ゲームの中で、自分の行動から集める記録 */
 export interface GameTally {
@@ -186,4 +187,19 @@ export function recordGameEnd(c: Omit<EndContext, "progress"> & { progress: Prog
   const achievements = { ...progress.achievements };
   for (const a of unlocked) achievements[a.id] = now;
   return { progress: { ...progress, achievements }, unlocked };
+}
+
+const GROUP_KEY = { 進行: "achGroup.progress", 戦い方: "achGroup.style", 協力: "achGroup.coop", 通算: "achGroup.total" } as const satisfies Record<AchievementGroup, MessageKey>;
+
+export function achievementGroupName(g: AchievementGroup): string {
+  return t(GROUP_KEY[g]);
+}
+
+/** 実績の名前と説明（日本語はこのファイルのもの、他の言語は locales のもの） */
+export function achievementName(a: AchievementDef): string {
+  return td(`ach.${a.id}.name`, a.name);
+}
+
+export function achievementText(a: AchievementDef): string {
+  return format(td(`ach.${a.id}.text`, a.text), { turns: SPEED_TURNS, buys: FRUGAL_BUYS, hit: BIG_HIT, kills: SLAYER_KILLS });
 }

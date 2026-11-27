@@ -3,6 +3,7 @@ import { defaultRegistry } from "@deckbuild/core";
 import { dataMessages, detectLang, format, messageKeys } from "../src/i18n.js";
 import { ja } from "../src/locales/ja.js";
 import { en } from "../src/locales/en.js";
+import { ACHIEVEMENTS } from "../src/achievements.js";
 
 const placeholders = (s: string) => [...new Set([...s.matchAll(/\{(\w+)/g)].map((m) => m[1]))].sort();
 
@@ -38,13 +39,16 @@ describe("英語の文言", () => {
       expect(placeholders(en[key]), key).toEqual(placeholders(ja[key]));
     }
   });
-  it("すべてのカード（英雄以外）・ステージ・危険度に訳がある", () => {
+  it("すべてのカード（英雄以外）・ステージ・危険度・実績・称号に訳がある", () => {
     const reg = defaultRegistry();
     const data = dataMessages("en");
     const need = [
       ...reg.all().filter((d) => d.type !== "hero").map((d) => `card.${d.id}`),
       ...reg.stages.flatMap((s) => [`stage.${s.id}.name`, `stage.${s.id}.desc`]),
       ...reg.dangers.map((d) => `danger.${d.level}`),
+      ...ACHIEVEMENTS.flatMap((a) => [`ach.${a.id}.name`, `ach.${a.id}.text`]),
+      // core（flow.ts）が付ける称号
+      ...["英雄王", "聖騎士", "勇者", "見習い"].map((s) => `rankTitle.${s}`),
     ];
     expect(need.filter((k) => !data[k])).toEqual([]);
     expect(Object.keys(data).filter((k) => !need.includes(k))).toEqual([]);

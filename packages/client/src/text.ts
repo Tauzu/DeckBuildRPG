@@ -224,6 +224,11 @@ export function resultReason(reason: string, boss: string): string {
   }
 }
 
+/** 結果の称号（core が日本語で付ける） */
+export function rankTitle(ja: string): string {
+  return td(`rankTitle.${ja}`, ja);
+}
+
 /** タッチ操作の端末では「クリック」を「タップ」と言い換える */
 export function touchText(s: string): string {
   const touch = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;

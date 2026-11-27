@@ -1,5 +1,6 @@
 // 進み具合（企画書 12.4、13章）。ブラウザに保存する。引き継ぎコードで書き出し・読み込みできる
 import type { StageDef } from "@deckbuild/core";
+import { t } from "./i18n.js";
 
 const KEY = "deckbuild.progress.v2";
 const OLD_KEY = "deckbuild.progress.v1";
@@ -175,16 +176,16 @@ export class CodeError extends Error {}
 
 export async function importCode(code: string): Promise<Progress> {
   const text = code.replace(/\s+/g, "");
-  if (!text.startsWith(PREFIX)) throw new CodeError("引き継ぎコードではありません（「HK1-」で始まります）");
+  if (!text.startsWith(PREFIX)) throw new CodeError(t("transfer.notCode"));
   const rest = text.slice(PREFIX.length);
   const cut = rest.lastIndexOf("-");
-  if (cut < 0) throw new CodeError("引き継ぎコードが途中で切れています");
+  if (cut < 0) throw new CodeError(t("transfer.cut"));
   const body = rest.slice(0, cut);
-  if (checksum(body) !== rest.slice(cut + 1).toUpperCase()) throw new CodeError("引き継ぎコードが正しくありません（一部が欠けているか、違う文字が入っています）");
+  if (checksum(body) !== rest.slice(cut + 1).toUpperCase()) throw new CodeError(t("transfer.badChecksum"));
   try {
     const json = await pipe(fromBase64Url(body), new DecompressionStream("deflate-raw"));
     return normalizeProgress(JSON.parse(new TextDecoder().decode(json)));
   } catch {
-    throw new CodeError("引き継ぎコードを読み取れませんでした");
+    throw new CodeError(t("transfer.unreadable"));
   }
 }
