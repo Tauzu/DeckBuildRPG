@@ -1,6 +1,7 @@
 import type { CardInstance } from "@deckbuild/core";
 import { useStore } from "../store.js";
 import { Card } from "./Card.js";
+import { t } from "../i18n.js";
 
 /** 廃棄・手札を捨てる選択 */
 export function PendingDialog() {
@@ -16,15 +17,15 @@ export function PendingDialog() {
   if (sel.kind === "trash") {
     return (
       <Dialog
-        title="僧侶：廃棄するカードを選ぶ"
-        note={`手札か捨て札から ${sel.max}枚まで選べます（選ばなくてもかまいません）。廃棄したカードはゲームから取り除かれます。`}
+        title={t("pending.trashTitle")}
+        note={t("pending.trashNote", { n: sel.max })}
         groups={[
-          { label: "手札", cards: me.hand ?? [] },
-          { label: "捨て札", cards: me.discard ?? [] },
+          { label: t("pending.hand"), cards: me.hand ?? [] },
+          { label: t("pending.discardPile"), cards: me.discard ?? [] },
         ]}
         selection={selection}
         onToggle={(uid) => toggle(uid, sel.max)}
-        confirmLabel={selection.length === 0 ? "廃棄しない" : `${selection.length}枚を廃棄する`}
+        confirmLabel={selection.length === 0 ? t("pending.noTrash") : t("pending.trashN", { n: selection.length })}
         canConfirm
         onConfirm={() => send({ type: "resolveTrash", uids: selection })}
       />
@@ -33,12 +34,12 @@ export function PendingDialog() {
 
   return (
     <Dialog
-      title="手札を捨てる"
-      note={`敵の能力により、手札を ${sel.count}枚選んで捨てます。`}
-      groups={[{ label: "手札", cards: me.hand ?? [] }]}
+      title={t("pending.discardTitle")}
+      note={t("pending.discardNote", { n: sel.count })}
+      groups={[{ label: t("pending.hand"), cards: me.hand ?? [] }]}
       selection={selection}
       onToggle={(uid) => toggle(uid, sel.count)}
-      confirmLabel={`${selection.length} / ${sel.count}枚を捨てる`}
+      confirmLabel={t("pending.discardN", { n: selection.length, max: sel.count })}
       canConfirm={selection.length === sel.count}
       onConfirm={() => send({ type: "discardForEffect", uids: selection })}
     />
@@ -65,17 +66,17 @@ function Dialog({ title, note, groups, selection, onToggle, confirmLabel, canCon
         {groups.map((g) => (
           <div key={g.label} className="dialog-group">
             <h3>
-              {g.label}（{g.cards.length}枚）
+              {t("pending.groupCount", { label: g.label, n: g.cards.length })}
             </h3>
             <div className="zone-cards">
-              {g.cards.length === 0 && <div className="zone-empty">（なし）</div>}
+              {g.cards.length === 0 && <div className="zone-empty">{t("pending.none")}</div>}
               {g.cards.map((c) => (
                 <Card
                   key={c.uid}
                   defId={c.defId}
                   small
                   onClick={() => onToggle(c.uid)}
-                  hint={selection.includes(c.uid) ? "クリックで選ぶのをやめる" : "クリックで選ぶ"}
+                  hint={selection.includes(c.uid) ? t("pending.unselect") : t("pending.select")}
                   highlight={selection.includes(c.uid) ? "selected" : undefined}
                 />
               ))}

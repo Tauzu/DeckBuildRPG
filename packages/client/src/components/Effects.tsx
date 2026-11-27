@@ -6,6 +6,7 @@ import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
 import { reg, useStore } from "../store.js";
 import { cardName, cardTitle } from "../text.js";
+import { t } from "../i18n.js";
 
 export interface FxItem {
   id: number;
@@ -40,7 +41,7 @@ let fxId = 0;
 /** イベントの列から演出を作る。viewerId 以外の人の行動には名前を付ける */
 export function effectsFrom(events: GameEvent[], viewerId: string, nameOf: (id: string) => string): Omit<FxItem, "id" | "delay">[] {
   const out: Omit<FxItem, "id" | "delay">[] = [];
-  const who = (playerId: string) => (playerId === viewerId ? "" : `${nameOf(playerId)}：`);
+  const who = (playerId: string) => (playerId === viewerId ? "" : t("fx.who", { name: nameOf(playerId) }));
   events.forEach((e, i) => {
     switch (e.type) {
       case "attackResolved": {
@@ -49,16 +50,16 @@ export function effectsFrom(events: GameEvent[], viewerId: string, nameOf: (id: 
           const exp = events.slice(i + 1).find((x) => x.type === "expGained");
           out.push({
             kind: "defeat",
-            title: `${who(e.playerId)}撃破！`,
-            sub: `${cardName(enemy)}${exp?.type === "expGained" ? `　経験値+${exp.amount}` : ""}`,
+            title: t("fx.defeated", { who: who(e.playerId) }),
+            sub: `${cardName(enemy)}${exp?.type === "expGained" ? t("fx.exp", { n: exp.amount }) : ""}`,
             defId: e.targetDefId,
           });
         } else {
           const rest = e.hp - e.prevDamage - e.damage;
           out.push({
             kind: "hit",
-            title: `${who(e.playerId)}${e.damage}ダメージ`,
-            sub: enemy.isBoss && e.damage > 0 ? `${cardName(enemy)}の残り生命力 ${rest}` : `${cardName(enemy)}を倒せなかった`,
+            title: t("fx.damage", { who: who(e.playerId), n: e.damage }),
+            sub: enemy.isBoss && e.damage > 0 ? t("fx.bossLeft", { enemy: cardName(enemy), n: rest }) : t("fx.notDefeated", { enemy: cardName(enemy) }),
             defId: e.targetDefId,
           });
         }
@@ -69,7 +70,7 @@ export function effectsFrom(events: GameEvent[], viewerId: string, nameOf: (id: 
         const to = reg.hero(e.toDefId);
         out.push({
           kind: "levelup",
-          title: `${who(e.playerId)}${from.level === 0 ? "転職！" : "レベルアップ！"}`,
+          title: t(from.level === 0 ? "fx.promoted" : "fx.leveledUp", { who: who(e.playerId) }),
           sub: `${cardTitle(from)} → ${cardTitle(to)}`,
           defId: e.toDefId,
         });
@@ -77,33 +78,33 @@ export function effectsFrom(events: GameEvent[], viewerId: string, nameOf: (id: 
       }
       case "enemyRevealed": {
         const d = reg.enemy(e.defId);
-        if (d.isBoss) out.push({ kind: "boss", title: "ボス出現！", sub: cardName(d), defId: e.defId });
+        if (d.isBoss) out.push({ kind: "boss", title: t("fx.boss"), sub: cardName(d), defId: e.defId });
         break;
       }
       case "enemyArrived":
         if (e.damage > 0) {
-          out.push({ kind: "village", title: `集落に${e.damage}ダメージ`, sub: `${cardName(reg.get(e.defId))}が集落に着いた（耐久値 ${Math.max(0, e.villageHp)}）`, defId: e.defId });
+          out.push({ kind: "village", title: t("fx.villageHit", { n: e.damage }), sub: t("fx.villageHitSub", { enemy: cardName(reg.get(e.defId)), hp: Math.max(0, e.villageHp) }), defId: e.defId });
         }
         break;
       case "cardBought": {
         const d = reg.get(e.defId);
-        out.push({ kind: "buy", title: `${who(e.playerId)}購入！`, sub: `${cardTitle(d)}（${e.cost}金）→ 捨て札へ`, defId: e.defId });
+        out.push({ kind: "buy", title: t("fx.bought", { who: who(e.playerId) }), sub: t("fx.boughtSub", { card: cardTitle(d), cost: e.cost }), defId: e.defId });
         break;
       }
       case "turnEnded":
-        out.push({ kind: "turnEnd", title: "手番終了", sub: e.playerId === viewerId ? "あなたの手番が終わった" : `${nameOf(e.playerId)}の手番が終わった`, defId: null });
+        out.push({ kind: "turnEnd", title: t("fx.turnEnd"), sub: e.playerId === viewerId ? t("fx.yourTurnEnded") : t("fx.theirTurnEnded", { name: nameOf(e.playerId) }), defId: null });
         break;
       case "enemyMoved":
-        if (e.moves.length > 0) out.push({ kind: "march", title: "敵の進軍！", sub: `${e.moves.length}体が集落へ1マス進んだ`, defId: null });
+        if (e.moves.length > 0) out.push({ kind: "march", title: t("fx.march"), sub: t("fx.marchSub", { n: e.moves.length }), defId: null });
         break;
       case "marchSkipped":
-        out.push({ kind: "skip", title: "敵は進軍しなかった", sub: "敵を撃破したため、進軍を止めた", defId: null });
+        out.push({ kind: "skip", title: t("fx.skip"), sub: t("fx.skipSub"), defId: null });
         break;
       case "turnStarted":
         out.push({
           kind: "turn",
-          title: e.playerId === viewerId ? "あなたの手番" : `${nameOf(e.playerId)}の手番`,
-          sub: `手番 ${e.turnCount}`,
+          title: e.playerId === viewerId ? t("fx.yourTurn") : t("fx.theirTurn", { name: nameOf(e.playerId) }),
+          sub: t("fx.turnN", { n: e.turnCount }),
           defId: null,
         });
         break;

@@ -3,20 +3,21 @@ import { enemyHp } from "@deckbuild/core";
 import { reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
 import { PlayedCards } from "./PlayedCards.js";
+import { t } from "../i18n.js";
 
 export function BattlePanel() {
   const update = useStore((s) => s.update)!;
   const { view, info } = update;
   const turn = view.turn;
   const cur = view.players.find((p) => p.id === view.currentPlayerId);
-  const who = cur && cur.id !== view.viewerId ? `${cur.name}の戦闘` : "戦闘";
+  const who = cur && cur.id !== view.viewerId ? t("battle.titleOf", { name: cur.name }) : t("battle.title");
 
   if (view.step.kind === "afterBattle") {
     return (
       <section className="battle-panel panel">
         <h2>{who}</h2>
-        <p className="battle-result battle-win">撃破しました！</p>
-        <p className="dialog-note">経験値で、場で戦った英雄や手札の英雄をレベルアップ・転職できます。終えると手番が終わります。</p>
+        <p className="battle-result battle-win">{t("battle.defeated")}</p>
+        <p className="dialog-note">{t("battle.afterNote")}</p>
         <PlayedCards />
       </section>
     );
@@ -40,17 +41,17 @@ export function BattlePanel() {
         <Card defId={target.defId} hp={enemyHp(view, def)} damage={view.enemyDamage[target.uid]} highlight="target" />
         <div className="battle-numbers">
           <div className="battle-row">
-            <span>生命力</span>
+            <span>{t("battle.hp")}</span>
             <strong>{hp}</strong>
           </div>
           {prev > 0 && (
             <div className="battle-row">
-              <span>これまでのダメージ</span>
+              <span>{t("battle.prevDamage")}</span>
               <strong>{prev}</strong>
             </div>
           )}
           <div className="battle-row">
-            <span>ダメージ見込み</span>
+            <span>{t("battle.expected")}</span>
             <strong className={ok ? "info-ok" : ""}>{dmg}</strong>
           </div>
           <div className="battle-bar" aria-hidden="true">
@@ -58,14 +59,14 @@ export function BattlePanel() {
             <div className="battle-bar-now" style={{ width: pct(Math.min(dmg, hp - prev)) }} />
           </div>
           <p className={`battle-result ${ok ? "battle-win" : ""}`}>
-            {ok ? "倒せる！ 「攻撃を確定」で撃破" : def.isBoss ? `残り生命力 ${rest}（ダメージは次の手番も残る）` : `あと ${rest} 足りない`}
+            {ok ? t("battle.ok") : def.isBoss ? t("battle.bossLeft", { n: rest }) : t("battle.short", { n: rest })}
           </p>
           {p && (p.physical !== p.physicalAfter || p.magic !== p.magicAfter) && (
             <p className="dialog-note">
-              耐性で 物理 {p.physical}→{p.physicalAfter}、魔法 {p.magic}→{p.magicAfter}
+              {t("battle.resist", { p1: p.physical, p2: p.physicalAfter, m1: p.magic, m2: p.magicAfter })}
             </p>
           )}
-          {p && p.frozenBonus > 0 && <p className="dialog-note">凍結中なので ダメージ +{p.frozenBonus}</p>}
+          {p && p.frozenBonus > 0 && <p className="dialog-note">{t("battle.frozen", { n: p.frozenBonus })}</p>}
         </div>
       </div>
       <PlayedCards />

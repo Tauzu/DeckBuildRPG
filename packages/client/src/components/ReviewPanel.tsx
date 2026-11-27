@@ -4,6 +4,7 @@ import { groupDeck, highlights, type Review, type TurnPoint } from "../review.js
 import { reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
 import { cardName } from "../text.js";
+import { t } from "../i18n.js";
 
 const LINE_COLORS = ["var(--accent)", "var(--mag)", "var(--good)", "var(--phys)"];
 const W = 320;
@@ -30,7 +31,7 @@ function LineChart({ title, series, yMax }: { title: string; series: { name: str
           0
         </text>
         <text x={PAD.l} y={H - 4} fill="var(--ink-soft)" fontSize="10">
-          手番{xMin}
+          {t("review.turnAxis", { n: xMin })}
         </text>
         <text x={W - PAD.r} y={H - 4} textAnchor="end" fill="var(--ink-soft)" fontSize="10">
           {xMax}
@@ -88,7 +89,7 @@ export function ReviewPanel({ review }: { review: Review }) {
       )}
 
       <section>
-        <h3>ふりかえり</h3>
+        <h3>{t("review.title")}</h3>
         <ul className="review-highlights">
           {highlights(review, reg, name, multi).map((t) => (
             <li key={t}>{t}</li>
@@ -97,30 +98,30 @@ export function ReviewPanel({ review }: { review: Review }) {
       </section>
 
       <section>
-        <h3>手番ごとの流れ</h3>
+        <h3>{t("review.flow")}</h3>
         {review.points.length >= 2 ? (
           <>
-            <LineChart title="集落の耐久値" yMax={config.villageHp} series={[{ name: "耐久値", color: "var(--bad)", points: series(review.points, (p) => p.villageHp) }]} />
+            <LineChart title={t("review.villageHp")} yMax={config.villageHp} series={[{ name: t("review.villageHpSeries"), color: "var(--bad)", points: series(review.points, (p) => p.villageHp) }]} />
             <LineChart
-              title="総獲得経験値"
+              title={t("review.totalExp")}
               yMax={expMax}
               series={players.map((p, i) => ({ name: p.name, color: LINE_COLORS[i % LINE_COLORS.length]!, points: series(review.points, (pt) => pt.exp[p.id] ?? 0) }))}
             />
           </>
         ) : (
-          <p className="dialog-note">記録が足りないため、グラフは出せません。</p>
+          <p className="dialog-note">{t("review.noChart")}</p>
         )}
       </section>
 
       <section>
         <h3>
-          {multi ? `${target.name}の` : ""}最終デッキ <span className="zone-sub">{total}枚</span>
+          {multi ? t("review.finalDeckOf", { name: target.name }) : t("review.finalDeck")} <span className="zone-sub">{t("review.cardsN", { n: total })}</span>
         </h3>
-        {groups.length === 0 && <p className="dialog-note">カードの記録がありません。</p>}
+        {groups.length === 0 && <p className="dialog-note">{t("review.noCards")}</p>}
         {groups.map((g) => (
           <div key={g.type} className="review-group">
             <h4>
-              {g.label} <span className="zone-sub">{g.total}枚</span>
+              {g.label} <span className="zone-sub">{t("review.cardsN", { n: g.total })}</span>
             </h4>
             <div className="review-cards">
               {g.rows.map((r) => (
@@ -132,15 +133,15 @@ export function ReviewPanel({ review }: { review: Review }) {
       </section>
 
       <section>
-        <h3>買い物と戦果</h3>
+        <h3>{t("review.buysTitle")}</h3>
         <p className="review-summary">
-          買ったカード {myBuys.length}枚（使った金 {mySpent}） ・ 撃破 {myKills.length}体 ・ 呪い {review.curses.filter((c) => c.playerId === target.id).length}枚
+          {t("review.summary", { buys: myBuys.length, spent: mySpent, kills: myKills.length, curses: review.curses.filter((c) => c.playerId === target.id).length })}
         </p>
         {myBuys.length > 0 && (
           <ol className="review-buys">
             {myBuys.map((b, i) => (
               <li key={i}>
-                <span className="review-turn">手番{b.turn}</span> {cardName(reg.get(b.defId))}
+                <span className="review-turn">{t("review.turnN", { n: b.turn })}</span> {cardName(reg.get(b.defId))}
                 <span className="zone-sub"> （{b.cost}）</span>
               </li>
             ))}
@@ -148,10 +149,10 @@ export function ReviewPanel({ review }: { review: Review }) {
         )}
         {myKills.length > 0 && (
           <p className="review-summary">
-            倒した敵：
+            {t("review.defeated")}
             {[...myKills.reduce((m, k) => m.set(k.defId, (m.get(k.defId) ?? 0) + 1), new Map<string, number>())]
               .map(([id, n]) => `${cardName(reg.get(id))}×${n}`)
-              .join("、")}
+              .join(t("list.sep"))}
           </p>
         )}
       </section>

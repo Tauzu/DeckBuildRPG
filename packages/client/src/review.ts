@@ -1,6 +1,7 @@
 // ゲーム後の振り返り：ゲーム中に届いた更新から、手番ごとの流れと出来事を集める
 import type { CardRegistry, GameUpdate } from "@deckbuild/core";
 import { cardName } from "./text.js";
+import { t } from "./i18n.js";
 
 /** 手番のはじめ（と終わり）の様子 */
 export interface TurnPoint {
@@ -80,13 +81,6 @@ export interface DeckGroup {
   rows: { defId: string; count: number }[];
 }
 
-const TYPE_LABEL: Record<(typeof TYPE_ORDER)[number], string> = {
-  hero: "英雄",
-  weapon: "武器",
-  food: "食料",
-  curse: "呪い",
-  enemy: "戦利品",
-};
 
 /** 持っていたカードを、種類ごと・同じカードごとにまとめる */
 export function groupDeck(defIds: string[], reg: CardRegistry): DeckGroup[] {
@@ -97,20 +91,20 @@ export function groupDeck(defIds: string[], reg: CardRegistry): DeckGroup[] {
       .filter(([id]) => reg.get(id).type === type)
       .map(([defId, count]) => ({ defId, count }))
       .sort((a, b) => (reg.get(a.defId).cost ?? 0) - (reg.get(b.defId).cost ?? 0) || a.defId.localeCompare(b.defId));
-    return { type, label: TYPE_LABEL[type], total: rows.reduce((n, r) => n + r.count, 0), rows };
+    return { type, label: t(`review.type.${type}`), total: rows.reduce((n, r) => n + r.count, 0), rows };
   }).filter((g) => g.total > 0);
 }
 
 /** 振り返りの一言（見つかったものだけ） */
 export function highlights(r: Review, reg: CardRegistry, name: (playerId: string) => string, multi: boolean): string[] {
   const out: string[] = [];
-  const who = (id: string) => (multi ? `${name(id)}が` : "");
+  const who = (id: string) => (multi ? t("review.who", { name: name(id) }) : "");
   const worst = r.hits.reduce<Review["hits"][number] | null>((m, h) => (!m || h.damage > m.damage ? h : m), null);
-  if (worst) out.push(`集落が一番傷ついたのは手番${worst.turn}：${cardName(reg.get(worst.defId))}が着いて ${worst.damage} ダメージ`);
-  else out.push("集落は一度も傷つかなかった");
-  if (r.bestHit) out.push(`最大の一撃は手番${r.bestHit.turn}：${who(r.bestHit.playerId)}${cardName(reg.get(r.bestHit.defId))}に ${r.bestHit.damage} ダメージ`);
+  if (worst) out.push(t("review.worst", { turn: worst.turn, enemy: cardName(reg.get(worst.defId)), n: worst.damage }));
+  else out.push(t("review.noDamage"));
+  if (r.bestHit) out.push(t(multi ? "review.bestHit" : "review.bestHitYou", { turn: r.bestHit.turn, who: who(r.bestHit.playerId), enemy: cardName(reg.get(r.bestHit.defId)), n: r.bestHit.damage }));
   const firstKill = r.kills[0];
-  if (firstKill) out.push(`最初の撃破は手番${firstKill.turn}：${who(firstKill.playerId)}${cardName(reg.get(firstKill.defId))}`);
-  if (r.curses.length > 0) out.push(`呪いを ${r.curses.length} 枚受けた`);
+  if (firstKill) out.push(t("review.firstKill", { turn: firstKill.turn, who: who(firstKill.playerId), enemy: cardName(reg.get(firstKill.defId)) }));
+  if (r.curses.length > 0) out.push(t("review.curses", { n: r.curses.length }));
   return out;
 }
