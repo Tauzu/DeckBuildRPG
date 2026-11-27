@@ -1,6 +1,7 @@
 // 効果音・BGMのオンオフと音量
 import { useState } from "react";
 import { AUDIO_ENABLED, getAudioSettings, playSfx, setAudioSettings } from "../audio.js";
+import { t } from "../i18n.js";
 
 export function SoundControls({ compact = false }: { compact?: boolean }) {
   if (!AUDIO_ENABLED) return null;
@@ -24,13 +25,13 @@ function SoundControlsInner({ compact }: { compact: boolean }) {
           if (!s.sfx) playSfx("buy");
         }}
       >
-        効果音 {s.sfx ? "ON" : "OFF"}
+        {t("sound.sfx", { state: s.sfx ? "ON" : "OFF" })}
       </button>
       <button type="button" className={`ghost mini${s.bgm ? " sound-on" : ""}`} aria-pressed={s.bgm} onClick={() => update({ ...s, bgm: !s.bgm })}>
         BGM {s.bgm ? "ON" : "OFF"}
       </button>
       <label className="sound-volume">
-        <span>音量</span>
+        <span>{t("sound.volume")}</span>
         <input
           type="range"
           min={0}
@@ -39,7 +40,7 @@ function SoundControlsInner({ compact }: { compact: boolean }) {
           value={s.volume}
           onChange={(e) => update({ ...s, volume: Number(e.target.value) })}
           onPointerUp={() => playSfx("play")}
-          aria-label="音量"
+          aria-label={t("sound.volume")}
         />
       </label>
     </span>

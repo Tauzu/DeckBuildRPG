@@ -2,6 +2,7 @@
 import type { CardInstance } from "@deckbuild/core";
 import { reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
+import { t } from "../i18n.js";
 
 export function PlayedCards() {
   const update = useStore((s) => s.update)!;
@@ -20,8 +21,8 @@ export function PlayedCards() {
   const loose = cur.field.filter((c) => type(c) === "weapon" && !equipped.has(c.uid));
 
   return (
-    <div className="played" aria-label={`${cur.name}が出したカード`}>
-      <div className="played-title">{cur.name}が出したカード</div>
+    <div className="played" aria-label={t("played.title", { name: cur.name })}>
+      <div className="played-title">{t("played.title", { name: cur.name })}</div>
       <div className="played-cards">
         {foods.map(card)}
         {heroes.map((h) => {
@@ -29,7 +30,7 @@ export function PlayedCards() {
           return w ? (
             <div key={h.uid} className="played-pair">
               {card(h)}
-              <span className="played-plus" aria-label="装備">＋</span>
+              <span className="played-plus" aria-label={t("played.equip")}>＋</span>
               {card(w)}
             </div>
           ) : (

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store.js";
+import { t } from "../i18n.js";
 
 export function LogPanel() {
   const log = useStore((s) => s.log);
@@ -12,7 +13,7 @@ export function LogPanel() {
 
   return (
     <section className="log panel">
-      <h2>記録</h2>
+      <h2>{t("log.title")}</h2>
       <div className="log-lines" ref={box}>
         {log.map((l) => (
           <div key={l.id} className={`log-line log-${l.kind}`}>

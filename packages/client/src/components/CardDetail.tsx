@@ -2,20 +2,21 @@
 import { useStore } from "../store.js";
 import { touchText } from "../text.js";
 import { Card } from "./Card.js";
+import { t } from "../i18n.js";
 
 export function CardDetail() {
   const detail = useStore((s) => s.detail);
   const close = useStore((s) => s.showDetail);
   if (!detail) return null;
   return (
-    <div className="overlay card-detail" role="dialog" aria-modal="true" aria-label="カードの詳細" onClick={() => close(null)} onContextMenu={(e) => e.preventDefault()}>
+    <div className="overlay card-detail" role="dialog" aria-modal="true" aria-label={t("detail.label")} onClick={() => close(null)} onContextMenu={(e) => e.preventDefault()}>
       <div className="card-detail-body">
         <div className="card-detail-card">
           <Card defId={detail.defId} hp={detail.hp} damage={detail.damage} />
         </div>
         {detail.tip && <p className="card-detail-tip">{touchText(detail.tip)}</p>}
         <button type="button" className="primary" onClick={() => close(null)}>
-          閉じる
+          {t("detail.close")}
         </button>
       </div>
     </div>

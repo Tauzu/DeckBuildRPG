@@ -1,6 +1,7 @@
 import { findOption, reasonText, reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
 import { PlayedCards } from "./PlayedCards.js";
+import { t } from "../i18n.js";
 
 export function VillageStock() {
   const update = useStore((s) => s.update)!;
@@ -15,11 +16,11 @@ export function VillageStock() {
 
   const renderStack = ([stackId, st]: (typeof entries)[number]) => {
     const opt = findOption(legal.options, (a) => a.type === "buy" && a.stackId === stackId);
-    const badge = <span className="stack-count">残{st.count}</span>;
+    const badge = <span className="stack-count">{t("stock.left", { n: st.count })}</span>;
     if (!st.top) {
       return (
         <div key={stackId} className="card-wrap">
-          <div className="card card-small card-empty">売り切れ</div>
+          <div className="card card-small card-empty">{t("stock.soldOut")}</div>
         </div>
       );
     }
@@ -32,9 +33,9 @@ export function VillageStock() {
         onClick={visiting ? () => send({ type: "buy", stackId }) : undefined}
         hint={
           visiting
-            ? `クリックで購入する（${reg.get(st.top.defId).cost}金）。買ったカードは捨て札に入る`
+            ? t("stock.buyHint", { cost: reg.get(st.top.defId).cost ?? 0 })
             : choosing
-              ? "「集落を訪れる」と購入できます"
+              ? t("stock.visitHint")
               : null
         }
         disabledReason={visiting ? reasonText(opt) : null}
@@ -45,7 +46,7 @@ export function VillageStock() {
   return (
     <section className="stock panel">
       <PlayedCards />
-      <h2>村の在庫</h2>
+      <h2>{t("stock.title")}</h2>
       <div className="stock-row">{heroes.map(renderStack)}</div>
       <div className="stock-row">{foods.map(renderStack)}</div>
       <div className="stock-row">{weapons.map(renderStack)}</div>

@@ -5,6 +5,7 @@ import { BattlePanel } from "./BattlePanel.js";
 import { LogPanel } from "./LogPanel.js";
 import { OthersPanel } from "./OthersPanel.js";
 import { VillageStock } from "./VillageStock.js";
+import { t } from "../i18n.js";
 
 type Tab = "main" | "log" | "players";
 
@@ -21,9 +22,9 @@ export function MobilePanels() {
   }, [step]);
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "main", label: inBattle ? "戦闘" : "村の在庫" },
-    { id: "log", label: "記録" },
-    ...(multi ? [{ id: "players" as const, label: "プレイヤー" }] : []),
+    { id: "main", label: inBattle ? t("mobile.battle") : t("mobile.stock") },
+    { id: "log", label: t("mobile.log") },
+    ...(multi ? [{ id: "players" as const, label: t("mobile.players") }] : []),
   ];
 
   return (

@@ -5,6 +5,7 @@ import { bossHpFor, codexGroups, codexIds } from "../codex.js";
 import { reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
 import { CardDetail } from "./CardDetail.js";
+import { t } from "../i18n.js";
 
 /** まだ見ていないカード：同じ大きさの枠に影絵と「？？？」 */
 function UnknownCard({ defId }: { defId: string }) {
@@ -17,13 +18,13 @@ function UnknownCard({ defId }: { defId: string }) {
     <div className="card-wrap">
       <div
         className="card card-small card-unknown"
-        aria-label="まだ見ていないカード"
+        aria-label={t("codex.unseenLabel")}
       >
         <div className="card-name">？？？</div>
         <div className="card-art">
           {sprite && <PixelArt sprite={sprite} silhouette="#05071a" />}
         </div>
-        <div className="card-note">未発見</div>
+        <div className="card-note">{t("codex.unseen")}</div>
       </div>
     </div>
   );
@@ -40,13 +41,13 @@ export function CodexScreen() {
   return (
     <main className="rules-screen">
       <div className="rules panel codex">
-        <h1>カード図鑑</h1>
+        <h1>{t("codex.title")}</h1>
         <p className="stage-lead">
-          ゲームで出会ったカードが載ります。
+          {t("codex.lead")}
           <strong className="codex-count">
             {found} / {total}
           </strong>
-          （カードを押すと大きく表示）
+          {t("codex.pressHint")}
         </p>
         {groups.map((g) => {
           const ids = g.rows.flat();
@@ -77,7 +78,7 @@ export function CodexScreen() {
                           small
                           hp={hp}
                           onClick={() => showDetail({ defId: id, hp })}
-                          hint="クリックで大きく表示"
+                          hint={t("codex.enlargeHint")}
                         />
                       );
                     })}
@@ -88,11 +89,11 @@ export function CodexScreen() {
           );
         })}
         <p className="dialog-note">
-          ボスの生命力は、1人で遊ぶときの値です（人数と危険度で変わります）。
+          {t("codex.bossNote")}
         </p>
         <div className="dialog-buttons">
           <button type="button" className="primary" onClick={() => go("title")}>
-            戻る
+            {t("common.back")}
           </button>
         </div>
       </div>

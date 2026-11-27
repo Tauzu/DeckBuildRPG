@@ -1,6 +1,7 @@
 // カード図鑑（企画書 13.4）。ゲームで見たカードを記録し、種類ごとに並べる
 import type { CardDef, CardRegistry, PlayerView, StageDef } from "@deckbuild/core";
 import type { Progress } from "./progress.js";
+import { t } from "./i18n.js";
 
 export interface CodexGroup {
   label: string;
@@ -22,12 +23,12 @@ export function codexGroups(reg: CardRegistry): CodexGroup[] {
   const bossOrder = [...new Set(reg.stages.map((s) => s.bossId))];
   const ofType = (pred: (d: CardDef) => boolean) => all.filter(pred).map((d) => d.id);
   return [
-    { label: "英雄", rows: heroOrder.map((h) => reg.heroLevels(h).map((d) => d.id)) },
-    { label: "食料", rows: [ofType((d) => d.type === "food")] },
-    { label: "武器", rows: [ofType((d) => d.type === "weapon")] },
-    { label: "魔物", rows: [ofType((d) => d.type === "enemy" && !d.isBoss)] },
-    { label: "ボス", rows: [[...bossOrder, ...ofType((d) => d.type === "enemy" && d.isBoss && !bossOrder.includes(d.id))]] },
-    { label: "呪い", rows: [ofType((d) => d.type === "curse")] },
+    { label: t("codex.group.hero"), rows: heroOrder.map((h) => reg.heroLevels(h).map((d) => d.id)) },
+    { label: t("codex.group.food"), rows: [ofType((d) => d.type === "food")] },
+    { label: t("codex.group.weapon"), rows: [ofType((d) => d.type === "weapon")] },
+    { label: t("codex.group.enemy"), rows: [ofType((d) => d.type === "enemy" && !d.isBoss)] },
+    { label: t("codex.group.boss"), rows: [[...bossOrder, ...ofType((d) => d.type === "enemy" && d.isBoss && !bossOrder.includes(d.id))]] },
+    { label: t("codex.group.curse"), rows: [ofType((d) => d.type === "curse")] },
   ].filter((g) => g.rows.some((r) => r.length > 0));
 }
 

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { reg, useStore } from "../store.js";
 import { cardTitle } from "../text.js";
 import { t } from "../i18n.js";
+import type { MessageKey } from "../i18n.js";
 
 /** 他のプレイヤーが場に出したカード。英雄には装備した武器を添える */
 function FieldCards({ field, equips }: { field: CardInstance[]; equips: Record<string, string> }) {
@@ -64,14 +65,14 @@ function StampPicker() {
                 key={s.id}
                 type="button"
                 className="stamp-btn"
-                title={s.label}
+                title={t(`stamp.${s.id}` as MessageKey)}
                 onClick={() => {
                   send(s.id);
                   setOpen(false);
                 }}
               >
                 <PixelArt sprite={s.sprite} className="stamp-art" />
-                <span>{s.label}</span>
+                <span>{t(`stamp.${s.id}` as MessageKey)}</span>
               </button>
             ))}
           </div>

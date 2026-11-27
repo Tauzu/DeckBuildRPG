@@ -402,7 +402,7 @@ export const useStore = create<Store>()((set, get) => {
     startSolo(stageId, seed, danger = 0) {
       if (get().room) get().leaveRoom();
       const stage = reg.stage(stageId ?? reg.defaultStageId);
-      attach(new LocalConnection(seed ?? stage.fixedSeed ?? randomSeed(), "あなた", reg, stage.id, stage.tutorial ? 0 : danger));
+      attach(new LocalConnection(seed ?? stage.fixedSeed ?? randomSeed(), t("player.defaultName"), reg, stage.id, stage.tutorial ? 0 : danger));
     },
 
     exportProgress() {
