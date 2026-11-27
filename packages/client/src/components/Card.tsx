@@ -5,6 +5,7 @@ import { spriteFor } from "../art/sprites.js";
 import { useLongPress } from "../hooks.js";
 import { reg, useStore } from "../store.js";
 import { affinityText, cardName, packText, battleEffectText, cardTitle, describeEffect, describeTrait, describeWeaponAbility, resistText } from "../text.js";
+import { t } from "../i18n.js";
 
 interface Props {
   defId: string;
@@ -29,21 +30,12 @@ interface Props {
   children?: ReactNode;
 }
 
-const TYPE_LABEL: Record<CardDef["type"], string> = {
-  hero: "英雄",
-  weapon: "武器",
-  food: "食料",
-  enemy: "敵",
-  curse: "呪い",
-};
-
 export type FrozenState = "fresh" | "thawing";
 
 /** 凍結中の敵の説明（カードのマークと、カードを指したときの説明に使う） */
-export const FROZEN_TEXT: Record<FrozenState, string> = {
-  fresh: "凍結中：次の進軍では動かない（進軍時の能力も使わない）。凍結中に攻撃するとダメージ +2",
-  thawing: "凍結中（解けかけ）：次の進軍で凍結が解けて動く。それまでに攻撃するとダメージ +2",
-};
+export function frozenText(state: FrozenState): string {
+  return t(`frozen.${state}`);
+}
 
 export function Card({ defId, onClick, disabledReason, highlight, hp, damage, frozen, guarded, small, uid, hint, badge, children }: Props) {
   const def = reg.get(defId);
@@ -88,29 +80,29 @@ export function Card({ defId, onClick, disabledReason, highlight, hp, damage, fr
         aria-description={tip ?? undefined}
       >
         <div className="card-head">
-          <span className="card-type">{TYPE_LABEL[def.type]}</span>
-          {def.cost !== null && <span className="card-cost" title="コスト">{def.cost}</span>}
+          <span className="card-type">{t(`type.${def.type}`)}</span>
+          {def.cost !== null && <span className="card-cost" title={t("card.cost")}>{def.cost}</span>}
         </div>
         <div className="card-name">{cardTitle(def)}</div>
         <CardArt def={def} />
         <CardBody def={def} hp={hp} damage={damage} />
         <div className="card-foot">
-          <span className="card-gold" title="金価値">
-            金 {def.gold}
+          <span className="card-gold" title={t("card.goldValue")}>
+            {t("card.gold", { n: def.gold })}
           </span>
           {frozen && (
-            <span className={`card-state card-state-frozen${frozen === "thawing" ? " card-state-thawing" : ""}`} title={FROZEN_TEXT[frozen]}>
-              {frozen === "thawing" ? "❄解けかけ" : "❄凍結"}
+            <span className={`card-state card-state-frozen${frozen === "thawing" ? " card-state-thawing" : ""}`} title={frozenText(frozen)}>
+              {frozen === "thawing" ? t("card.thawing") : t("card.frozen")}
             </span>
           )}
-          {guarded && <span className="card-state card-state-guarded" title="護衛を倒すまで選べない">🛡守られ</span>}
+          {guarded && <span className="card-state card-state-guarded" title={t("card.guardedTitle")}>{t("card.guarded")}</span>}
           {badge}
         </div>
       </button>
       {tip && (
         <span className={`card-tip${onClick && disabledReason ? " card-tip-ng" : ""}`} role="tooltip">
           {tip}
-          <span className="card-tip-hint">右クリックで拡大</span>
+          <span className="card-tip-hint">{t("card.zoomHint")}</span>
         </span>
       )}
       {children && <div className="card-extra">{children}</div>}
@@ -124,40 +116,42 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
       return (
         <div className="card-body">
           <div className="stats">
-            <span className="stat-phys" title="物理攻撃力">物 {def.physical}</span>
-            <span className="stat-mag" title="魔法攻撃力">魔 {def.magic}</span>
+            <span className="stat-phys" title={t("card.physicalTitle")}>{t("card.physical", { n: def.physical })}</span>
+            <span className="stat-mag" title={t("card.magicTitle")}>{t("card.magic", { n: def.magic })}</span>
           </div>
-          {def.villageEffect && <div className="card-text">村：{describeEffect(def.villageEffect)}</div>}
-          {def.battleEffect && battleEffectText(def.battleEffect) && <div className="card-text">戦闘：{battleEffectText(def.battleEffect)}</div>}
-          {def.goldAttackDiv > 0 && <div className="card-text">戦闘中：手札と場の金価値の合計の{def.goldAttackDiv === 2 ? "半分" : `1/${def.goldAttackDiv}`}（切り捨て）を物理に加える</div>}
+          {def.villageEffect && <div className="card-text">{t("card.village", { text: describeEffect(def.villageEffect) })}</div>}
+          {def.battleEffect && battleEffectText(def.battleEffect) && <div className="card-text">{t("card.battle", { text: battleEffectText(def.battleEffect)! })}</div>}
+          {def.goldAttackDiv > 0 && (
+            <div className="card-text">{def.goldAttackDiv === 2 ? t("card.goldAttackHalf") : t("card.goldAttackDiv", { n: def.goldAttackDiv })}</div>
+          )}
           {def.packBonus && <div className="card-text">{packText(def.packBonus, cardName(def))}</div>}
-          {def.defeatExp > 0 && <div className="card-text">戦闘中：撃破すると経験値+{def.defeatExp}</div>}
-          {def.ignoreHalfResist && <div className="card-text">戦闘中：この英雄の攻撃は、敵の「半減」の耐性を受けない</div>}
-          {def.nextLevelExp !== null && <div className="card-note">次のLvまで 経験値{def.nextLevelExp}</div>}
-          {def.level === 0 && <div className="card-note">経験値2で転職できる</div>}
+          {def.defeatExp > 0 && <div className="card-text">{t("card.defeatExp", { n: def.defeatExp })}</div>}
+          {def.ignoreHalfResist && <div className="card-text">{t("card.ignoreHalf")}</div>}
+          {def.nextLevelExp !== null && <div className="card-note">{t("card.nextLevel", { n: def.nextLevelExp })}</div>}
+          {def.level === 0 && <div className="card-note">{t("card.promote")}</div>}
         </div>
       );
     case "weapon":
       return (
         <div className="card-body">
           <div className="stats">
-            {def.physical > 0 && <span className="stat-phys">物 +{def.physical}</span>}
-            {def.magic > 0 && <span className="stat-mag">魔 +{def.magic}</span>}
+            {def.physical > 0 && <span className="stat-phys">{t("card.physicalPlus", { n: def.physical })}</span>}
+            {def.magic > 0 && <span className="stat-mag">{t("card.magicPlus", { n: def.magic })}</span>}
           </div>
           {def.ability && <div className="card-text">{describeWeaponAbility(def.ability)}</div>}
           {def.affinity && <div className="card-text">{affinityText(def.affinity)}</div>}
-          <div className="card-note">{def.ability?.kind === "solo" ? "装備せずにそのまま出す" : "英雄1人に1枚装備"}</div>
+          <div className="card-note">{def.ability?.kind === "solo" ? t("card.soloWeapon") : t("card.equipOne")}</div>
         </div>
       );
     case "food":
       return (
         <div className="card-body">
           <div className="stats">
-            <span className="stat-food">食糧 {def.food}</span>
+            <span className="stat-food">{t("card.food", { n: def.food })}</span>
           </div>
-          {def.effect && <div className="card-text">村：{describeEffect(def.effect)}</div>}
-          {def.effect && def.effectInBattle && <div className="card-text">戦闘：{describeEffect(def.effect)}</div>}
-          <div className="card-note">英雄を追加で{def.food}人出せる</div>
+          {def.effect && <div className="card-text">{t("card.village", { text: describeEffect(def.effect) })}</div>}
+          {def.effect && def.effectInBattle && <div className="card-text">{t("card.battle", { text: describeEffect(def.effect) })}</div>}
+          <div className="card-note">{t("card.foodNote", { n: def.food })}</div>
         </div>
       );
     case "enemy": {
@@ -166,37 +160,37 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
       return (
         <div className="card-body">
           <div className="stats">
-            <span className="stat-hp" title="生命力">
-              命 {damage ? `${(hp ?? def.hp ?? 0) - damage}/${hp ?? def.hp}` : (hp ?? def.hp)}
+            <span className="stat-hp" title={t("card.hpTitle")}>
+              {t("card.hp", { n: damage ? `${(hp ?? def.hp ?? 0) - damage}/${hp ?? def.hp}` : (hp ?? def.hp ?? "") })}
             </span>
-            {def.invasion !== null && <span title="侵攻力（集落に着いたときに減らす耐久値）">侵 {def.invasion}</span>}
-            <span title="経験値">経 {def.exp}</span>
+            {def.invasion !== null && <span title={t("card.invasionTitle")}>{t("card.invasion", { n: def.invasion })}</span>}
+            <span title={t("card.expTitle")}>{t("card.exp", { n: def.exp })}</span>
           </div>
           {(rp || rm) && (
             <div className="card-text resist">
-              {rp && <span>物理{rp}</span>}
-              {rm && <span>魔法{rm}</span>}
+              {rp && <span>{t("card.resistPhysical", { r: rp })}</span>}
+              {rm && <span>{t("card.resistMagic", { r: rm })}</span>}
             </div>
           )}
-          {def.traits.map((t) => (
-            <div key={t} className="card-text">{describeTrait(t)}</div>
+          {def.traits.map((tr) => (
+            <div key={tr} className="card-text">{describeTrait(tr)}</div>
           ))}
-          {def.onReveal && <div className="card-text">出現：{describeEffect(def.onReveal)}</div>}
-          {def.onMarch && <div className="card-text">進軍：{describeEffect(def.onMarch)}</div>}
+          {def.onReveal && <div className="card-text">{t("card.onReveal", { text: describeEffect(def.onReveal) })}</div>}
+          {def.onMarch && <div className="card-text">{t("card.onMarch", { text: describeEffect(def.onMarch) })}</div>}
           {def.isBoss && hp !== undefined && (
-            <div className="boss-gauge" title={`残り生命力 ${hp - (damage ?? 0)} / ${hp}`}>
+            <div className="boss-gauge" title={t("card.bossHpTitle", { n: hp - (damage ?? 0), hp })}>
               <div style={{ width: `${Math.max(0, ((hp - (damage ?? 0)) / hp) * 100)}%` }} />
             </div>
           )}
-          {def.isBoss && <div className="card-note">ダメージは残る</div>}
-          {!def.isBoss && <div className="card-note">倒すと戦利品になる</div>}
+          {def.isBoss && <div className="card-note">{t("card.bossNote")}</div>}
+          {!def.isBoss && <div className="card-note">{t("card.lootNote")}</div>}
         </div>
       );
     }
     case "curse":
       return (
         <div className="card-body">
-          <div className="card-text">何の効果もない。僧侶で廃棄できる</div>
+          <div className="card-text">{t("card.curseText")}</div>
         </div>
       );
   }

@@ -4,7 +4,8 @@ import { enemyHp, guardedUids } from "@deckbuild/core";
 import { PixelArt } from "../art/PixelArt.js";
 import { fortSprite, villageSprite } from "../art/sprites.js";
 import { StageBackdrop } from "../art/StageBackdrop.js";
-import { Card, FROZEN_TEXT, type FrozenState } from "./Card.js";
+import { Card, frozenText, type FrozenState } from "./Card.js";
+import { t } from "../i18n.js";
 
 export function RouteView() {
   const update = useStore((s) => s.update)!;
@@ -29,8 +30,8 @@ export function RouteView() {
       <div className="route-boss-veil" aria-hidden="true" />
       <div className="route-end route-fort">
         <PixelArt sprite={fortSprite} className="route-end-art" />
-        <div className="route-end-title">魔物の砦</div>
-        <div className="route-end-sub">敵の山札 残り {view.enemyDeckCount}枚</div>
+        <div className="route-end-title">{t("route.fort")}</div>
+        <div className="route-end-sub">{t("route.deckLeft", { n: view.enemyDeckCount })}</div>
       </div>
       <div ref={squaresRef} className="route-squares">
         {marches > 0 && <div key={`sweep-${marches}`} className="route-sweep" />}
@@ -42,7 +43,7 @@ export function RouteView() {
                 const def = reg.enemy(c.defId);
                 const opt = findOption(legal.options, (a) => a.type === "chooseBattle" && a.targetUid === c.uid);
                 const frozen: FrozenState | undefined = view.frozen.includes(c.uid) ? (view.thawing.includes(c.uid) ? "thawing" : "fresh") : undefined;
-                const frozenNote = frozen ? `（${FROZEN_TEXT[frozen]}）` : "";
+                const frozenNote = frozen ? t("route.frozenNote", { text: frozenText(frozen) }) : "";
                 return (
                   <Card
                     key={c.uid}
@@ -65,24 +66,24 @@ export function RouteView() {
                     }
                     hint={
                       target === c.uid
-                        ? `戦闘中の相手${frozenNote}`
+                        ? t("route.currentTarget", { note: frozenNote })
                         : picking
                           ? picking.uids.includes(c.uid)
                             ? picking.mode === "freeze"
                               ? frozen === "thawing"
-                                ? "クリックで凍結し直す（次の進軍でまた動かない）"
-                                : "クリックで凍結する（次の進軍で動かない）"
-                              : "クリックで1マス戻す"
-                            : "この敵は選べません"
+                                ? t("route.refreeze")
+                                : t("route.freeze")
+                              : t("route.push")
+                            : t("route.notSelectable")
                           : choosing
                           ? def.isBoss
-                            ? "クリックでこのボスと戦う（与えたダメージは次の手番も残る）"
-                            : `クリックでこの魔物と戦う${frozenNote}`
+                            ? t("route.fightBoss")
+                            : t("route.fight", { note: frozenNote })
                           : frozen
-                            ? FROZEN_TEXT[frozen]
+                            ? frozenText(frozen)
                             : null
                     }
-                    disabledReason={picking ? (picking.uids.includes(c.uid) ? null : "この敵は選べません") : choosing ? reasonText(opt) : null}
+                    disabledReason={picking ? (picking.uids.includes(c.uid) ? null : t("route.notSelectable")) : choosing ? reasonText(opt) : null}
                   />
                 );
               })}
@@ -92,9 +93,9 @@ export function RouteView() {
       </div>
       <div key={`village-${villageHits}`} className={`route-end route-village${villageHits > 0 ? " village-hit" : ""}`}>
         <PixelArt sprite={villageSprite} className="route-end-art" />
-        <div className="route-end-title">エルム村</div>
+        <div className="route-end-title">{t("route.village")}</div>
         <div className={`village-hp ${view.villageHp <= view.config.villageHp / 3 ? "danger" : ""}`}>
-          耐久値 {Math.max(0, view.villageHp)} / {view.config.villageHp}
+          {t("route.villageHp", { n: Math.max(0, view.villageHp), max: view.config.villageHp })}
         </div>
       </div>
     </section>
