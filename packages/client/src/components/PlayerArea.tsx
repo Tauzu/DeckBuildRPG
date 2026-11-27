@@ -1,6 +1,7 @@
 import type { Action, CardInstance } from "@deckbuild/core";
 import { findOption, reasonText, reg, useStore } from "../store.js";
 import { battleEffectText, cardName, describeEffect, heroName } from "../text.js";
+import { t } from "../i18n.js";
 import { Card } from "./Card.js";
 
 /** 場と手札 */
@@ -14,14 +15,14 @@ export function PlayerArea() {
   const others = me.field.filter((c) => reg.get(c.defId).type !== "food");
 
   return (
-    <section className="player-area player-dock panel" aria-label="場と手札">
+    <section className="player-area player-dock panel" aria-label={t("player.areaLabel")}>
       <div className="zone">
         <h2>
-          場 <HeroSlots />
+          {t("player.field")} <HeroSlots />
         </h2>
         <div className="zone-cards">
           {foods.length > 0 && (
-            <div className="field-foods" title="出した食料（重ねて表示）">
+            <div className="field-foods" title={t("player.foodsTitle")}>
               {foods.map((c) => (
                 <FieldCard key={c.uid} card={c} />
               ))}
@@ -31,16 +32,16 @@ export function PlayerArea() {
             <FieldCard key={c.uid} card={c} />
           ))}
           <EmptySlots />
-          {me.field.length === 0 && !slotsShown(update) && <div className="zone-empty">（まだ何も出していません）</div>}
+          {me.field.length === 0 && !slotsShown(update) && <div className="zone-empty">{t("player.fieldEmpty")}</div>}
         </div>
       </div>
       <div className="zone">
         <h2>
-          手札 {me.hand?.length ?? 0}枚{" "}
+          {t("player.hand", { n: me.hand?.length ?? 0 })}{" "}
           <span className="zone-sub">
-            ／ 山札 {me.deckCount}枚 ／{" "}
+            {t("player.deck", { n: me.deckCount })}{" "}
             <span key={buys} className={buys > 0 ? "discard-pulse" : undefined}>
-              捨て札 {me.discardCount}枚
+              {t("player.discard", { n: me.discardCount })}
             </span>
           </span>
         </h2>
@@ -71,40 +72,40 @@ function HandCard({ card }: { card: CardInstance }) {
   let hint: string | null = null;
   if (active) {
     if (def.type === "food") {
-      hint = `クリックで場に出す（英雄を出せる枠+${def.food}）`;
+      hint = t("hint.playFood", { n: def.food });
       const o = option((a) => a.type === "playFood" && a.uid === card.uid);
       onClick = () => send({ type: "playFood", uid: card.uid });
       reason = reasonText(o);
     } else if (def.type === "hero") {
       hint =
         step === "battle"
-          ? `クリックで場に出して戦わせる${def.battleEffect && battleEffectText(def.battleEffect) ? `（${battleEffectText(def.battleEffect)}。引いた後は戻せない）` : ""}`
+          ? t("hint.playHeroBattle", { effect: def.battleEffect && battleEffectText(def.battleEffect) ? t("hint.playHeroBattleEffect", { text: battleEffectText(def.battleEffect)! }) : "" })
           : def.villageEffect
-            ? `クリックで場に出す（村効果：${describeEffect(def.villageEffect)}）`
-            : "クリックで場に出す（村効果はない。集落では金価値として使う）";
+            ? t("hint.playHeroVillage", { text: describeEffect(def.villageEffect) })
+            : t("hint.playHeroNoEffect");
       const o = option((a) => a.type === "playHero" && a.uid === card.uid);
       onClick = () => send({ type: "playHero", uid: card.uid });
       reason = reasonText(o);
     } else if (def.type === "weapon" && step === "battle" && def.ability?.kind === "solo") {
       // 英雄なしで使える武器は、クリックするとそのまま場に出す
-      hint = "クリックで、装備せずにそのまま戦闘に加える";
+      hint = t("hint.soloWeapon");
       const o = option((a) => a.type === "useWeapon" && a.weaponUid === card.uid);
       onClick = () => send({ type: "useWeapon", weaponUid: card.uid });
       reason = reasonText(o);
     } else if (def.type === "weapon" && step === "battle") {
       const canEquip = legal.options.some((o) => o.action.type === "equip" && o.action.weaponUid === card.uid && !o.reason);
       onClick = () => selectWeapon(selectedWeapon === card.uid ? null : card.uid);
-      hint = selectedWeapon === card.uid ? "クリックで選ぶのをやめる" : "クリックしてから、装備させる英雄（場）をクリック";
-      reason = canEquip ? null : "装備できる英雄が場にいません";
+      hint = selectedWeapon === card.uid ? t("hint.unselectWeapon") : t("hint.selectWeapon");
+      reason = canEquip ? null : t("reason.noHeroToEquip");
     } else {
-      reason = step === "village" ? "集落では金価値として使います" : "戦闘では使えません";
+      reason = step === "village" ? t("reason.goldInVillage") : t("reason.notInBattle");
     }
   }
   if (step === "village" && active && (def.type === "enemy" || def.type === "weapon")) {
     // クリックはできないが、何に使われるかを伝える
     reason = null;
     onClick = undefined;
-    hint = def.type === "enemy" ? `戦利品：金${def.gold}として使われ、訪問の終わりに売却される` : `集落では金${def.gold}として使われる（戦闘で装備する）`;
+    hint = def.type === "enemy" ? t("hint.loot", { n: def.gold }) : t("hint.goldCard", { n: def.gold });
   }
 
   // 集落・撃破直後：レベルアップ・転職のボタン
@@ -141,14 +142,14 @@ function FieldCard({ card }: { card: CardInstance }) {
   let hint: string | null = null;
   if (battle) {
     if (selectedWeapon && def.type === "hero") {
-      hint = "クリックでこの英雄に、選んだ武器を装備させる";
+      hint = t("hint.equipHere");
       const o = findOption(legal.options, (a) => a.type === "equip" && a.weaponUid === selectedWeapon && a.heroUid === card.uid);
       onClick = () => send({ type: "equip", weaponUid: selectedWeapon, heroUid: card.uid });
       reason = reasonText(o);
       if (!reason) highlight = "equip";
     } else {
       const o = findOption(legal.options, (a) => a.type === "undoBattleCard" && a.uid === card.uid);
-      hint = "クリックで手札に戻す";
+      hint = t("hint.returnToHand");
       onClick = () => send({ type: "undoBattleCard", uid: card.uid });
       reason = reasonText(o);
     }
@@ -157,9 +158,9 @@ function FieldCard({ card }: { card: CardInstance }) {
   const me = view.players.find((p) => p.id === view.viewerId);
   const weaponDefId = weaponOf ? me?.field.find((c) => c.uid === weaponOf)?.defId : undefined;
   const badge = weaponDefId ? (
-    <span className="equip-badge">装備：{cardName(reg.get(weaponDefId))}</span>
+    <span className="equip-badge">{t("player.equipped", { name: cardName(reg.get(weaponDefId)) })}</span>
   ) : equippedTo ? (
-    <span className="equip-badge">装備中</span>
+    <span className="equip-badge">{t("player.equippedBadge")}</span>
   ) : null;
 
   return (
@@ -206,7 +207,7 @@ function GrowthButtons({ card }: { card: CardInstance }) {
               );
             })}
             <button type="button" className="mini ghost" onClick={() => setClassChange(null)}>
-              やめる
+              {t("player.cancel")}
             </button>
           </div>
         ) : (
@@ -217,7 +218,7 @@ function GrowthButtons({ card }: { card: CardInstance }) {
             title={any ? undefined : (reasonText(first) ?? undefined)}
             onClick={() => setClassChange(card.uid)}
           >
-            転職（経験値{view.config.changeClassExp}）
+            {t("player.changeClass", { n: view.config.changeClassExp })}
           </button>
         );
     } else if (def.nextLevelExp !== null) {
@@ -231,7 +232,7 @@ function GrowthButtons({ card }: { card: CardInstance }) {
           title={r ?? undefined}
           onClick={() => send({ type: "levelUp", uid: card.uid })}
         >
-          Lvアップ（経験値{def.nextLevelExp}）
+          {t("player.levelUp", { n: def.nextLevelExp })}
         </button>
       );
     }
@@ -252,8 +253,8 @@ function HeroSlots() {
   if (!slotsShown(update)) return null;
   const { total, used } = update.info.slots;
   return (
-    <span className="hero-slots" aria-label={`英雄の枠 ${used} / ${total}`}>
-      英雄の枠 <strong>{used}</strong> / {total}
+    <span className="hero-slots" aria-label={t("slots.label", { used, total })}>
+      {t("slots.title")} <strong>{used}</strong> / {total}
     </span>
   );
 }
@@ -268,9 +269,9 @@ function EmptySlots() {
   if (left === 0) {
     return (
       <div className="card-wrap">
-        <div className="card card-small slot-card slot-card-none" title="食料を出すと、食糧値の分だけ英雄の枠が増えます">
-          <span className="slot-card-title">英雄の枠なし</span>
-          <span className="slot-card-text">食料を出すと枠が増える</span>
+        <div className="card card-small slot-card slot-card-none" title={t("slots.noneTitle")}>
+          <span className="slot-card-title">{t("slots.none")}</span>
+          <span className="slot-card-text">{t("slots.noneText")}</span>
         </div>
       </div>
     );
@@ -281,10 +282,10 @@ function EmptySlots() {
         <div key={i} className="card-wrap">
           <div
             className="card card-small slot-card"
-            title={`英雄は${free}人まで食料なしで出せます。食料を出すと、食糧値の分だけ枠が増えます`}
+            title={t("slots.freeTitle", { n: free })}
           >
-            <span className="slot-card-title">英雄の枠</span>
-            <span className="slot-card-text">手札の英雄をクリックすると、ここに出る</span>
+            <span className="slot-card-title">{t("slots.title")}</span>
+            <span className="slot-card-text">{t("slots.emptyText")}</span>
           </div>
         </div>
       ))}
