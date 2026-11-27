@@ -431,6 +431,27 @@ export const en: Messages = {
   "slots.noneText": "Play food to add slots",
   "slots.freeTitle": "You can play {n} {n|hero|heroes} without food. Playing food adds slots equal to its food value",
   "slots.emptyText": "Click a hero in your hand to play it here",
+
+  // チュートリアルの案内（TutorialHint）
+  "tut.longPress": " (Long-press a card for details.)",
+  "tut.show": "Show Tips",
+  "tut.label": "Tip",
+  "tut.hide": "Hide",
+  "tut.never": "Don't Show Tips",
+  "tut.ok": "Got It",
+  "tut.discard": "An enemy's ability forces you to discard. Choose cards you don't need.",
+  "tut.boss": "The boss, the {boss} ({hp} HP), has appeared! Defeat it to win; if it reaches the village, you lose (it arrives in {left} {left|march|marches}). Damage to the boss carries over, so keep attacking every turn even if you can't finish it in one go.",
+  "tut.start": "On your turn, either visit the village or fight an enemy. There are no enemies yet, so start by visiting the village and buying cards with the Gold in your hand.",
+  "tut.close": "Enemies are closing in on the village. When they arrive, its durability drops. Click an enemy to fight it. Defeating it earns EXP, and the enemies won't march that turn.",
+  "tut.appear": "An enemy has appeared on the march route. Enemies advance one space at the end of each turn. If you can win, click it to fight; if you're still weak, recruit more heroes in the village.",
+  "tut.villageLevel": "You have EXP to spend! Use \"Level Up\" under the heroes in your hand, or \"Promote\" on a Village Youth, to grow stronger.",
+  "tut.villageHero": "Heroes with a village effect use it when played in the village. You can play one hero without food.",
+  "tut.villageBuy": "You have {gold} Gold. Click the village stock above to buy. Knights (physical) and Mages (magic) add fighting power, and Jerky is food that lets you play 2 more heroes. Bought cards go to your discard pile and reach your hand later. Press \"End Visit\" when you're done.",
+  "tut.battleKill": "Your expected damage reaches the enemy's HP. Press \"Attack!\" to defeat it!",
+  "tut.battleBoss": "It's fine if you can't defeat the boss in one go. Damage carries over, so press \"Attack!\" to wear it down, and next turn you'll fight what's left of its HP.",
+  "tut.battle": "Click heroes in your hand to play them. You can play one hero without food; food lets you play as many extra heroes as its food value. To equip a weapon, click it, then click a hero in play.",
+  "tut.afterLevel": "Defeated! You have enough EXP to level up heroes in play or in your hand right now.",
+  "tut.after": "Defeated! Spend EXP to level up heroes or promote a Village Youth. Press \"End Turn\" to move on.",
 };
 
 /** Card, stage and difficulty text from data/*.json. Keys are card.<id>, stage.<id>.name/.desc, danger.<level> */
