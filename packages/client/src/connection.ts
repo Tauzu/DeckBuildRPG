@@ -12,6 +12,7 @@ import {
   isEngineError,
   newRecord,
 } from "@deckbuild/core";
+import { errorText } from "./text.js";
 
 export type { GameUpdate, TurnInfo } from "@deckbuild/core";
 
@@ -50,7 +51,7 @@ export class LocalConnection implements GameConnection {
   send(action: Action): void {
     const r = applyAction(this.state, this.playerId, action, this.reg);
     if (isEngineError(r)) {
-      this.publish(this.makeUpdate([], r.message));
+      this.publish(this.makeUpdate([], errorText(r.error)));
       return;
     }
     this.state = r.state;

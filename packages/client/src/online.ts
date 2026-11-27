@@ -1,6 +1,7 @@
 // マルチプレイの通信（仕様書 9章、設計書 5.3）。Socket.IO でサーバーとやりとりする
 import type { Action, GameUpdate } from "@deckbuild/core";
 import { io, type Socket } from "socket.io-client";
+import { t } from "./i18n.js";
 
 export interface MemberInfo {
   id: string;
@@ -90,7 +91,7 @@ export class Online {
   private ask<T>(event: string, ...args: unknown[]): Promise<T> {
     return new Promise((ok) => {
       this.socket.timeout(8000).emit(event, ...args, (err: Error | null, r: T) => {
-        ok(err ? ({ ok: false, error: "サーバーに接続できません" } as T) : r);
+        ok(err ? ({ ok: false, error: t("server.unreachable") } as T) : r);
       });
     });
   }

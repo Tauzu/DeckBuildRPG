@@ -304,7 +304,8 @@ export class Room {
     }
     const r = applyAction(this.state, playerId, action, this.reg);
     if (isEngineError(r)) {
-      if (m.socketId) this.hooks.sendError(m.socketId, r.message);
+      // 理由は ErrorCode で送り、画面がその人の言語で出す
+      if (m.socketId) this.hooks.sendError(m.socketId, r.error);
       return;
     }
     this.commit(playerId, action, r.state, r.events);

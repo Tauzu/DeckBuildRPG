@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { defaultRegistry } from "@deckbuild/core";
 import { dataMessages, detectLang, format, messageKeys } from "../src/i18n.js";
@@ -51,7 +52,18 @@ describe("英語の文言", () => {
       ...["英雄王", "聖騎士", "勇者", "見習い"].map((s) => `rankTitle.${s}`),
     ];
     expect(need.filter((k) => !data[k])).toEqual([]);
-    expect(Object.keys(data).filter((k) => !need.includes(k))).toEqual([]);
+    expect(Object.keys(data).filter((k) => !need.includes(k) && !k.startsWith("server."))).toEqual([]);
+  });
+  it("サーバーのエラーの訳は、サーバーのコードにある文だけ", () => {
+    const dir = new URL("../../server/src/", import.meta.url);
+    const src = readdirSync(dir)
+      .filter((f) => f.endsWith(".ts"))
+      .map((f) => readFileSync(new URL(f, dir), "utf8"))
+      .join("\n");
+    const stale = Object.keys(dataMessages("en"))
+      .filter((k) => k.startsWith("server."))
+      .filter((k) => !src.includes(`"${k.slice(7)}"`));
+    expect(stale).toEqual([]);
   });
   it("すべての英雄に名前がある", () => {
     const heroIds = new Set(defaultRegistry().all().flatMap((d) => (d.type === "hero" ? [d.heroId] : [])));

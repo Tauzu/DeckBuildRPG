@@ -1,6 +1,8 @@
 // 画面の文言（設計書 4.3：文言は1か所にまとめる）。言葉そのものは locales/ にあり、ここは組み立てだけ
 import type { CardDef, CardRegistry, DangerDef, Effect, EnemyTrait, ErrorCode, GameEvent, PlayerView, Resist, StageDef, WeaponAbility, WeaponAffinity } from "@deckbuild/core";
+import { defaultRegistry } from "@deckbuild/core";
 import { getLang, joinList, t, td } from "./i18n.js";
+import { ja } from "./locales/ja.js";
 
 export function errorText(code: ErrorCode): string {
   return t(`error.${code}`, { guard: td("card.enemy_frost_guard", "氷の盾兵") });
@@ -222,6 +224,30 @@ export function resultReason(reason: string, boss: string): string {
     default:
       return "";
   }
+}
+
+/**
+ * サーバーから届いたエラーを今の言語にする。サーバーは操作の理由を ErrorCode で、
+ * それ以外を日本語の文で送る（日本語の文は locales のデータの訳で引く。知らない文はそのまま）
+ */
+export function serverText(msg: string): string {
+  if (isErrorCode(msg)) return errorText(msg);
+  if (getLang() === "ja") return msg;
+  let m = /^危険度は (\d+) までです$/.exec(msg);
+  if (m) return t("server.dangerMax", { n: m[1]! });
+  m = /^ルームは(\d+)人までです$/.exec(msg);
+  if (m) return t("server.roomFull", { n: m[1]! });
+  m = /^「(.+)」は(.+)人で遊ぶステージです（今は(\d+)人）$/.exec(msg);
+  if (m) {
+    const st = defaultRegistry().stages.find((s) => s.name === m![1]);
+    return t("server.stageCount", { stage: st ? stageName(st) : m[1]!, counts: m[2]!.split("・").join(t("list.dot")), n: m[3]! });
+  }
+  return td(`server.${msg}`, msg);
+}
+
+const ERROR_CODES = new Set(Object.keys(ja).filter((k) => k.startsWith("error.") && /^error\.[A-Z_]+$/.test(k)).map((k) => k.slice(6)));
+function isErrorCode(s: string): s is ErrorCode {
+  return ERROR_CODES.has(s);
 }
 
 /** 結果の称号（core が日本語で付ける） */

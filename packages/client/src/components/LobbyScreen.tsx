@@ -5,6 +5,7 @@ import { isUnlocked, maxDangerFor } from "../progress.js";
 import { reg, useStore } from "../store.js";
 import { DangerPicker, dangerTexts } from "./DangerPicker.js";
 import { cardName, stageName } from "../text.js";
+import { t, tParts } from "../i18n.js";
 
 export function LobbyScreen() {
   const room = useStore((s) => s.room);
@@ -40,40 +41,40 @@ function EnterRoom() {
 
   return (
     <div className="rules panel lobby">
-      <h1>みんなで遊ぶ</h1>
+      <h1>{t("lobby.title")}</h1>
       {inviteCode && (
         <p className="invite-banner">
-          ルーム <strong>{inviteCode}</strong> に招待されています。名前を入れて「参加する」を押してください。
+          {tParts("lobby.invited", { code: <strong key="code">{inviteCode}</strong> })}
         </p>
       )}
       <label className="field">
-        <span>あなたの名前</span>
-        <input value={name} maxLength={12} onChange={(e) => setName(e.target.value)} placeholder="12文字まで" autoFocus />
+        <span>{t("lobby.yourName")}</span>
+        <input value={name} maxLength={12} onChange={(e) => setName(e.target.value)} placeholder={t("lobby.namePlaceholder")} autoFocus />
       </label>
       <div className="lobby-columns">
         {!inviteCode && (
         <section className="lobby-box">
-          <h2>ルームを作る</h2>
-          <p className="dialog-note">ルームコードと、すぐ参加できる招待リンクが発行されます。一緒に遊ぶ人に送ってください。</p>
+          <h2>{t("lobby.create")}</h2>
+          <p className="dialog-note">{t("lobby.createNote")}</p>
           <button
             type="button"
             className="primary"
             disabled={!nameOk || busy}
             onClick={() => run(() => createRoom(name.trim(), firstStage.id, 0))}
           >
-            ルームを作る
+            {t("lobby.create")}
           </button>
         </section>
         )}
         <section className="lobby-box">
-          <h2>ルームに参加する</h2>
+          <h2>{t("lobby.join")}</h2>
           <label className="field">
-            <span>ルームコード</span>
+            <span>{t("lobby.code")}</span>
             <input
               value={code}
               maxLength={6}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="英数字6文字"
+              placeholder={t("lobby.codePlaceholder")}
               className="code-input"
             />
           </label>
@@ -83,7 +84,7 @@ function EnterRoom() {
             disabled={!nameOk || code.trim().length !== 6 || busy}
             onClick={() => run(() => joinRoom(code.trim(), name.trim()))}
           >
-            参加する
+            {t("lobby.joinButton")}
           </button>
         </section>
       </div>
@@ -100,7 +101,7 @@ function EnterRoom() {
             go("title");
           }}
         >
-          戻る
+          {t("common.back")}
         </button>
       </div>
     </div>
@@ -135,7 +136,7 @@ function RoomView() {
   const stage = reg.stage(room.stageId);
   const n = room.members.length;
   const countOk = !!stage.playerCounts[String(n) as "1"];
-  const counts = Object.keys(stage.playerCounts).join("・");
+  const counts = Object.keys(stage.playerCounts).join(t("list.dot"));
 
   const link = inviteUrl(location.href, room.code);
   const copy = async (text: string, what: "code" | "link") => {
@@ -147,49 +148,49 @@ function RoomView() {
       // コピーできない環境では、表示されたコードやリンクを伝えてもらう
     }
   };
-  const share = () => navigator.share({ title: "FOODIE QUEST", text: "いっしょに遊ぼう！", url: link }).catch(() => undefined);
+  const share = () => navigator.share({ title: "FOODIE QUEST", text: t("lobby.shareText"), url: link }).catch(() => undefined);
 
   return (
     <div className="rules panel lobby">
-      <h1>ルーム</h1>
-      {!online && <p className="lobby-error">サーバーとの接続が切れています。再接続しています…</p>}
+      <h1>{t("lobby.room")}</h1>
+      {!online && <p className="lobby-error">{t("lobby.disconnected")}</p>}
       <div className="room-code">
-        <span>ルームコード</span>
+        <span>{t("lobby.code")}</span>
         <strong>{room.code}</strong>
         <button type="button" className="ghost mini" onClick={() => copy(room.code, "code")}>
-          {copied === "code" ? "コピーしました" : "コピー"}
+          {copied === "code" ? t("transfer.copied") : t("transfer.copy")}
         </button>
       </div>
       <div className="invite-link">
-        <span>招待リンク（開くとすぐ参加できる）</span>
-        <input readOnly value={link} onFocus={(e) => e.target.select()} aria-label="招待リンク" />
+        <span>{t("lobby.inviteLink")}</span>
+        <input readOnly value={link} onFocus={(e) => e.target.select()} aria-label={t("lobby.inviteLinkLabel")} />
         <button type="button" className="mini" onClick={() => copy(link, "link")}>
-          {copied === "link" ? "コピーしました" : "リンクをコピー"}
+          {copied === "link" ? t("transfer.copied") : t("lobby.copyLink")}
         </button>
         {typeof navigator.share === "function" && (
           <button type="button" className="ghost mini" onClick={share}>
-            共有
+            {t("lobby.share")}
           </button>
         )}
       </div>
-      <h2>参加者（{n} / 4人）</h2>
+      <h2>{t("lobby.members", { n })}</h2>
       <ul className="member-list">
         {room.members.map((m) => (
           <li key={m.id}>
             {m.name}
-            {m.id === room.hostId && <span className="member-host">ホスト</span>}
-            {m.id === myId && <span className="others-you">あなた</span>}
-            {!m.connected && <span className="others-off">接続待ち</span>}
+            {m.id === room.hostId && <span className="member-host">{t("lobby.host")}</span>}
+            {m.id === myId && <span className="others-you">{t("lobby.you")}</span>}
+            {!m.connected && <span className="others-off">{t("lobby.waitingConnect")}</span>}
           </li>
         ))}
       </ul>
-      <h2>ステージ</h2>
+      <h2>{t("lobby.stage")}</h2>
       {isHost ? (
         <>
           <ol className="stage-list">
             {reg.stages.map((st, i) => {
               const open = isUnlocked(reg.stages, progress, st.id);
-              const label = st.tutorial ? "チュートリアル" : `ステージ${i}`;
+              const label = st.tutorial ? t("stage.tutorialLabel") : t("stage.label", { n: i });
               return (
                 <li key={st.id}>
                   <button
@@ -200,11 +201,11 @@ function RoomView() {
                     onClick={async () => setError(await setRoomStage(st.id, 0))}
                   >
                     <span className="stage-label">{label}</span>
-                    <span className="stage-name">{open ? stageName(st) : "？？？"}</span>
+                    <span className="stage-name">{open ? stageName(st) : t("stage.locked")}</span>
                     <span className="stage-desc">
                       {open
-                        ? `${Object.keys(st.playerCounts).join("・")}人で遊べる（ボス：${cardName(reg.enemy(st.bossId))}）`
-                        : "まだ解放されていません"}
+                        ? t("lobby.stagePlayers", { counts: Object.keys(st.playerCounts).join(t("list.dot")), boss: cardName(reg.enemy(st.bossId)) })
+                        : t("lobby.stageLocked")}
                     </span>
                   </button>
                 </li>
@@ -220,22 +221,25 @@ function RoomView() {
               onChange={changeDanger}
             />
           )}
-          <p className="dialog-note">あなたが解放したステージと危険度から選べます。クリアすると、参加者全員の進み具合に記録されます。</p>
+          <p className="dialog-note">{t("lobby.hostNote")}</p>
         </>
       ) : (
         <div>
           <p>
-            {stage.tutorial ? "チュートリアル" : stageName(stage)}
-            {room.danger > 0 && `（危険度+${room.danger}）`}（ボス：{cardName(reg.enemy(stage.bossId))}）
+            {t("lobby.chosenStage", {
+              stage: stage.tutorial ? t("stage.tutorialLabel") : stageName(stage),
+              danger: room.danger > 0 ? t("result.dangerSuffix", { n: room.danger }) : "",
+              boss: cardName(reg.enemy(stage.bossId)),
+            })}
           </p>
           {room.danger > 0 && (
             <ul className="danger-list">
-              {dangerTexts(room.danger).map((t, i) => (
-                <li key={i}>{t}</li>
+              {dangerTexts(room.danger).map((d, i) => (
+                <li key={i}>{d}</li>
               ))}
             </ul>
           )}
-          <p className="dialog-note">ステージと危険度はホストが選びます。</p>
+          <p className="dialog-note">{t("lobby.guestNote")}</p>
         </div>
       )}
       {error && (
@@ -245,14 +249,14 @@ function RoomView() {
       )}
       <div className="dialog-buttons">
         <button type="button" className="ghost" onClick={leaveRoom}>
-          ルームを出る
+          {t("result.leaveRoom")}
         </button>
         <button type="button" onClick={() => go("title")}>
-          タイトルへ
+          {t("result.toTitle")}
         </button>
         {room.started && hasGame && (
           <button type="button" className="primary" onClick={() => go("game")}>
-            ゲームに戻る
+            {t("lobby.backToGame")}
           </button>
         )}
         {isHost && !room.started && (
@@ -260,13 +264,13 @@ function RoomView() {
             type="button"
             className="primary"
             disabled={!countOk}
-            title={countOk ? undefined : `このステージは${counts}人で遊びます`}
+            title={countOk ? undefined : t("lobby.countTitle", { counts })}
             onClick={async () => setError(await startRoom())}
           >
-            {countOk ? "開始する" : `${counts}人で遊ぶステージです`}
+            {countOk ? t("lobby.start") : t("lobby.countButton", { counts })}
           </button>
         )}
-        {!isHost && !room.started && <span className="dialog-note">ホストが開始するのを待っています…</span>}
+        {!isHost && !room.started && <span className="dialog-note">{t("lobby.waitHost")}</span>}
       </div>
     </div>
   );

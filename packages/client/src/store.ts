@@ -11,7 +11,7 @@ import { addSeen, seedSeen, visibleDefIds } from "./codex.js";
 import { type AchievementDef, addToTally, emptyTally, type GameTally, recordGameEnd } from "./achievements.js";
 import { addToReview, emptyReview, type Review } from "./review.js";
 import { exportCode, importCode, loadProgress, markCleared, mergeProgress, type Progress, saveProgress } from "./progress.js";
-import { buildLookup, errorText, eventText } from "./text.js";
+import { buildLookup, errorText, eventText, serverText } from "./text.js";
 import { count } from "./analytics.js";
 import { getLang, type Lang, setLang, t } from "./i18n.js";
 
@@ -324,8 +324,9 @@ export const useStore = create<Store>()((set, get) => {
       },
       error(message) {
         const conn = get().conn;
-        if (conn instanceof RemoteConnection) conn.pushError(message);
-        else set({ toast: message });
+        const text = serverText(message);
+        if (conn instanceof RemoteConnection) conn.pushError(text);
+        else set({ toast: text });
       },
       connection(connected) {
         set({ online: connected });
@@ -336,7 +337,7 @@ export const useStore = create<Store>()((set, get) => {
         set({
           room: null,
           myId: null,
-          toast: `ルームに戻れませんでした：${message}`,
+          toast: t("store.lostRoom", { reason: serverText(message) }),
           ...(st.conn instanceof RemoteConnection ? { conn: null, update: null, screen: "title" as const } : {}),
         });
       },
@@ -346,7 +347,7 @@ export const useStore = create<Store>()((set, get) => {
 
   const enter = async (p: Promise<{ ok: true } | { ok: false; error: string }>): Promise<string | null> => {
     const r = await p;
-    if (!r.ok) return r.error;
+    if (!r.ok) return serverText(r.error);
     set({ myId: online?.session?.playerId ?? null, screen: "lobby" });
     return null;
   };
@@ -486,17 +487,17 @@ export const useStore = create<Store>()((set, get) => {
 
     async setRoomStage(stageId, danger) {
       const r = await net().setStage(stageId, danger);
-      return r.ok ? null : r.error;
+      return r.ok ? null : serverText(r.error);
     },
 
     async startRoom() {
       const r = await net().start();
-      return r.ok ? null : r.error;
+      return r.ok ? null : serverText(r.error);
     },
 
     async backToLobby() {
       const r = await net().backToLobby();
-      return r.ok ? null : r.error;
+      return r.ok ? null : serverText(r.error);
     },
 
     leaveRoom() {

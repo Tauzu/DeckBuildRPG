@@ -113,3 +113,12 @@ export function messageKeys(lang: Lang): string[] {
 export function dataMessages(lang: Lang): DataMessages {
   return DATA[lang];
 }
+
+/**
+ * 文言の一部に画面の部品（太字など）を差し込む。{name} の位置に parts の部品を置いた配列を返す
+ * 例：tParts("lobby.invited", { code: <strong>ABC123</strong> })
+ */
+export function tParts<T>(key: MessageKey, parts: Record<string, T>, params?: Params): (string | T)[] {
+  const text = format(UI[current][key] ?? ja[key], params);
+  return text.split(/\{(\w+)\}/).map((piece, i) => (i % 2 === 1 && piece in parts ? parts[piece]! : i % 2 === 1 ? `{${piece}}` : piece));
+}
