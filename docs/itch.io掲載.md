@@ -37,7 +37,7 @@ Compress-Archive -Path "packages/client/dist-itch/*" -DestinationPath "packages/
 | Pricing | **$0 or donate**（無料で遊べて、投げ銭もできる）。Suggested donation は $3 |
 | Uploads | `foodie-quest-itch.zip` を上げ、**This file will be played in the browser** にチェック |
 | Embed options | Viewport dimensions：1280 × 800（720 だと手札の欄が進軍ルートに重なりやすい）。**Mobile friendly** にチェック（Orientation：Landscape）。**Fullscreen button** にチェック。**Automatically start on page load** にチェック（外すと、押す前は灰色の画面に「Run game」だけになり味気ない。ブラウザは押すまで音を出させないので、急に鳴る心配はない） |
-| Frame options | **Enable scrollbars** にチェック（ロビーのステージ選択・遊び方など、縦に収まらない画面はページごとスクロールする作り。外すと下が切れて動かせない）。**Click to launch in fullscreen** は外したままでよい |
+| Frame options | **Enable scrollbars** は外す（ゲームの中で、収まらない画面はパネルの中だけがスクロールする。外の枠までスクロールすると、どこが動いているのか分かりにくい）。**Click to launch in fullscreen** は外したままでよい |
 | Genre | Card Game |
 | Tags | `deckbuilding`, `card-game`, `roguelite`, `co-op`, `multiplayer`, `pixel-art`, `fantasy`, `turn-based`, `strategy`, `singleplayer` |
 | AI generation disclosure | 使った場合は正直に書く（コードに AI の手伝いを受けたなど） |
