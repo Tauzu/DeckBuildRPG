@@ -1,0 +1,35 @@
+# main に push したら、テストを通してから Render に公開し直してもらう
+# Render の Deploy Hook のアドレスを、GitHub の Secrets に RENDER_DEPLOY_HOOK として登録しておく（README の「公開（Render）」）
+name: test-and-deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Render に公開し直してもらう
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::RENDER_DEPLOY_HOOK が登録されていないため、公開はしませんでした"
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "Render に公開を頼みました（数分で反映されます）"
