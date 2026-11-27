@@ -1,9 +1,10 @@
 // 危険度を選ぶ（企画書 13.1）。ステージ選択とルームで使う
 import { reg } from "../store.js";
+import { dangerText } from "../text.js";
 
 /** 危険度 level までに足される条件の説明 */
 export function dangerTexts(level: number): string[] {
-  return reg.dangers.slice(0, level).map((d) => d.text);
+  return reg.dangers.slice(0, level).map(dangerText);
 }
 
 export function DangerPicker({

@@ -6,6 +6,7 @@ import { CodexScreen } from "./components/CodexScreen.js";
 import { GameScreen, RulesScreen, StageSelectScreen, TitleScreen } from "./screens.js";
 import { playSfx, setBgmScene, unlockAudio } from "./audio.js";
 import { useStore } from "./store.js";
+import { count } from "./analytics.js";
 import "@fontsource/dotgothic16/400.css";
 import "./styles.css";
 
@@ -23,6 +24,14 @@ function App() {
   return <TitleScreen />;
 }
 
+count({ type: "open" });
+
+/** 言語が変わったら、画面をまるごと作り直す（文言は描くときに引くので） */
+function Root() {
+  const lang = useStore((s) => s.lang);
+  return <App key={lang} />;
+}
+
 // ブラウザは操作があるまで音を出させないので、最初の操作で音の準備をする
 window.addEventListener("pointerdown", () => unlockAudio(), { once: true });
 window.addEventListener("keydown", () => unlockAudio(), { once: true });
@@ -34,6 +43,6 @@ document.addEventListener("click", (e) => {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <Root />
   </StrictMode>,
 );

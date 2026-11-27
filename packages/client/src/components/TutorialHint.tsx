@@ -1,7 +1,7 @@
 // チュートリアルの案内（企画書 12.3）。状況に合わせてヒントを出すだけで、操作は自由
 import type { GameUpdate } from "../connection.js";
 import { reg, useStore } from "../store.js";
-import { touchText } from "../text.js";
+import { cardName, touchText } from "../text.js";
 
 /** 初めて出たときにダイアログでも見せる案内（操作の途中で出るものは除く） */
 const MODAL_KEYS = new Set(["start", "appear", "close", "boss", "villageBuy", "villageHero", "villageLevel", "battle", "battleBoss", "afterLevel"]);
@@ -82,7 +82,7 @@ function currentHint(u: GameUpdate): { key: string; text: string } {
         const hp = view.config.bossHp - (view.enemyDamage[boss.uid] ?? 0);
         const sq = view.route.findIndex((s) => s.some((c) => c.uid === boss.uid));
         const left = view.route.length - sq;
-        return h("boss", `ボス「${reg.get(boss.defId).name}」（残り生命力 ${hp}）が現れました！ 倒せば勝利、集落に着かれたら負けです（あと${left}回進軍すると着きます）。ボスに与えたダメージは残るので、1回で倒せなくても毎手番攻撃して削りましょう。`);
+        return h("boss", `ボス「${cardName(reg.get(boss.defId))}」（残り生命力 ${hp}）が現れました！ 倒せば勝利、集落に着かれたら負けです（あと${left}回進軍すると着きます）。ボスに与えたダメージは残るので、1回で倒せなくても毎手番攻撃して削りましょう。`);
       }
       if (enemies.length === 0) {
         return h("start", "手番では「集落を訪れる」か「敵と戦う」のどちらかを行います。まだ敵がいないので、まずは集落を訪れて、手札の金でカードを買いましょう。");

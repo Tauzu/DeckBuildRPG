@@ -11,7 +11,9 @@ import { addSeen, seedSeen, visibleDefIds } from "./codex.js";
 import { type AchievementDef, addToTally, emptyTally, type GameTally, recordGameEnd } from "./achievements.js";
 import { addToReview, emptyReview, type Review } from "./review.js";
 import { exportCode, importCode, loadProgress, markCleared, mergeProgress, type Progress, saveProgress } from "./progress.js";
-import { buildLookup, ERROR_TEXT, eventText } from "./text.js";
+import { buildLookup, errorText, eventText } from "./text.js";
+import { count } from "./analytics.js";
+import { getLang, type Lang, setLang, t } from "./i18n.js";
 
 export const reg = defaultRegistry();
 
@@ -49,6 +51,8 @@ interface Store {
   unlockedNow: AchievementDef[];
   /** チュートリアルの案内を隠しているか */
   hideHints: boolean;
+  /** 画面の言語 */
+  lang: Lang;
   /** チュートリアルで、ダイアログで見せ終えた案内の種類 */
   seenHints: string[];
 
@@ -89,6 +93,8 @@ interface Store {
   /** 引き継ぎコードを読み込み、今の進み具合と合わせる。失敗したらその理由 */
   importProgress(code: string): Promise<string | null>;
   setHideHints(hide: boolean): void;
+  /** 言語を変える（画面は作り直される） */
+  changeLang(lang: Lang): void;
   markHintSeen(key: string): void;
   go(screen: Screen): void;
   send(action: Action): void;
@@ -182,6 +188,12 @@ export const useStore = create<Store>()((set, get) => {
     unsubscribe?.();
     const first = conn.current();
     const nameOf = (id: string) => conn.current().view.players.find((p) => p.id === id)?.name ?? id;
+    // 遊ばれた数を数える（再接続や途中からの再開は数えない）
+    const mode = conn instanceof RemoteConnection ? "online" : "solo";
+    const { config } = first.view;
+    if (first.view.turnCount === 1 && !first.view.result) {
+      count({ type: "start", mode, stageId: config.stageId, danger: config.danger, players: config.playerCount });
+    }
     unsubscribe = conn.subscribe((u) => {
       if (u.error) {
         playSfx("error");
@@ -222,6 +234,7 @@ export const useStore = create<Store>()((set, get) => {
       const result = u.view.result;
       if (ended && result) {
         const { config } = u.view;
+        count({ type: "finish", mode, stageId: config.stageId, danger: config.danger, outcome: result.outcome });
         let progress = get().progress;
         let newly: Store["newlyCleared"] = null;
         if (result.outcome === "win") {
@@ -359,6 +372,7 @@ export const useStore = create<Store>()((set, get) => {
     turnDeadline: null,
     unlockedNow: [],
     hideHints: false,
+    lang: getLang(),
     seenHints: [],
     room: null,
     myId: null,
@@ -403,6 +417,11 @@ export const useStore = create<Store>()((set, get) => {
       } catch (e) {
         return e instanceof Error ? e.message : "読み込めませんでした";
       }
+    },
+
+    changeLang(lang) {
+      setLang(lang);
+      set({ lang });
     },
 
     setHideHints(hide) {
@@ -498,8 +517,8 @@ export function findOption(options: ActionOption[], pred: (a: Action) => boolean
 }
 
 export function reasonText(o: ActionOption | undefined): string | null {
-  if (!o) return "今はできません";
-  return o.reason ? ERROR_TEXT[o.reason] : null;
+  if (!o) return t("error.notNow");
+  return o.reason ? errorText(o.reason) : null;
 }
 
 /** マルチプレイ中か */

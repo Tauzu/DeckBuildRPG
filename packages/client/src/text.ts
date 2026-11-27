@@ -1,117 +1,112 @@
-// 画面の文言（設計書 4.3：文言は1か所にまとめる）
-import type { CardDef, CardRegistry, Effect, EnemyTrait, ErrorCode, GameEvent, PlayerView, Resist, WeaponAbility, WeaponAffinity } from "@deckbuild/core";
+// 画面の文言（設計書 4.3：文言は1か所にまとめる）。言葉そのものは locales/ にあり、ここは組み立てだけ
+import type { CardDef, CardRegistry, DangerDef, Effect, EnemyTrait, ErrorCode, GameEvent, PlayerView, Resist, StageDef, WeaponAbility, WeaponAffinity } from "@deckbuild/core";
+import { getLang, joinList, t, td } from "./i18n.js";
 
-export const ERROR_TEXT: Record<ErrorCode, string> = {
-  GAME_OVER: "ゲームは終了しています",
-  NOT_YOUR_TURN: "あなたの手番ではありません",
-  PENDING_INPUT: "先に選択を済ませてください",
-  NOT_PENDING: "今は選択を求められていません",
-  INVALID_STEP: "今はその操作はできません",
-  CARD_NOT_FOUND: "そのカードは使えません",
-  WRONG_CARD_TYPE: "そのカードでは行えません",
-  NO_SLOT: "食料が足りません（英雄は1人＋食糧値の人数まで）",
-  NOT_ENOUGH_GOLD: "金が足りません",
-  NOT_ENOUGH_EXP: "経験値が足りません",
-  STOCK_EMPTY: "在庫がありません",
-  UNKNOWN_STACK: "その在庫はありません",
-  NOT_FOR_SALE: "購入できないカードです",
-  MAX_LEVEL: "最大レベルです",
-  ALREADY_EQUIPPED: "すでに武器を装備しています",
-  NO_ENEMY: "敵がいません",
-  CANNOT_UNDO: "先に英雄を戻してください",
-  CANNOT_CANCEL: "すでに集落で行動したため選び直せません",
-  INVALID_SELECTION: "選び方が正しくありません",
-  GUARDED: "護衛に守られています。先に護衛（氷の盾兵）を倒しましょう",
-};
+export function errorText(code: ErrorCode): string {
+  return t(`error.${code}`, { guard: td("card.enemy_frost_guard", "氷の盾兵") });
+}
 
-export const HERO_NAMES: Record<string, string> = {
-  knight: "騎士",
-  mage: "魔法使い",
-  hunter: "狩人",
-  priest: "僧侶",
-  thief: "盗賊",
-  bard: "吟遊詩人",
-  militia: "民兵",
-  frost: "氷術師",
-  youth: "村の若者",
-};
+/** 名前を locales に持っている英雄 */
+const HERO_IDS = ["knight", "mage", "hunter", "priest", "thief", "bard", "militia", "frost", "youth"] as const;
+type KnownHero = (typeof HERO_IDS)[number];
+function isKnownHero(id: string): id is KnownHero {
+  return (HERO_IDS as readonly string[]).includes(id);
+}
+
+export function heroName(heroId: string): string {
+  return isKnownHero(heroId) ? t(`hero.${heroId}`) : heroId;
+}
+
+/** カードの名前（レベルは付けない） */
+export function cardName(def: CardDef): string {
+  if (def.type === "hero") return isKnownHero(def.heroId) ? heroName(def.heroId) : def.name;
+  return td(`card.${def.id}`, def.name);
+}
+
+export function stageName(st: StageDef): string {
+  return td(`stage.${st.id}.name`, st.name);
+}
+
+export function stageDescription(st: StageDef): string {
+  return td(`stage.${st.id}.desc`, st.description);
+}
+
+export function dangerText(d: DangerDef): string {
+  return td(`danger.${d.level}`, d.text);
+}
+
+function statParts(b: { physical: number; magic: number }): string {
+  return [b.physical > 0 && t("stat.physical", { n: b.physical }), b.magic > 0 && t("stat.magic", { n: b.magic })]
+    .filter((s): s is string => !!s)
+    .join(t("list.dot"));
+}
 
 /** 武器の能力の説明 */
 export function describeWeaponAbility(a: WeaponAbility): string {
   switch (a.kind) {
     case "pierce":
-      return "装備した英雄の攻撃は耐性を受けない";
-    case "perLevel": {
-      const parts = [a.physical > 0 && `物+${a.physical}`, a.magic > 0 && `魔+${a.magic}`].filter(Boolean).join("・");
-      return `英雄のLv1つにつき${parts}`;
-    }
+      return t("weapon.pierce");
+    case "perLevel":
+      return t("weapon.perLevel", { parts: statParts(a) });
     case "defeatExp":
-      return `撃破すると経験値+${a.amount}`;
+      return t("weapon.defeatExp", { n: a.amount });
     case "solo":
-      return "英雄がいなくても使える";
+      return t("weapon.solo");
     case "chill":
-      return "倒せなかった敵を凍結する（ボス以外。凍結中は受けるダメージ+2）";
+      return t("weapon.chill");
   }
 }
 
 /** 武器の得意英雄の説明 */
 export function affinityText(a: WeaponAffinity): string {
-  const parts = [a.physical > 0 && `物+${a.physical}`, a.magic > 0 && `魔+${a.magic}`].filter(Boolean).join("・");
-  return `得意：${a.heroes.map((h) => HERO_NAMES[h] ?? h).join("・")}が装備すると${parts}`;
+  return t("weapon.affinity", { heroes: a.heroes.map(heroName).join(t("list.dot")), parts: statParts(a) });
 }
 
 /** 英雄の「群れ」ボーナスの説明 */
 export function packText(b: { physical: number; magic: number }, name: string): string {
-  const parts = [b.physical > 0 && `物+${b.physical}`, b.magic > 0 && `魔+${b.magic}`].filter(Boolean).join("・");
-  return `場か手札に他の${name}がいると、1人につき${parts}`;
+  return t("hero.pack", { name, parts: statParts(b) });
 }
 
 /** 敵の特性の説明 */
-export function describeTrait(t: EnemyTrait): string {
-  switch (t) {
-    case "guard":
-      return "護衛：同じマスと1つ後ろのマスの敵を守る。倒すまで守られた敵は選べない";
-    case "split":
-      return "分裂：倒すと、1マス目に小スライムを1体出す";
-    case "sprint":
-      return "疾走：進軍で2マス進む";
-  }
+export function describeTrait(tr: EnemyTrait): string {
+  return t(`trait.${tr}`);
 }
 
 export function describeEffect(e: Effect): string {
   switch (e.kind) {
     case "draw":
-      return `カードを${e.count}枚引く`;
+      return t("effect.draw", { n: e.count });
     case "drawPack":
-      return "手札と場の他の民兵の数だけカードを引く";
+      return t("effect.drawPack");
     case "gold":
-      return `金+${e.amount}`;
+      return t("effect.gold", { n: e.amount });
     case "exp":
-      return `経験値+${e.amount}`;
+      return t("effect.exp", { n: e.amount });
     case "trash":
-      return `手札か捨て札から${e.count}枚まで廃棄`;
+      return t("effect.trash", { n: e.count });
     case "multi":
-      return e.effects.map(describeEffect).join("、");
+      return joinList(e.effects.map(describeEffect));
     case "discardHand":
-      return e.target === "all" ? `全員が手札を${e.count}枚捨てる` : `ランダムな1人が手札を${e.count}枚捨てる`;
+      return t(e.target === "all" ? "effect.discardAll" : "effect.discardRandom", { n: e.count });
     case "addCurse":
-      return `全員の捨て札に呪いを${e.count}枚加える`;
+      return t("effect.addCurse", { n: e.count });
     case "freeze":
-      return `敵${e.count}体を凍結（次の進軍で動かず、受けるダメージ+2）`;
+      return t("effect.freeze", { n: e.count });
     case "push":
-      return `敵${e.count}体を1マス戻す`;
+      return t("effect.push", { n: e.count });
     case "rally":
-      return "他の敵が全員1マス進み、凍結が解ける";
+      return t("effect.rally");
   }
 }
 
 export function resistText(r: Resist): string | null {
-  return r === "half" ? "半減" : r === "immune" ? "無効" : null;
+  return r === "half" ? t("resist.half") : r === "immune" ? t("resist.immune") : null;
 }
 
+/** カードの見出し（英雄はレベルを付ける） */
 export function cardTitle(def: CardDef): string {
-  if (def.type === "hero" && def.level > 0) return `${def.name} Lv${def.level}`;
-  return def.name;
+  if (def.type === "hero" && def.level > 0) return t("card.level", { name: cardName(def), n: def.level });
+  return cardName(def);
 }
 
 /** ログ用：画面から見える uid → カードID の対応 */
@@ -137,75 +132,75 @@ export function eventText(
   lookup: Map<string, string>,
   playerName: (id: string) => string,
 ): string | null {
-  const name = (defId: string | undefined) => (defId ? cardTitle(reg.get(defId)) : "？");
+  const name = (defId: string | undefined) => (defId ? cardTitle(reg.get(defId)) : t("unknown"));
   const byUid = (uid: string) => name(lookup.get(uid));
   switch (e.type) {
     case "turnStarted":
-      return `―― 手番 ${e.turnCount}（${playerName(e.playerId)}）――`;
+      return t("log.turnStarted", { n: e.turnCount, player: playerName(e.playerId) });
     case "actionChosen":
-      return e.action === "village" ? "集落を訪れた" : `${byUid(e.targetUid ?? "")}に戦いを挑んだ`;
+      return e.action === "village" ? t("log.village") : t("log.challenge", { target: byUid(e.targetUid ?? "") });
     case "actionCanceled":
-      return "行動を選び直した";
+      return t("log.canceled");
     case "marchSkipped":
-      return "敵を撃破したため、敵は進軍しなかった";
+      return t("log.marchSkipped");
     case "cardPlayed":
-      return `${name(e.defId)}を出した`;
+      return t("log.played", { card: name(e.defId) });
     case "cardReturned":
-      return `${name(e.defId)}を手札に戻した`;
+      return t("log.returned", { card: name(e.defId) });
     case "weaponEquipped":
-      return `${byUid(e.heroUid)}に${byUid(e.weaponUid)}を装備した`;
+      return t("log.equipped", { hero: byUid(e.heroUid), weapon: byUid(e.weaponUid) });
     case "cardBought":
-      return `${name(e.defId)}を購入した（${e.cost}金）`;
+      return t("log.bought", { card: name(e.defId), cost: e.cost });
     case "lootSold":
-      return `戦利品を売却した：${e.defIds.map(name).join("、")}`;
+      return t("log.lootSold", { cards: joinList(e.defIds.map(name)) });
     case "cardTrashed":
-      return `${name(e.defId)}を廃棄した`;
+      return t("log.trashed", { card: name(e.defId) });
     case "leveledUp": {
       const from = reg.hero(e.fromDefId);
-      return from.level === 0
-        ? `村の若者が${name(e.toDefId)}に転職した（経験値-${e.exp}）`
-        : `${name(e.fromDefId)}が${name(e.toDefId)}にレベルアップした（経験値-${e.exp}）`;
+      return t(from.level === 0 ? "log.classChange" : "log.levelUp", { from: name(e.fromDefId), to: name(e.toDefId), n: e.exp });
     }
     case "attackResolved": {
-      const sum = e.prevDamage > 0 ? `（累計 ${e.prevDamage + e.damage} / 生命力${e.hp}）` : `（生命力${e.hp}）`;
+      const sum = e.prevDamage > 0 ? t("log.attackTotal", { total: e.prevDamage + e.damage, hp: e.hp }) : t("log.attackHp", { hp: e.hp });
       const boss = reg.enemy(e.targetDefId).isBoss;
-      const rest = boss && !e.defeated && e.damage > 0 ? `… 残り生命力 ${e.hp - e.prevDamage - e.damage}（ダメージは残る）` : `… ${e.defeated ? "撃破！" : "倒せなかった"}`;
-      return `${name(e.targetDefId)}に${e.damage}ダメージ${sum}${rest}`;
+      const rest =
+        boss && !e.defeated && e.damage > 0
+          ? t("log.attackBossLeft", { n: e.hp - e.prevDamage - e.damage })
+          : t(e.defeated ? "log.attackDefeated" : "log.attackFailed");
+      return t("log.attack", { target: name(e.targetDefId), n: e.damage, sum, rest });
     }
     case "expGained":
-      return `経験値+${e.amount}`;
+      return t("effect.exp", { n: e.amount });
     case "enemyRevealed": {
       const d = reg.enemy(e.defId);
-      const ability = d.onReveal ? `：${describeEffect(d.onReveal)}` : "";
-      return `${d.name}が現れた！${ability}`;
+      return d.onReveal ? t("log.revealedAbility", { enemy: cardName(d), text: describeEffect(d.onReveal) }) : t("log.revealed", { enemy: cardName(d) });
     }
     case "enemyArrived": {
       const d = reg.enemy(e.defId);
-      return d.isBoss ? `${d.name}が集落に到達した……` : `${d.name}が集落を襲った（耐久値-${e.damage} → ${e.villageHp}）`;
+      return d.isBoss ? t("log.bossArrived", { enemy: cardName(d) }) : t("log.enemyArrived", { enemy: cardName(d), n: e.damage, hp: e.villageHp });
     }
     case "enemyFrozen":
-      return `${name(e.defId)}を凍結した（次の進軍で動かない）`;
+      return t("log.frozen", { card: name(e.defId) });
     case "enemyPushed":
-      return `${name(e.defId)}を${e.from + 1}マス目から${e.to + 1}マス目に押し戻した`;
+      return t("log.pushed", { card: name(e.defId), from: e.from + 1, to: e.to + 1 });
     case "enemySplit":
-      return `倒されたスライムが分裂して、${name(e.defId)}が現れた`;
+      return t("log.split", { card: name(e.defId) });
     case "cardsDiscarded":
-      return `${playerName(e.playerId)}が手札を捨てた：${e.defIds.map(name).join("、")}`;
+      return t("log.discarded", { player: playerName(e.playerId), cards: joinList(e.defIds.map(name)) });
     case "curseAdded":
-      return `${playerName(e.playerId)}の捨て札に呪いが加わった`;
+      return t("log.curse", { player: playerName(e.playerId) });
     case "deckShuffled":
-      return "捨て札をシャッフルして山札にした";
+      return t("log.shuffled");
     case "gameEnded":
-      return e.result.outcome === "win" ? "ボスを討ち取った！" : "集落は陥落した……";
+      return t(e.result.outcome === "win" ? "log.win" : "log.lose");
     case "effectResolved": {
       if (e.playerId !== null) return null;
       const src = lookup.get(e.sourceUid);
       if (!src) return null;
       const d = reg.get(src);
       if (d.type === "enemy" && d.isBoss && e.effect.kind === "discardHand" && e.effect.target === "random") {
-        return `${d.name}の威圧：${describeEffect(e.effect)}`;
+        return t("log.intimidate", { enemy: cardName(d), text: describeEffect(e.effect) });
       }
-      if (d.type === "enemy" && e.effect.kind === "rally") return `${d.name}の号令：${describeEffect(e.effect)}`;
+      if (d.type === "enemy" && e.effect.kind === "rally") return t("log.rally", { enemy: cardName(d), text: describeEffect(e.effect) });
       return null;
     }
     case "cardsDrawn":
@@ -219,11 +214,11 @@ export function eventText(
 export function resultReason(reason: string, boss: string): string {
   switch (reason) {
     case "bossDefeated":
-      return `${boss}を討ち取り、集落を守り抜いた。`;
+      return t("result.bossDefeated", { boss });
     case "villageDestroyed":
-      return "集落の守りが尽き、魔物の群れに蹂躙された。";
+      return t("result.villageDestroyed");
     case "bossArrived":
-      return `${boss}が集落に到達し、集落は落ちた。`;
+      return t("result.bossArrived", { boss });
     default:
       return "";
   }
@@ -232,9 +227,9 @@ export function resultReason(reason: string, boss: string): string {
 /** タッチ操作の端末では「クリック」を「タップ」と言い換える */
 export function touchText(s: string): string {
   const touch = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
-  return touch ? s.replaceAll("クリック", "タップ") : s;
+  if (!touch) return s;
+  return getLang() === "ja" ? s.replaceAll("クリック", "タップ") : s.replace(/\bclick/g, "tap").replace(/\bClick/g, "Tap");
 }
-
 
 /** 英雄が戦闘中に出したときの効果の説明（なければ null） */
 export function battleEffectText(e: Effect | null): string | null {

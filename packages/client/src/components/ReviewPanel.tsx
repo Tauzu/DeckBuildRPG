@@ -3,6 +3,7 @@ import { useState } from "react";
 import { groupDeck, highlights, type Review, type TurnPoint } from "../review.js";
 import { reg, useStore } from "../store.js";
 import { Card } from "./Card.js";
+import { cardName } from "../text.js";
 
 const LINE_COLORS = ["var(--accent)", "var(--mag)", "var(--good)", "var(--phys)"];
 const W = 320;
@@ -139,7 +140,7 @@ export function ReviewPanel({ review }: { review: Review }) {
           <ol className="review-buys">
             {myBuys.map((b, i) => (
               <li key={i}>
-                <span className="review-turn">手番{b.turn}</span> {reg.get(b.defId).name}
+                <span className="review-turn">手番{b.turn}</span> {cardName(reg.get(b.defId))}
                 <span className="zone-sub"> （{b.cost}）</span>
               </li>
             ))}
@@ -149,7 +150,7 @@ export function ReviewPanel({ review }: { review: Review }) {
           <p className="review-summary">
             倒した敵：
             {[...myKills.reduce((m, k) => m.set(k.defId, (m.get(k.defId) ?? 0) + 1), new Map<string, number>())]
-              .map(([id, n]) => `${reg.get(id).name}×${n}`)
+              .map(([id, n]) => `${cardName(reg.get(id))}×${n}`)
               .join("、")}
           </p>
         )}

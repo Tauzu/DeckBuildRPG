@@ -20,6 +20,9 @@ import { TutorialHint } from "./components/TutorialHint.js";
 import { VillageStock } from "./components/VillageStock.js";
 import { isUnlocked, maxDangerFor, stageSelectUnlocked } from "./progress.js";
 import { isRemote, reg, useStore } from "./store.js";
+import { FEEDBACK_URL, GOATCOUNTER_URL, SUPPORT_URL } from "./links.js";
+import { cardName, stageDescription, stageName } from "./text.js";
+import { LANGS, type Lang, RELEASED_LANGS, t } from "./i18n.js";
 
 export function TitleScreen() {
   const startSolo = useStore((s) => s.startSolo);
@@ -33,51 +36,86 @@ export function TitleScreen() {
     <main className="title-screen">
       <TitleScene />
       <div className="title-box panel">
-        <p className="title-kicker">デッキビルド × RPG</p>
+        <p className="title-kicker">{t("title.kicker")}</p>
         <h1 className="title-logo">FOODIE QUEST</h1>
-        <p className="title-sub">エルムの村のはらぺこ英雄たち</p>
+        <p className="title-sub">{t("title.sub")}</p>
         <p className="title-lead">
-          腹がへっては戦はできぬ。
+          {t("title.lead1")}
           <br />
-          <span className="nowrap">食料で英雄を呼び集め、</span>
-          <span className="nowrap">魔竜の軍勢から村を守れ！</span>
+          <span className="nowrap">{t("title.lead2")}</span>
+          <span className="nowrap">{t("title.lead3")}</span>
         </p>
         <div className="title-buttons">
           {hasGame && (
             <button type="button" className="primary" onClick={() => go("game")}>
-              続きから遊ぶ
+              {t("title.continue")}
             </button>
           )}
           {unlocked ? (
             <button type="button" className={hasGame ? "" : "primary"} onClick={() => go("stages")}>
-              ステージを選ぶ
+              {t("title.stages")}
             </button>
           ) : (
             <>
               <button type="button" className={hasGame ? "" : "primary"} onClick={() => startSolo(tutorial?.id)}>
-                チュートリアルを始める
+                {t("title.tutorial")}
               </button>
-              <button type="button" disabled title="チュートリアルをクリアすると遊べます">
-                ステージを選ぶ（チュートリアルをクリアすると解放）
+              <button type="button" disabled title={t("title.stagesLockedHint")}>
+                {t("title.stagesLocked")}
               </button>
             </>
           )}
           <button type="button" className={inRoom && !hasGame ? "primary" : ""} onClick={() => go("lobby")}>
-            {inRoom ? "ルームに戻る" : "みんなで遊ぶ（ルームを作る・参加する）"}
+            {inRoom ? t("title.backToRoom") : t("title.online")}
           </button>
           <button type="button" onClick={() => go("records")}>
-            実績と記録
+            {t("title.records")}
           </button>
           <button type="button" onClick={() => go("codex")}>
-            カード図鑑
+            {t("title.codex")}
           </button>
           <button type="button" onClick={() => go("rules")}>
-            遊び方
+            {t("title.rules")}
           </button>
         </div>
         <SoundControls />
+        <LangPicker />
+        {(FEEDBACK_URL || SUPPORT_URL) && (
+          <p className="title-links">
+            {FEEDBACK_URL && (
+              <a href={FEEDBACK_URL} target="_blank" rel="noopener noreferrer">
+                {t("title.feedback")}
+              </a>
+            )}
+            {SUPPORT_URL && (
+              <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+                {t("title.support")}
+              </a>
+            )}
+          </p>
+        )}
+        {GOATCOUNTER_URL && <p className="title-privacy">{t("title.privacy")}</p>}
       </div>
     </main>
+  );
+}
+
+/** 言語の切り替え。翻訳がそろった言語が2つ以上になるまでは、そろっていない言語を見ているときだけ出す */
+function LangPicker() {
+  const lang = useStore((s) => s.lang);
+  const changeLang = useStore((s) => s.changeLang);
+  if (RELEASED_LANGS.length < 2 && RELEASED_LANGS.includes(lang)) return null;
+  return (
+    <label className="title-lang">
+      {t("lang.label")}{" "}
+      <select value={lang} onChange={(e) => changeLang(e.target.value as Lang)}>
+        {LANGS.map((l) => (
+          <option key={l.id} value={l.id}>
+            {l.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -100,7 +138,7 @@ export function StageSelectScreen() {
             const best = progress.bestDanger[st.id];
             const cleared = progress.cleared.includes(st.id);
             const label = st.tutorial ? "チュートリアル" : `ステージ${i}`;
-            const boss = reg.enemy(st.bossId).name;
+            const boss = cardName(reg.enemy(st.bossId));
             const max = maxDangerFor(st, progress, reg.maxDanger);
             const danger = Math.min(dangers[st.id] ?? max, max);
             return (
@@ -113,11 +151,11 @@ export function StageSelectScreen() {
                   onClick={() => startSolo(st.id, undefined, danger)}
                 >
                   <span className="stage-label">{label}</span>
-                  <span className="stage-name">{open ? st.name : "？？？"}</span>
+                  <span className="stage-name">{open ? stageName(st) : "？？？"}</span>
                   {cleared && (
                     <span className="stage-cleared">{!st.tutorial && best !== undefined && best > 0 ? `危険度+${best} クリア` : "クリア"}</span>
                   )}
-                  <span className="stage-desc">{open ? `${st.description}（ボス：${boss}）` : "前のステージをクリアすると解放されます"}</span>
+                  <span className="stage-desc">{open ? `${stageDescription(st)}（ボス：${boss}）` : "前のステージをクリアすると解放されます"}</span>
                 </button>
                 {open && !st.tutorial && max > 0 && (
                   <DangerPicker value={danger} max={max} best={best} onChange={(d) => setDangers({ ...dangers, [st.id]: d })} />
@@ -225,7 +263,7 @@ export function GameScreen() {
         <button type="button" className="ghost mini" onClick={() => go("title")}>
           タイトル
         </button>
-        <span className="game-title">{reg.stage(update.view.config.stageId).name}</span>
+        <span className="game-title">{stageName(reg.stage(update.view.config.stageId))}</span>
         {update.view.config.danger > 0 && <span className="game-danger">危険度 +{update.view.config.danger}</span>}
         <span className="game-turn">手番 {update.view.turnCount}</span>
         <SoundControls compact />

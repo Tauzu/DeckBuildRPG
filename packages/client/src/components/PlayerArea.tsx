@@ -1,6 +1,6 @@
 import type { Action, CardInstance } from "@deckbuild/core";
 import { findOption, reasonText, reg, useStore } from "../store.js";
-import { battleEffectText, describeEffect, HERO_NAMES } from "../text.js";
+import { battleEffectText, cardName, describeEffect, heroName } from "../text.js";
 import { Card } from "./Card.js";
 
 /** 場と手札 */
@@ -157,7 +157,7 @@ function FieldCard({ card }: { card: CardInstance }) {
   const me = view.players.find((p) => p.id === view.viewerId);
   const weaponDefId = weaponOf ? me?.field.find((c) => c.uid === weaponOf)?.defId : undefined;
   const badge = weaponDefId ? (
-    <span className="equip-badge">装備：{reg.get(weaponDefId).name}</span>
+    <span className="equip-badge">装備：{cardName(reg.get(weaponDefId))}</span>
   ) : equippedTo ? (
     <span className="equip-badge">装備中</span>
   ) : null;
@@ -201,7 +201,7 @@ function GrowthButtons({ card }: { card: CardInstance }) {
                   title={r ?? undefined}
                   onClick={() => send({ type: "changeClass", uid: card.uid, heroId })}
                 >
-                  {HERO_NAMES[heroId] ?? heroId}
+                  {heroName(heroId)}
                 </button>
               );
             })}

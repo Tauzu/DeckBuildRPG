@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
 import { reg, useStore } from "../store.js";
-import { cardTitle } from "../text.js";
+import { cardName, cardTitle } from "../text.js";
 
 export interface FxItem {
   id: number;
@@ -50,7 +50,7 @@ export function effectsFrom(events: GameEvent[], viewerId: string, nameOf: (id: 
           out.push({
             kind: "defeat",
             title: `${who(e.playerId)}撃破！`,
-            sub: `${enemy.name}${exp?.type === "expGained" ? `　経験値+${exp.amount}` : ""}`,
+            sub: `${cardName(enemy)}${exp?.type === "expGained" ? `　経験値+${exp.amount}` : ""}`,
             defId: e.targetDefId,
           });
         } else {
@@ -58,7 +58,7 @@ export function effectsFrom(events: GameEvent[], viewerId: string, nameOf: (id: 
           out.push({
             kind: "hit",
             title: `${who(e.playerId)}${e.damage}ダメージ`,
-            sub: enemy.isBoss && e.damage > 0 ? `${enemy.name}の残り生命力 ${rest}` : `${enemy.name}を倒せなかった`,
+            sub: enemy.isBoss && e.damage > 0 ? `${cardName(enemy)}の残り生命力 ${rest}` : `${cardName(enemy)}を倒せなかった`,
             defId: e.targetDefId,
           });
         }
@@ -77,12 +77,12 @@ export function effectsFrom(events: GameEvent[], viewerId: string, nameOf: (id: 
       }
       case "enemyRevealed": {
         const d = reg.enemy(e.defId);
-        if (d.isBoss) out.push({ kind: "boss", title: "ボス出現！", sub: d.name, defId: e.defId });
+        if (d.isBoss) out.push({ kind: "boss", title: "ボス出現！", sub: cardName(d), defId: e.defId });
         break;
       }
       case "enemyArrived":
         if (e.damage > 0) {
-          out.push({ kind: "village", title: `集落に${e.damage}ダメージ`, sub: `${reg.get(e.defId).name}が集落に着いた（耐久値 ${Math.max(0, e.villageHp)}）`, defId: e.defId });
+          out.push({ kind: "village", title: `集落に${e.damage}ダメージ`, sub: `${cardName(reg.get(e.defId))}が集落に着いた（耐久値 ${Math.max(0, e.villageHp)}）`, defId: e.defId });
         }
         break;
       case "cardBought": {

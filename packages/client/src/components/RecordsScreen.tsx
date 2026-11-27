@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ACHIEVEMENTS, type AchievementGroup, heroWinsCount } from "../achievements.js";
 import { codexIds } from "../codex.js";
 import { reg, useStore } from "../store.js";
+import { stageName } from "../text.js";
 
 const GROUPS: AchievementGroup[] = ["進行", "戦い方", "協力", "通算"];
 
@@ -63,7 +64,7 @@ export function RecordsScreen() {
                 const best = progress.bestDanger[st.id];
                 return (
                   <tr key={st.id}>
-                    <td>{progress.cleared.includes(st.id) || best !== undefined ? st.name : "？？？"}</td>
+                    <td>{progress.cleared.includes(st.id) || best !== undefined ? stageName(st) : "？？？"}</td>
                     <td className="records-danger">
                       {best === undefined ? "未クリア" : best === 0 ? "クリア（通常）" : `危険度 +${best} / +${reg.maxDanger}`}
                     </td>

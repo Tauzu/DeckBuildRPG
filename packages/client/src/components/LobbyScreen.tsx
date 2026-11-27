@@ -4,6 +4,7 @@ import { inviteUrl } from "../invite.js";
 import { isUnlocked, maxDangerFor } from "../progress.js";
 import { reg, useStore } from "../store.js";
 import { DangerPicker, dangerTexts } from "./DangerPicker.js";
+import { cardName, stageName } from "../text.js";
 
 export function LobbyScreen() {
   const room = useStore((s) => s.room);
@@ -199,10 +200,10 @@ function RoomView() {
                     onClick={async () => setError(await setRoomStage(st.id, 0))}
                   >
                     <span className="stage-label">{label}</span>
-                    <span className="stage-name">{open ? st.name : "？？？"}</span>
+                    <span className="stage-name">{open ? stageName(st) : "？？？"}</span>
                     <span className="stage-desc">
                       {open
-                        ? `${Object.keys(st.playerCounts).join("・")}人で遊べる（ボス：${reg.enemy(st.bossId).name}）`
+                        ? `${Object.keys(st.playerCounts).join("・")}人で遊べる（ボス：${cardName(reg.enemy(st.bossId))}）`
                         : "まだ解放されていません"}
                     </span>
                   </button>
@@ -224,8 +225,8 @@ function RoomView() {
       ) : (
         <div>
           <p>
-            {stage.tutorial ? "チュートリアル" : stage.name}
-            {room.danger > 0 && `（危険度+${room.danger}）`}（ボス：{reg.enemy(stage.bossId).name}）
+            {stage.tutorial ? "チュートリアル" : stageName(stage)}
+            {room.danger > 0 && `（危険度+${room.danger}）`}（ボス：{cardName(reg.enemy(stage.bossId))}）
           </p>
           {room.danger > 0 && (
             <ul className="danger-list">

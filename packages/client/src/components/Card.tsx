@@ -4,7 +4,7 @@ import { PixelArt } from "../art/PixelArt.js";
 import { spriteFor } from "../art/sprites.js";
 import { useLongPress } from "../hooks.js";
 import { reg, useStore } from "../store.js";
-import { affinityText, packText, battleEffectText, cardTitle, describeEffect, describeTrait, describeWeaponAbility, resistText } from "../text.js";
+import { affinityText, cardName, packText, battleEffectText, cardTitle, describeEffect, describeTrait, describeWeaponAbility, resistText } from "../text.js";
 
 interface Props {
   defId: string;
@@ -130,7 +130,7 @@ function CardBody({ def, hp, damage }: { def: CardDef; hp?: number | undefined; 
           {def.villageEffect && <div className="card-text">村：{describeEffect(def.villageEffect)}</div>}
           {def.battleEffect && battleEffectText(def.battleEffect) && <div className="card-text">戦闘：{battleEffectText(def.battleEffect)}</div>}
           {def.goldAttackDiv > 0 && <div className="card-text">戦闘中：手札と場の金価値の合計の{def.goldAttackDiv === 2 ? "半分" : `1/${def.goldAttackDiv}`}（切り捨て）を物理に加える</div>}
-          {def.packBonus && <div className="card-text">{packText(def.packBonus, def.name)}</div>}
+          {def.packBonus && <div className="card-text">{packText(def.packBonus, cardName(def))}</div>}
           {def.defeatExp > 0 && <div className="card-text">戦闘中：撃破すると経験値+{def.defeatExp}</div>}
           {def.ignoreHalfResist && <div className="card-text">戦闘中：この英雄の攻撃は、敵の「半減」の耐性を受けない</div>}
           {def.nextLevelExp !== null && <div className="card-note">次のLvまで 経験値{def.nextLevelExp}</div>}

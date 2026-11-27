@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { findOption, reasonText, reg, useStore } from "../store.js";
-import { resistText, touchText } from "../text.js";
+import { cardName, resistText, touchText } from "../text.js";
 
 /** 今の段階の説明と、今できる操作のボタン */
 export function ActionBar() {
@@ -61,7 +61,7 @@ export function ActionBar() {
         step === "village"
           ? "集落を訪れています"
           : step === "battle" && target
-            ? `「${reg.get(target.defId).name}」と戦っています`
+            ? `「${cardName(reg.get(target.defId))}」と戦っています`
             : step === "afterBattle"
               ? "敵を撃破しました"
               : "行動を選んでいます";
@@ -130,7 +130,7 @@ export function ActionBar() {
       <div className="info-row">
         {tdef && (
           <span>
-            相手：{tdef.name}（生命力 {p?.hp}
+            相手：{cardName(tdef)}（生命力 {p?.hp}
             {resist && `、${resist}`}）
           </span>
         )}
@@ -171,7 +171,7 @@ export function ActionBar() {
         {missWarning && p && p.prevDamage + p.total < p.hp && (
           <MissWarning
             boss={!!tdef?.isBoss}
-            name={tdef?.name ?? "敵"}
+            name={tdef ? cardName(tdef) : "敵"}
             total={p.total}
             remaining={p.hp - p.prevDamage - p.total}
             onBack={() => setMissWarning(false)}

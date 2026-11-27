@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { nextStage } from "../progress.js";
 import { isRemote, reg, useStore } from "../store.js";
-import { resultReason } from "../text.js";
+import { cardName, resultReason, stageName } from "../text.js";
 import { ReviewPanel } from "./ReviewPanel.js";
 
 export function ResultOverlay() {
@@ -62,15 +62,15 @@ export function ResultOverlay() {
       <div className={`dialog panel result ${win ? "result-win" : "result-lose"}`} role="dialog" aria-modal="true">
         <h2 className="result-title">{win ? "勝利" : "敗北"}</h2>
         <p>
-          {stage.name}
-          {danger > 0 && `（危険度+${danger}）`}：{resultReason(result.reason, reg.enemy(stage.bossId).name)}
+          {stageName(stage)}
+          {danger > 0 && `（危険度+${danger}）`}：{resultReason(result.reason, cardName(reg.enemy(stage.bossId)))}
         </p>
         {newlyCleared?.stage && (
           <p className="result-unlock">
             {stage.tutorial
               ? "ステージ選択が解放されました！"
               : next
-                ? `次のステージ「${next.name}」が解放されました！`
+                ? `次のステージ「${stageName(next)}」が解放されました！`
                 : "すべてのステージをクリアしました！"}
           </p>
         )}

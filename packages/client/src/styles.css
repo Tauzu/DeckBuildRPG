@@ -1838,6 +1838,32 @@ h3 {
   justify-content: center;
 }
 
+/* 感想・応援の入口（目立たせすぎない） */
+.title-links {
+  margin: 14px 0 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-size: 14px;
+}
+
+.title-links a {
+  color: var(--ink-soft);
+}
+
+.title-links a:hover,
+.title-links a:focus-visible {
+  color: var(--accent);
+}
+
+.title-privacy {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--ink-soft);
+  opacity: 0.8;
+}
+
 /* ---------- カードの詳細（長押し・右クリック） ---------- */
 .card-detail {
   z-index: 30;
@@ -3143,4 +3169,16 @@ textarea {
 .played-plus {
   color: var(--ink-soft);
   font-weight: bold;
+}
+
+/* 言語の切り替え */
+.title-lang {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.title-lang select {
+  font: inherit;
 }

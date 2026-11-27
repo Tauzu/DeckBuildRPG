@@ -1,5 +1,6 @@
 // ゲーム後の振り返り：ゲーム中に届いた更新から、手番ごとの流れと出来事を集める
 import type { CardRegistry, GameUpdate } from "@deckbuild/core";
+import { cardName } from "./text.js";
 
 /** 手番のはじめ（と終わり）の様子 */
 export interface TurnPoint {
@@ -105,11 +106,11 @@ export function highlights(r: Review, reg: CardRegistry, name: (playerId: string
   const out: string[] = [];
   const who = (id: string) => (multi ? `${name(id)}が` : "");
   const worst = r.hits.reduce<Review["hits"][number] | null>((m, h) => (!m || h.damage > m.damage ? h : m), null);
-  if (worst) out.push(`集落が一番傷ついたのは手番${worst.turn}：${reg.get(worst.defId).name}が着いて ${worst.damage} ダメージ`);
+  if (worst) out.push(`集落が一番傷ついたのは手番${worst.turn}：${cardName(reg.get(worst.defId))}が着いて ${worst.damage} ダメージ`);
   else out.push("集落は一度も傷つかなかった");
-  if (r.bestHit) out.push(`最大の一撃は手番${r.bestHit.turn}：${who(r.bestHit.playerId)}${reg.get(r.bestHit.defId).name}に ${r.bestHit.damage} ダメージ`);
+  if (r.bestHit) out.push(`最大の一撃は手番${r.bestHit.turn}：${who(r.bestHit.playerId)}${cardName(reg.get(r.bestHit.defId))}に ${r.bestHit.damage} ダメージ`);
   const firstKill = r.kills[0];
-  if (firstKill) out.push(`最初の撃破は手番${firstKill.turn}：${who(firstKill.playerId)}${reg.get(firstKill.defId).name}`);
+  if (firstKill) out.push(`最初の撃破は手番${firstKill.turn}：${who(firstKill.playerId)}${cardName(reg.get(firstKill.defId))}`);
   if (r.curses.length > 0) out.push(`呪いを ${r.curses.length} 枚受けた`);
   return out;
 }
