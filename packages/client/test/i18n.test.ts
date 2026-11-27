@@ -29,7 +29,8 @@ describe("言語の選び方", () => {
   it("ブラウザの言語は、翻訳がそろった言語だけから選ぶ", () => {
     expect(detectLang("", null, ["en-US"], ["ja"])).toBe("ja");
     expect(detectLang("", null, ["fr-FR", "en-US"], ["ja", "en"])).toBe("en");
-    expect(detectLang("?lang=xx", "zz", ["de"], ["ja", "en"])).toBe("ja");
+    expect(detectLang("?lang=xx", "zz", ["de"], ["ja", "en"])).toBe("en");
+    expect(detectLang("", null, ["ko-KR"], ["ja"])).toBe("ja");
   });
 });
 

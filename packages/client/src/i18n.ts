@@ -22,7 +22,7 @@ export const LANGS: { id: Lang; label: string }[] = [
  * ブラウザの言語から自動で選ぶ言語。翻訳が全部そろった言語だけを入れる。
  * まだの言語も、アドレスに ?lang=en を付けるか、選んで保存すれば見られる
  */
-export const RELEASED_LANGS: Lang[] = ["ja"];
+export const RELEASED_LANGS: Lang[] = ["ja", "en"];
 
 const LANG_KEY = "deckbuild.lang.v1";
 
@@ -30,7 +30,7 @@ function isLang(v: unknown): v is Lang {
   return v === "ja" || v === "en";
 }
 
-/** 使う言語を決める：アドレスの指定 → 保存した選択 → ブラウザの言語 → 日本語 */
+/** 使う言語を決める：アドレスの指定 → 保存した選択 → ブラウザの言語 → 英語（日本語・英語以外の人は英語のほうが読める） */
 export function detectLang(search: string, saved: string | null, browser: readonly string[], released: readonly Lang[] = RELEASED_LANGS): Lang {
   const q = new URLSearchParams(search).get("lang");
   if (isLang(q)) return q;
@@ -39,7 +39,7 @@ export function detectLang(search: string, saved: string | null, browser: readon
     const base = b.toLowerCase().split("-")[0];
     if (isLang(base) && released.includes(base)) return base;
   }
-  return "ja";
+  return released.includes("en") ? "en" : "ja";
 }
 
 function initialLang(): Lang {
