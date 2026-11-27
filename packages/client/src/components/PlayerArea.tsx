@@ -158,7 +158,9 @@ function FieldCard({ card }: { card: CardInstance }) {
   const me = view.players.find((p) => p.id === view.viewerId);
   const weaponDefId = weaponOf ? me?.field.find((c) => c.uid === weaponOf)?.defId : undefined;
   const badge = weaponDefId ? (
-    <span className="equip-badge">{t("player.equipped", { name: cardName(reg.get(weaponDefId)) })}</span>
+    <span className="equip-badge" title={t("player.equipped", { name: cardName(reg.get(weaponDefId)) })}>
+      {t("player.equipped", { name: cardName(reg.get(weaponDefId)) })}
+    </span>
   ) : equippedTo ? (
     <span className="equip-badge">{t("player.equippedBadge")}</span>
   ) : null;

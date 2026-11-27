@@ -49,6 +49,16 @@ body {
 body {
   font-size: 16px;
   line-height: 1.5;
+  overflow: hidden;
+}
+
+/* ページではなくゲームの一番外側をスクロールする。
+   itch.io の枠のようにページがスクロールしない場所でも、ゲームの中は動かせる */
+#root {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 button {
@@ -705,6 +715,7 @@ h3 {
 }
 
 .card-gold {
+  flex: none;
   color: var(--gold);
   font-weight: bold;
 }
@@ -713,7 +724,12 @@ h3 {
   color: #ffe2a6;
 }
 
+/* 装備の印は1行に収める（折り返すと隣の金価値まで押しつぶす）。入りきらない名前は「…」にし、指すと全文が出る */
 .equip-badge {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 10px;
   background: var(--accent);
   color: #000;
@@ -1409,6 +1425,10 @@ h3 {
 .card-body {
   min-height: 0;
   overflow: hidden;
+  /* 収まらない文は行の途中で切らず、下をぼかす（全文はカードを押して見る）。
+     本文が短いときは下が空いているので、ぼかしは見えない */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
 }
 
 .card-small .card-text,
@@ -1531,8 +1551,30 @@ h3 {
   padding-left: 10px;
 }
 
+/* 場と手札は1段に並べ、入りきらない分は横にスクロールする
+   （折り返すと欄が高くなり、村の在庫や戦闘の欄を隠してしまう） */
 .player-dock .zone-cards {
   gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.player-dock .zone-cards > * {
+  flex: none;
+}
+
+/* 横スクロールの欄では、上に出す説明が切れるので、カードの下の方に重ねて出す */
+.player-dock .card-tip {
+  /* カードの下に「昇格」などのボタンが付くことがあるので、下からではなく上から位置を決める */
+  bottom: auto;
+  top: 96px;
+  max-width: calc(100% - 8px);
+}
+
+.player-dock .card-tip::after {
+  display: none;
 }
 
 @media (max-width: 900px), (max-height: 700px) {
