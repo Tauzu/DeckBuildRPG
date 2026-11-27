@@ -36,17 +36,15 @@ Compress-Archive -Path "packages/client/dist-itch/*" -DestinationPath "packages/
 | Release status | **In development**（まだ手を入れ続けるので） |
 | Pricing | **$0 or donate**（無料で遊べて、投げ銭もできる）。Suggested donation は $3 |
 | Uploads | `foodie-quest-itch.zip` を上げ、**This file will be played in the browser** にチェック |
-| Embed options | Viewport dimensions：1280 × 720。**Mobile friendly** にチェック（Orientation：Landscape）。**Fullscreen button** にチェック。**Automatically start on page load** は外す（音が急に鳴らないように） |
+| Embed options | Viewport dimensions：1280 × 800（720 だと手札の欄が進軍ルートに重なりやすい）。**Mobile friendly** にチェック（Orientation：Landscape）。**Fullscreen button** にチェック。**Automatically start on page load** は外す（音が急に鳴らないように） |
 | Frame options | **Click to launch in fullscreen** はスマートフォンでだけ使うなら外したままでよい |
 | Genre | Card Game |
 | Tags | `deckbuilding`, `card-game`, `roguelite`, `co-op`, `multiplayer`, `pixel-art`, `fantasy`, `turn-based`, `strategy`, `singleplayer` |
 | AI generation disclosure | 使った場合は正直に書く（コードに AI の手伝いを受けたなど） |
-| Languages | English, Japanese |
-| Inputs | Mouse, Touchscreen |
-| Accessibility | Subtitles なし。**Configurable controls** なし。ここは当てはまるものだけ |
-| Links | https://foodie-quest.onrender.com （協力プレイの招待はこちら）、https://ko-fi.com/tauzu |
 | Community | **Comments** を有効にする（感想を集めるため） |
 | Visibility | まず **Draft** で保存 → 自分で遊んで確かめてから **Public** |
+
+- 言語（Languages）・操作（Inputs）・リンク（Links）を入れる欄は、2026-11 時点の作品の作成画面には見当たらなかった（ユーザーが確認）。言語は説明文の FEATURES に、Render と Ko-fi へのリンクは説明文の最後に書いてあるので、それで足りる。
 
 ### 作品ページの説明（Description）
 
@@ -76,6 +74,7 @@ FEATURES
 Co-op tip: to play together, open the game at https://foodie-quest.onrender.com and share the invite link. (The free server may take about a minute to wake up.)
 
 This is a solo indie project and still in development. Feedback is very welcome in the comments!
+If you enjoy it, you can support development here: https://ko-fi.com/tauzu
 
 ―――
 日本語：腹がへっては戦はできぬ。食料で英雄を呼び集め、魔竜の軍勢から村を守る、協力型デッキビルドRPG。1人でも、最大4人の協力プレイでも遊べます。
@@ -83,13 +82,18 @@ This is a solo indie project and still in development. Feedback is very welcome 
 
 ### 画像（itch.io に上げるもの）
 
-| 種類 | 大きさ | 中身 |
-|---|---|---|
-| Cover image | 630 × 500（推奨） | タイトルロゴ＋村と魔竜。`og-default.png` を切り抜いてもよい |
-| Screenshots | 3〜5枚（横長） | ①タイトル画面（英語）②進軍ルートに敵が並んだ場面 ③戦闘で「You can defeat it!」が出た場面 ④ボス登場（背景が赤い）⑤協力プレイのロビー |
-| GIF（あれば） | 横 640 前後 | 食料→英雄を出して撃破する流れ（10秒以内） |
+用意したもの（`docs/itch/`）。手元のゲームを英語で開き、画面なしの Chrome で自動で遊ばせて撮った（2026-11-27）。
 
-撮るときは、`https://foodie-quest.onrender.com/?lang=en` を開き、ブラウザの幅を 1280 前後にする。Windows なら「Win + Shift + S」で切り取れる。GIF は ScreenToGif（無料）が手軽。
+| 種類 | ファイル | 中身 |
+|---|---|---|
+| Cover image | `cover.png`（630 × 500） | タイトルの背景（夜空・月・山）に、肉と剣の絵とロゴ、「Co-op deckbuilder RPG · 1–4 players · Play in browser」 |
+| Screenshot 1 | `screenshot-1-title.png`（1280 × 720） | 英語のタイトル画面 |
+| Screenshot 2 | `screenshot-2-battle.png`（1280 × 960） | 進軍ルートに敵が5体、戦闘で「You can defeat it!」が出た場面 |
+| Screenshot 3 | `screenshot-3-boss.png`（1280 × 960） | ボス（Bone General）が現れ、進軍ルートの背景が赤くなった場面 |
+| Screenshot 4 | `screenshot-4-stages.png`（1280 × 960） | ステージ選択と危険度 |
+
+- itch.io の作品の編集画面で、**Cover image** に `cover.png`、**Screenshots** に4枚を順に上げる
+- 協力プレイのロビーや GIF（食料→英雄を出して撃破する流れ）はまだない。あると協力プレイが伝わりやすい。GIF は ScreenToGif（無料）が手軽
 
 ## 3. 公開したあと
 
