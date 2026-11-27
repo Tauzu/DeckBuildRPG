@@ -93,7 +93,9 @@ If you enjoy it, you can support development here: https://ko-fi.com/tauzu
 | Screenshot 4 | `screenshot-4-stages.png`（1280 × 960） | ステージ選択と危険度 |
 | GIF | `gameplay.gif`（960 × 600、約14秒、1.2MB） | 敵を選ぶ → 食料と英雄を出す → 武器を持たせる → 倒して経験値が入る。押した場所に黄色い丸が出る |
 
-- itch.io の作品の編集画面で、**Cover image** に `cover.png`、**Screenshots** に `gameplay.gif` を最初に、続けて4枚を上げる（GIF はページ上で動く）
+- itch.io の作品の編集画面で、**Cover image** に `cover.png`、**Screenshots** に静止画4枚を上げる
+- `gameplay.gif` は **Description** のいちばん上に画像として入れる（右の列のスクリーンショットは小さいので、GIF は説明文で大きく見せる。右の列には入れない）
+- ページの見た目（Edit theme）の Screenshots の LAYOUT は **Sidebar** にする。埋め込みが 1280 と広いので、Auto だと Hidden になり、スクリーンショットが出ない
 - Reddit と X の告知には `gameplay.gif` を付ける
 - 協力プレイのロビーの画面はまだない。あると協力プレイが伝わりやすい
 
