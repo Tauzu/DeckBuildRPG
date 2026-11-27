@@ -91,9 +91,11 @@ If you enjoy it, you can support development here: https://ko-fi.com/tauzu
 | Screenshot 2 | `screenshot-2-battle.png`（1280 × 960） | 進軍ルートに敵が5体、戦闘で「You can defeat it!」が出た場面 |
 | Screenshot 3 | `screenshot-3-boss.png`（1280 × 960） | ボス（Bone General）が現れ、進軍ルートの背景が赤くなった場面 |
 | Screenshot 4 | `screenshot-4-stages.png`（1280 × 960） | ステージ選択と危険度 |
+| GIF | `gameplay.gif`（960 × 600、約14秒、1.2MB） | 敵を選ぶ → 食料と英雄を出す → 武器を持たせる → 倒して経験値が入る。押した場所に黄色い丸が出る |
 
-- itch.io の作品の編集画面で、**Cover image** に `cover.png`、**Screenshots** に4枚を順に上げる
-- 協力プレイのロビーや GIF（食料→英雄を出して撃破する流れ）はまだない。あると協力プレイが伝わりやすい。GIF は ScreenToGif（無料）が手軽
+- itch.io の作品の編集画面で、**Cover image** に `cover.png`、**Screenshots** に `gameplay.gif` を最初に、続けて4枚を上げる（GIF はページ上で動く）
+- Reddit と X の告知には `gameplay.gif` を付ける
+- 協力プレイのロビーの画面はまだない。あると協力プレイが伝わりやすい
 
 ## 3. 公開したあと
 
