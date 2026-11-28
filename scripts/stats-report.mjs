@@ -49,11 +49,12 @@ export function summarize(hits) {
   return s;
 }
 
-/** まとめを Markdown にする */
-export function toMarkdown(day, s, refs) {
+/** まとめを Markdown にする。total は stats/total の結果（取れなければ null）、notes は書き添えること */
+export function toMarkdown(day, s, refs, total = null, notes = []) {
   const lines = [
     `### ${day}（日本時間）`,
     "",
+    ...(total ? [`全体：${total.total} 人（うち出来事 ${total.total_events}）`, ""] : []),
     "| 開いた | 遊び始めた（1人 / 協力） | 最後まで遊んだ（勝ち / 負け） |",
     "|---|---|---|",
     `| ${s.open} | ${s.start}（${s.startSolo} / ${s.startOnline}） | ${s.finish}（${s.win} / ${s.lose}） |`,
@@ -66,6 +67,7 @@ export function toMarkdown(day, s, refs) {
   if (refs && refs.length > 0) {
     lines.push("", "どこから来たか：" + refs.map((r) => `${r.name || "（直接）"} ${r.count}`).join("、"));
   }
+  for (const n of notes) lines.push("", `※ ${n}`);
   lines.push("", "数は GoatCounter の「人数」（同じ人の重複は数えない）。");
   return lines.join("\n");
 }
@@ -74,7 +76,11 @@ async function api(path, params, token) {
   const url = new URL(`${SITE}/api/v0/${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } });
-  if (!res.ok) throw new Error(`${path}: HTTP ${res.status} ${await res.text()}`);
+  if (!res.ok) {
+    const err = new Error(`${path}: HTTP ${res.status} ${await res.text()}`);
+    err.status = res.status;
+    throw err;
+  }
   return res.json();
 }
 
@@ -83,17 +89,32 @@ async function main() {
   if (!token) throw new Error("GOATCOUNTER_TOKEN がありません");
   const day = process.argv[2] ?? yesterdayJst();
   const { start, end } = jstDayRange(day);
+  const notes = [];
+  // 全体の人数（ページと出来事の合計）
+  let total = null;
+  try {
+    total = await api("stats/total", { start, end }, token);
+  } catch (e) {
+    if (e.status !== 404) throw e;
+    notes.push("全体の人数：GoatCounter が not found を返した（この日のデータがないと思われる）");
+  }
   // 出来事のパスは数十種類なので、1回（最大100件）で足りる
-  const r = await api("stats/hits", { start, end, limit: 100 }, token);
-  const hits = r.hits ?? [];
-  if (r.more) console.error("100件を超えたので、残りは数えていない");
+  let hits = [];
+  try {
+    const r = await api("stats/hits", { start, end, limit: 100 }, token);
+    hits = r.hits ?? [];
+    if (r.more) notes.push("100件を超えたので、残りは数えていない");
+  } catch (e) {
+    if (e.status !== 404) throw e;
+    notes.push("ページ・出来事ごとの数：GoatCounter が not found を返した（この日のデータがないと思われる）");
+  }
   let refs = [];
   try {
     refs = (await api("stats/toprefs", { start, end, limit: 10 }, token)).stats ?? [];
   } catch (e) {
-    console.error("参照元は取れなかった：", e.message);
+    notes.push(`どこから来たか：取れなかった（${e.message}）`);
   }
-  console.log(toMarkdown(day, summarize(hits), refs));
+  console.log(toMarkdown(day, summarize(hits), refs, total, notes));
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
