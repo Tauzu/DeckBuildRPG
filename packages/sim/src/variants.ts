@@ -187,6 +187,17 @@ export const VARIANTS: Record<string, (d: Data) => void> = {
   round: (d) => {
     d.setup.marchTiming = "round";
   },
+  /** 敵の進軍を手番ごとに（その手番で撃破すれば進軍しない） */
+  perTurn: (d) => {
+    d.setup.marchTiming = "turn";
+  },
+  /** 3・4人の敵の山札を3割減らす（ボスが早く出て、ゲームが短くなる） */
+  fewer34: (d) => {
+    for (const [n, pc] of allCounts(d)) {
+      if (n !== "3" && n !== "4") continue;
+      for (const id of Object.keys(pc.enemies)) pc.enemies[id] = Math.max(1, Math.round(pc.enemies[id] * 0.7));
+    }
+  },
   /** ラウンドの全員が撃破したときだけ進軍しない */
   skipAll: (d) => {
     d.setup.marchSkip = "all";
