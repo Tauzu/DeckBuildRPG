@@ -136,19 +136,43 @@ It's still in development, so I'd love to hear what's confusing or what feels of
 
 ### Reddit：r/playmygame
 
+決まり（2026-11-28 にユーザーが保存したページから読んだ。変わることがあるので投稿前に見直す）：
+
+- 0：今すぐ無料で遊べること → 無料のブラウザ版なので OK
+- 1：ゲームの説明と、**自分が開発に関わっていること**を書く（画像や動画だけは不可）
+- 2：ゲームへの**直接のリンク**を、ほかのリンク（SNS など）より先に書く
+- 3：ゲームについて嘘を書かない（例：AI で作った絵を「手描き」と書くのは不可）。言い切りは避ける
+- 5：ちゃんと遊べること・他人の作品でないこと
+- 6：**同じゲームの投稿は月に1回まで**
+- karma・アカウントの古さの条件は、このページには書かれていなかった
+
+投稿の形：**Images & Video** で `gameplay-en.gif` を上げ、本文（Body）に下の文を貼る。本文の最初の行がゲームへのリンク。
+
 タイトル：
 
 ```
-FOODIE QUEST – a co-op deckbuilder RPG where heroes need food to fight. Looking for feedback on the tutorial and balance
+FOODIE QUEST – a free browser co-op deckbuilder where your heroes need food to fight (solo or 1–4 players). Looking for feedback!
 ```
 
-本文（上の r/WebGames と同じ本文に、聞きたいことを足す）：
+本文：
 
 ```
+Play free in your browser: https://tauzu.itch.io/foodie-quest
+
+Hi! I'm the solo developer of FOODIE QUEST, a small deckbuilding RPG.
+
+Monsters march toward your village every turn. You either visit the village to buy cards and level up heroes, or fight an enemy on the march route. The twist: only one hero fights for free, and every extra hero needs food. Defeated monsters become loot in your deck that you can spend as gold.
+
+• Solo, or online co-op for up to 4 players (share a room link, no account needed)
+• 6 stages with different bosses, 5 Danger levels, achievements and a card collection
+• English / Japanese
+
 Things I'd especially like feedback on:
 1. Did the tutorial make the rules clear?
 2. Did the food → hero limit feel interesting or just restrictive?
 3. Which stage did you stop at, and why?
+
+Thanks for playing!
 ```
 
 ### Reddit：r/deckbuildinggames
