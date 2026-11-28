@@ -157,6 +157,7 @@ export const stagesFileSchema = z
           villageHp: positive,
           bossHp: positive,
           enemies: z.record(z.string(), positive),
+          rankTurns: z.object({ S: positive, A: positive }).optional(),
         }),
       ),
     }),

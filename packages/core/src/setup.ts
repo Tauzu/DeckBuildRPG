@@ -58,6 +58,7 @@ export function createGame(params: CreateGameParams, reg: CardRegistry): EngineR
       levelUpAfterBattle: setup.levelUpAfterBattle ?? false,
       marchTiming: setup.marchTiming ?? "turn",
       marchSkip: setup.marchSkip ?? "any",
+      ...(pc.rankTurns ? { rankTurns: { ...pc.rankTurns } } : {}),
     },
     players: [],
     currentPlayer: 0,

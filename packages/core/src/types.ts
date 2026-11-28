@@ -134,6 +134,13 @@ export interface PlayerCountSetup {
   villageHp: number;
   bossHp: number;
   enemies: Record<CardId, number>;
+  /** 評価の目安：勝ったときの1人あたりの手番数が S 以下なら S、A 以下なら A、それより多ければ B */
+  rankTurns?: RankTurns;
+}
+
+export interface RankTurns {
+  S: number;
+  A: number;
 }
 
 export interface SetupData {
@@ -241,6 +248,8 @@ export interface GameConfig {
   levelUpAfterBattle: boolean;
   marchTiming: MarchTiming;
   marchSkip: MarchSkip;
+  /** 評価の目安（1人あたりの手番数）。ないときは集落の耐久値で評価する */
+  rankTurns?: RankTurns | undefined;
 }
 
 export type MarchTiming = "turn" | "round";

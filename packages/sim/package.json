@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "sim": "tsx src/cli.ts",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "sim:par": "tsx src/par.ts"
   },
   "dependencies": {
     "@deckbuild/core": "*"

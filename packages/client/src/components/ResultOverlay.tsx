@@ -97,8 +97,15 @@ export function ResultOverlay() {
           {t("result.rank")} <strong>{result.rank}</strong>
         </div>
         <div className="result-sub">
-          {t("result.sub", { hp: result.villageHp, max: update.view.config.villageHp, turns: update.view.turnCount })}
+          {t("result.sub", {
+            hp: result.villageHp,
+            max: update.view.config.villageHp,
+            turns: Math.ceil(update.view.turnCount / Math.max(1, update.view.players.length)),
+          })}
         </div>
+        {update.view.config.rankTurns && (
+          <div className="result-sub">{t("result.par", { s: update.view.config.rankTurns.S, a: update.view.config.rankTurns.A })}</div>
+        )}
         <table className="result-table">
           <thead>
             <tr>

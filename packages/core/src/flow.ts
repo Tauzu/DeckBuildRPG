@@ -168,12 +168,28 @@ export function endGame(ctx: Ctx, outcome: "win" | "lose", reason: GameResult["r
 
 const TITLES = ["英雄王", "聖騎士", "勇者", "見習い"];
 
+/** 1人あたりの手番数（全員の手番の合計を人数で割り、切り上げ） */
+export function turnsPerPlayer(s: GameState): number {
+  return Math.ceil(s.turnCount / Math.max(1, s.players.length));
+}
+
+/**
+ * 勝ったときの評価。目安（rankTurns）があれば速さで決め、集落の耐久値が半分を切っていたら1つ下げる。
+ * 目安がないステージは、集落の耐久値で決める（8割以上 S、5割以上 A）
+ */
+export function winRank(s: GameState): Rank {
+  const ratio = s.villageHp / s.config.villageHp;
+  const par = s.config.rankTurns;
+  if (!par) return ratio >= 0.8 ? "S" : ratio >= 0.5 ? "A" : "B";
+  const t = turnsPerPlayer(s);
+  const order: Rank[] = ["S", "A", "B"];
+  let i = t <= par.S ? 0 : t <= par.A ? 1 : 2;
+  if (ratio < 0.5) i = Math.min(2, i + 1);
+  return order[i]!;
+}
+
 export function computeResult(s: GameState, outcome: "win" | "lose", reason: GameResult["reason"]): GameResult {
-  let rank: Rank = "C";
-  if (outcome === "win") {
-    const ratio = s.villageHp / s.config.villageHp;
-    rank = ratio >= 0.8 ? "S" : ratio >= 0.5 ? "A" : "B";
-  }
+  const rank = outcome === "win" ? winRank(s) : "C";
   const mvp: string[] = [];
   const titles: Record<string, string> = {};
   if (s.players.length >= 2) {
