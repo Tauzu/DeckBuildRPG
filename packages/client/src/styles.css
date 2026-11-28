@@ -878,6 +878,14 @@ h3 {
   gap: 5px;
 }
 
+/* 英雄・食料・武器のまとまりを横に並べ、入らなければ次の行へ */
+.stock-rows {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  column-gap: 18px;
+}
+
 .log {
   max-height: 360px;
 }
@@ -1529,14 +1537,10 @@ h3 {
   height: 64px;
 }
 
-/* 場と手札を画面の下に固定する */
+/* 場と手札：進軍ルートのすぐ下に置く（画面の下には貼り付けない。貼り付けると在庫や戦闘の欄を隠す） */
 .player-dock {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   align-items: start;
-  box-shadow: 0 -4px 14px rgb(0 0 0 / 0.35);
   padding-top: 6px;
   padding-bottom: 6px;
 }

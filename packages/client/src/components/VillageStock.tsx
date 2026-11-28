@@ -47,9 +47,12 @@ export function VillageStock() {
     <section className="stock panel">
       <PlayedCards />
       <h2>{t("stock.title")}</h2>
-      <div className="stock-row">{heroes.map(renderStack)}</div>
-      <div className="stock-row">{foods.map(renderStack)}</div>
-      <div className="stock-row">{weapons.map(renderStack)}</div>
+      {/* 種類ごとのまとまりは保ち、横に入るなら並べる（縦に長くしない） */}
+      <div className="stock-rows">
+        <div className="stock-row">{heroes.map(renderStack)}</div>
+        <div className="stock-row">{foods.map(renderStack)}</div>
+        <div className="stock-row">{weapons.map(renderStack)}</div>
+      </div>
     </section>
   );
 }

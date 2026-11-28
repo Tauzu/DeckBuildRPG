@@ -260,11 +260,10 @@ export function GameScreen() {
         <TutorialHint />
       </div>
       <RouteView />
+      {/* 場と手札は進軍ルートのすぐ下に置く（画面の下に貼り付けると、在庫や戦闘の欄を隠してしまう） */}
+      <PlayerArea />
       {phone ? (
-        <>
-          <PlayerArea />
-          <MobilePanels />
-        </>
+        <MobilePanels />
       ) : (
         <div className="game-middle">
           {update.view.step.kind === "battle" || update.view.step.kind === "afterBattle" ? <BattlePanel /> : <VillageStock />}
@@ -274,7 +273,6 @@ export function GameScreen() {
           </div>
         </div>
       )}
-      {!phone && <PlayerArea />}
       <PendingDialog />
       <Effects />
       <StampLayer />
