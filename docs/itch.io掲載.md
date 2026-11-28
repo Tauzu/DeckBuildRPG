@@ -91,12 +91,13 @@ If you enjoy it, you can support development here: https://ko-fi.com/tauzu
 | Screenshot 2 | `screenshot-2-battle.png`（1280 × 960） | 進軍ルートに敵が5体、戦闘で「You can defeat it!」が出た場面 |
 | Screenshot 3 | `screenshot-3-boss.png`（1280 × 960） | ボス（Bone General）が現れ、進軍ルートの背景が赤くなった場面 |
 | Screenshot 4 | `screenshot-4-stages.png`（1280 × 960） | ステージ選択と危険度 |
-| GIF | `gameplay.gif`（960 × 600、約14秒、1.2MB） | 敵を選ぶ → 食料と英雄を出す → 武器を持たせる → 倒して経験値が入る。押した場所に黄色い丸が出る |
+| GIF（英語） | `gameplay-en.gif`（960 × 750、約22秒、2.5MB） | チュートリアルのステージを最後まで：敵を選ぶ → 食料と英雄を出す → 予想ダメージのゲージが伸びて「You can defeat it!」→ 倒す → 「The Boss Appears!」→ ボスを倒して勝利・S評価・実績。押した場所に黄色い丸が出る |
+| GIF（日本語） | `gameplay-ja.gif`（960 × 750、約22秒、1.9MB） | 英語と同じ流れ（同じシードで遊ばせた） |
 
 - itch.io の作品の編集画面で、**Cover image** に `cover.png`、**Screenshots** に静止画4枚を上げる
-- `gameplay.gif` は **Description** のいちばん上に画像として入れる（右の列のスクリーンショットは小さいので、GIF は説明文で大きく見せる。右の列には入れない）
+- `gameplay-en.gif` は **Description** のいちばん上に画像として入れる（右の列のスクリーンショットは小さいので、GIF は説明文で大きく見せる。右の列には入れない）
 - ページの見た目（Edit theme）の Screenshots の LAYOUT は **Sidebar** にする。埋め込みが 1280 と広いので、Auto だと Hidden になり、スクリーンショットが出ない
-- Reddit と X の告知には `gameplay.gif` を付ける
+- Reddit と X（英語）の告知には `gameplay-en.gif`、X（日本語）には `gameplay-ja.gif` を付ける
 - 協力プレイのロビーの画面はまだない。あると協力プレイが伝わりやすい
 
 ## 3. 公開したあと
