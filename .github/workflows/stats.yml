@@ -1,0 +1,48 @@
+# 毎朝9時（日本時間）に、前日の GoatCounter の数を Issue「毎日の数」にコメントする
+# 必要なもの：リポジトリの Secrets に GOATCOUNTER_TOKEN（GoatCounter の API の鍵。読むだけの権限でよい）
+name: daily-stats
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # UTC 0時 = 日本時間 9時
+  workflow_dispatch:
+    inputs:
+      day:
+        description: "集める日（YYYY-MM-DD、日本時間）。空なら前日"
+        required: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Collect stats
+        env:
+          GOATCOUNTER_TOKEN: ${{ secrets.GOATCOUNTER_TOKEN }}
+          DAY: ${{ github.event.inputs.day }}
+        run: |
+          if [ -z "$GOATCOUNTER_TOKEN" ]; then
+            echo "::warning::GOATCOUNTER_TOKEN が登録されていないので、数を集めない"
+            exit 0
+          fi
+          node scripts/stats-report.mjs $DAY > report.md
+          cat report.md
+      - name: Comment on the issue
+        if: hashFiles('report.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="毎日の数（GoatCounter）"
+          NUM=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n 1)
+          if [ -z "$NUM" ]; then
+            URL=$(gh issue create --title "$TITLE" --body "毎朝9時（日本時間）に、前日の数をこの Issue にコメントします（.github/workflows/stats.yml）。")
+            NUM=${URL##*/}
+          fi
+          gh issue comment "$NUM" --body-file report.md
